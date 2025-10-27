@@ -10,7 +10,7 @@ interface ConsultationModalProps {
 
 // !!! ЗАМЕНИТЕ НА АКТУАЛЬНЫЙ URL ВАШЕЙ РАЗВЕРНУТОЙ ФУНКЦИИ VERCEL !!!
 // Пример: 'https://your-project-name.vercel.app/api/sendEmail'
-const VERCEL_API_URL = 'http://localhost:3000/api/sendEmail'; // Временно используем localhost для разработки
+const VERCEL_API_URL = 'https://buhassistant.vercel.app/api/sendEmail'; // Временно используем localhost для разработки
 
 export default function ConsultationModal({ visible, onClose }: ConsultationModalProps) {
   const [name, setName] = useState('');
