@@ -40,7 +40,7 @@ async function handler(request: VercelRequest, response: VercelResponse) {
 
   try {
     const { data, error } = await resend.emails.send({
-      from: `Консультация <onboarding@${process.env.RESEND_DOMAIN}>`, // Замените на ваш подтвержденный домен в Resend
+      from: `Консультация <onboarding@resend.dev>`, // Замените на ваш подтвержденный домен в Resend
       to: 'dmitrjialekseev16@gmail.com', 
       subject: 'Новая заявка на консультацию с BuhAssistant',
       text: emailContent,
