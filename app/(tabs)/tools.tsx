@@ -1,111 +1,157 @@
-import React, { useState } from "react";
-import { View, Text, TouchableOpacity, Modal, TextInput, StyleSheet } from "react-native";
+import React, { useState } from 'react';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity } from 'react-native';
+import EsvCalculatorModal from '../../components/EsvCalculatorModal';
+import SingleTaxGroup1Modal from '../../components/SingleTaxGroup1Modal';
+import SingleTaxGroup2Modal from '../../components/SingleTaxGroup2Modal';
+import SingleTaxGroup3Modal from '../../components/SingleTaxGroup3Modal';
+import PdfoCalculatorModal from '../../components/PdfoCalculatorModal';
+import MilitaryTaxModal from '../../components/MilitaryTaxModal';
+import NetSalaryModal from '../../components/NetSalaryModal';
+import TotalTaxLoadModal from '../../components/TotalTaxLoadModal';
+
+const tools = [
+  'ЄСВ для ФОП',
+  'Єдиний податок 1 группа',
+  'Єдиний податок 2 группа',
+  'Єдиний податок 3 группа',
+  'ПДФО',
+  'Військовий збір',
+  'Чиста зарплата',
+
+];
 
 export default function ToolsScreen() {
-  const [visible, setVisible] = useState(false);
-  const [minSalary, setMinSalary] = useState("7100");
-  const [months, setMonths] = useState("1");
-  const [result, setResult] = useState<number | null>(null);
+  const [esvModalVisible, setEsvModalVisible] = useState(false);
+  const [singleTaxG1ModalVisible, setSingleTaxG1ModalVisible] = useState(false);
+  const [singleTaxG2ModalVisible, setSingleTaxG2ModalVisible] = useState(false);
+  const [singleTaxG3ModalVisible, setSingleTaxG3ModalVisible] = useState(false);
+  const [pdfoModalVisible, setPdfoModalVisible] = useState(false);
+  const [militaryTaxModalVisible, setMilitaryTaxModalVisible] = useState(false);
+  const [netSalaryModalVisible, setNetSalaryModalVisible] = useState(false);
+  const [totalTaxLoadModalVisible, setTotalTaxLoadModalVisible] = useState(false);
 
-  const calculateESV = () => {
-    const salary = parseFloat(minSalary);
-    const m = parseInt(months);
-    if (!isNaN(salary) && !isNaN(m)) {
-      setResult(salary * 0.22 * m);
-    } else {
-      setResult(null);
+  const handleTilePress = (toolName: string) => {
+    switch (toolName) {
+      case 'ЄСВ для ФОП':
+        setEsvModalVisible(true);
+        break;
+      case 'Єдиний податок 1 группа':
+        setSingleTaxG1ModalVisible(true);
+        break;
+      case 'Єдиний податок 2 группа':
+        setSingleTaxG2ModalVisible(true);
+        break;
+      case 'Єдиний податок 3 группа':
+        setSingleTaxG3ModalVisible(true);
+        break;
+      case 'ПДФО':
+        setPdfoModalVisible(true);
+        break;
+      case 'Військовий збір':
+        setMilitaryTaxModalVisible(true);
+        break;
+      case 'Чиста зарплата':
+        setNetSalaryModalVisible(true);
+        break;
+      case 'Загальний податковий тягар':
+        setTotalTaxLoadModalVisible(true);
+        break;
+      // Add other cases here for future calculators
+      default:
+        break;
     }
   };
 
   return (
     <View style={styles.container}>
-      {/* Кнопка калькулятора */}
-      <TouchableOpacity style={styles.tile} onPress={() => setVisible(true)}>
-        <Text style={styles.tileText}>ЄСВ для ФОП</Text>
-      </TouchableOpacity>
-
-      {/* Модалка */}
-      <Modal visible={visible} transparent animationType="slide">
-        <View style={styles.modalOverlay}>
-          <View style={styles.modalBox}>
-            <Text style={styles.title}>Калькулятор ЄСВ</Text>
-
-            <TextInput
-              style={styles.input}
-              keyboardType="numeric"
-              value={minSalary}
-              onChangeText={setMinSalary}
-              placeholder="Мінімальна зарплата"
-            />
-            <TextInput
-              style={styles.input}
-              keyboardType="numeric"
-              value={months}
-              onChangeText={setMonths}
-              placeholder="Кількість місяців"
-            />
-
-            <TouchableOpacity style={styles.button} onPress={calculateESV}>
-              <Text style={styles.buttonText}>Розрахувати</Text>
+      <View style={styles.header}>
+        <Text style={styles.headerText}>Інструменти</Text>
+      </View>
+      <ScrollView>
+        <View style={styles.tilesContainer}>
+          {tools.map((tool, index) => (
+            <TouchableOpacity 
+              key={index} 
+              style={styles.tile}
+              onPress={() => handleTilePress(tool)}
+            >
+              <Text style={styles.tileText}>{tool}</Text>
             </TouchableOpacity>
-
-            {result !== null && (
-              <Text style={styles.result}>Сума ЄСВ: {result.toFixed(2)} грн</Text>
-            )}
-
-            <TouchableOpacity onPress={() => setVisible(false)}>
-              <Text style={styles.close}>Закрити</Text>
-            </TouchableOpacity>
-          </View>
+          ))}
         </View>
-      </Modal>
+      </ScrollView>
+
+      <EsvCalculatorModal 
+        visible={esvModalVisible}
+        onClose={() => setEsvModalVisible(false)}
+      />
+
+      <SingleTaxGroup1Modal
+        visible={singleTaxG1ModalVisible}
+        onClose={() => setSingleTaxG1ModalVisible(false)}
+      />
+
+      <SingleTaxGroup2Modal
+        visible={singleTaxG2ModalVisible}
+        onClose={() => setSingleTaxG2ModalVisible(false)}
+      />
+
+      <SingleTaxGroup3Modal
+        visible={singleTaxG3ModalVisible}
+        onClose={() => setSingleTaxG3ModalVisible(false)}
+      />
+
+      <PdfoCalculatorModal
+        visible={pdfoModalVisible}
+        onClose={() => setPdfoModalVisible(false)}
+      />
+
+      <MilitaryTaxModal
+        visible={militaryTaxModalVisible}
+        onClose={() => setMilitaryTaxModalVisible(false)}
+      />
+
+      <NetSalaryModal
+        visible={netSalaryModalVisible}
+        onClose={() => setNetSalaryModalVisible(false)}
+      />
+
+      <TotalTaxLoadModal
+        visible={totalTaxLoadModalVisible}
+        onClose={() => setTotalTaxLoadModalVisible(false)}
+      />
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, padding: 20, backgroundColor: "#f8f9fa" },
+  container: {
+    flex: 1,
+    backgroundColor: '#1a1d21',
+  },
+  header: {
+    backgroundColor: '#00bfa5',
+    padding: 16,
+    alignItems: 'center',
+  },
+  headerText: {
+    color: '#fff',
+    fontSize: 20,
+    fontWeight: 'bold',
+  },
+  tilesContainer: {
+    padding: 20,
+  },
   tile: {
-    backgroundColor: "#007AFF",
+    backgroundColor: '#2c3e50',
     padding: 20,
     borderRadius: 12,
-    alignItems: "center",
-    marginBottom: 10,
+    alignItems: 'center',
+    marginBottom: 15,
   },
-  tileText: { color: "#fff", fontSize: 16, fontWeight: "600" },
-  modalOverlay: {
-    flex: 1,
-    backgroundColor: "rgba(0,0,0,0.3)",
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  modalBox: {
-    backgroundColor: "#fff",
-    width: "85%",
-    padding: 20,
-    borderRadius: 16,
-    elevation: 5,
-  },
-  title: { fontSize: 18, fontWeight: "bold", marginBottom: 10 },
-  input: {
-    borderWidth: 1,
-    borderColor: "#ccc",
-    borderRadius: 8,
-    padding: 10,
-    marginVertical: 5,
-  },
-  button: {
-    backgroundColor: "#007AFF",
-    padding: 12,
-    borderRadius: 8,
-    marginTop: 10,
-  },
-  buttonText: { color: "#fff", textAlign: "center", fontWeight: "600" },
-  result: { marginTop: 10, fontSize: 16, fontWeight: "500" },
-  close: {
-    textAlign: "center",
-    color: "#007AFF",
-    marginTop: 15,
+  tileText: {
+    color: '#ecf0f1',
     fontSize: 16,
+    fontWeight: '600',
   },
 });
