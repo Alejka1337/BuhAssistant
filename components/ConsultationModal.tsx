@@ -105,7 +105,7 @@ export default function ConsultationModal({ visible, onClose }: ConsultationModa
             placeholder="Ім'я*"
             value={name}
             onChangeText={setName}
-            placeholderTextColor="#888"
+            placeholderTextColor="#7f8c8d"
           />
           <TextInput
             style={styles.input}
@@ -113,19 +113,22 @@ export default function ConsultationModal({ visible, onClose }: ConsultationModa
             value={email}
             onChangeText={setEmail}
             keyboardType="email-address"
-            placeholderTextColor="#888"
+            placeholderTextColor="#7f8c8d"
           />
-          <TextInput
-            style={[styles.input, styles.messageInput]}
-            placeholder="Ваше повідомлення"
-            value={message}
-            onChangeText={setMessage}
-            multiline={true}
-            placeholderTextColor="#888"
-          />
-          <TouchableOpacity style={styles.micButton} onPress={recording ? stopRecording : startRecording}>
-            <FontAwesome name="microphone" size={24} color={isRecording ? 'red' : 'black'} />
-          </TouchableOpacity>
+          
+          <View style={styles.messageContainer}>
+            <TextInput
+              style={[styles.input, styles.messageInput]}
+              placeholder="Ваше повідомлення (або використайте голосовий ввід)"
+              value={message}
+              onChangeText={setMessage}
+              multiline={true}
+              placeholderTextColor="#7f8c8d"
+            />
+            <TouchableOpacity style={styles.micButton} onPress={recording ? stopRecording : startRecording}>
+              <FontAwesome name="microphone" size={24} color={isRecording ? '#e74c3c' : '#00bfa5'} />
+            </TouchableOpacity>
+          </View>
           
           <TouchableOpacity 
             style={styles.submitButton} 
@@ -147,11 +150,11 @@ const styles = StyleSheet.create({
         flex: 1,
         justifyContent: 'center',
         alignItems: 'center',
-        backgroundColor: 'rgba(0, 0, 0, 0.6)',
+        backgroundColor: 'rgba(0, 0, 0, 0.7)',
     },
     modalView: {
         width: '90%',
-        backgroundColor: 'white',
+        backgroundColor: '#2c3e50',
         borderRadius: 20,
         padding: 25,
         alignItems: 'center',
@@ -171,39 +174,52 @@ const styles = StyleSheet.create({
     },
     closeButtonText: {
         fontSize: 30,
-        color: '#333',
+        color: '#ecf0f1',
     },
     modalTitle: {
         marginBottom: 20,
         textAlign: 'center',
         fontSize: 20,
         fontWeight: 'bold',
+        color: '#ecf0f1',
     },
     input: {
         width: '100%',
         borderWidth: 1,
-        borderColor: '#ddd',
-        padding: 10,
+        borderColor: '#00bfa5',
+        backgroundColor: '#1a1d21',
+        padding: 12,
         marginBottom: 15,
-        borderRadius: 5,
+        borderRadius: 8,
         fontSize: 16,
+        color: '#ecf0f1',
+    },
+    messageContainer: {
+        width: '100%',
+        position: 'relative',
+        marginBottom: 15,
     },
     messageInput: {
         height: 100,
         textAlignVertical: 'top',
         paddingRight: 50, // Make space for mic icon
+        marginBottom: 0,
     },
     micButton: {
         position: 'absolute',
-        right: 35,
-        top: 290, // Adjust this value to position the icon vertically centered in the text input
+        right: 12,
+        bottom: 12,
+        backgroundColor: '#1a1d21',
+        padding: 8,
+        borderRadius: 20,
     },
     submitButton: {
-        backgroundColor: '#28a745',
+        backgroundColor: '#00bfa5',
         borderRadius: 8,
         paddingVertical: 12,
         paddingHorizontal: 30,
         elevation: 2,
+        width: '100%',
     },
     submitButtonText: {
         color: 'white',

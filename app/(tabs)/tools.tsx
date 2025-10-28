@@ -64,9 +64,6 @@ export default function ToolsScreen() {
 
   return (
     <View style={styles.container}>
-      <View style={styles.header}>
-        <Text style={styles.headerText}>Інструменти</Text>
-      </View>
       <ScrollView>
         <View style={styles.tilesContainer}>
           {tools.map((tool, index) => (
@@ -128,16 +125,6 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#1a1d21',
-  },
-  header: {
-    backgroundColor: '#00bfa5',
-    padding: 16,
-    alignItems: 'center',
-  },
-  headerText: {
-    color: '#fff',
-    fontSize: 20,
-    fontWeight: 'bold',
   },
   tilesContainer: {
     padding: 20,

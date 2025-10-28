@@ -13,10 +13,6 @@ export default function CalendarScreen() {
 
   return (
     <ScrollView style={styles.container}>
-      <View style={styles.header}>
-        <Text style={styles.headerText}>Головна</Text>
-      </View>
-
       <View style={styles.buttonContainer}>
         <TouchableOpacity 
           style={[styles.button, styles.consultationButton]}
@@ -49,9 +45,7 @@ export default function CalendarScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#f8f9ff' },
-  header: { backgroundColor: '#002b6b', padding: 16 },
-  headerText: { color: '#fff', fontSize: 18, fontWeight: '600' },
+  container: { flex: 1, backgroundColor: '#1a1d21' },
   buttonContainer: {
     flexDirection: 'row',
     justifyContent: 'space-around',
@@ -61,14 +55,14 @@ const styles = StyleSheet.create({
     flex: 1,
     alignItems: 'center',
     paddingVertical: 12,
-    borderRadius: 8,
+    borderRadius: 12,
     marginHorizontal: 8,
   },
   consultationButton: {
-    backgroundColor: '#28a745',
+    backgroundColor: '#00bfa5',
   },
   searchButton: {
-    backgroundColor: '#dc3545',
+    backgroundColor: '#e74c3c',
   },
   buttonText: {
     color: '#fff',
@@ -76,18 +70,26 @@ const styles = StyleSheet.create({
     fontSize: 16,
   },
   section: { padding: 16 },
-  sectionTitle: { fontSize: 16, fontWeight: '600', marginBottom: 10 },
-  card: {
-    backgroundColor: '#fff',
-    borderRadius: 10,
-    padding: 12,
-    marginBottom: 10,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.15,
-    shadowRadius: 2,
-    elevation: 2,
+  sectionTitle: { 
+    fontSize: 18, 
+    fontWeight: '600', 
+    marginBottom: 15,
+    color: '#ecf0f1',
   },
-  title: { fontSize: 14, fontWeight: '500' },
-  date: { color: '#555' },
+  card: {
+    backgroundColor: '#2c3e50',
+    borderRadius: 10,
+    padding: 15,
+    marginBottom: 12,
+  },
+  title: { 
+    fontSize: 15, 
+    fontWeight: '500',
+    color: '#ecf0f1',
+    marginBottom: 5,
+  },
+  date: { 
+    color: '#7f8c8d',
+    fontSize: 13,
+  },
 });
