@@ -2,7 +2,8 @@
 Конфигурация приложения
 """
 from pydantic_settings import BaseSettings
-from typing import List
+from pydantic import field_validator
+from typing import List, Union
 import os
 
 
@@ -32,6 +33,10 @@ class Settings(BaseSettings):
     GOOGLE_CLIENT_SECRET: str = ""
     GOOGLE_REDIRECT_URI: str = "http://localhost:8000/api/auth/google/callback"
     
+    # Google Custom Search API
+    GOOGLE_API_KEY: str = ""
+    GOOGLE_CX: str = ""
+    
     # OpenAI
     OPENAI_API_KEY: str = ""
     
@@ -39,11 +44,20 @@ class Settings(BaseSettings):
     EXPO_ACCESS_TOKEN: str = ""
     
     # CORS
-    ALLOWED_ORIGINS: List[str] = [
+    ALLOWED_ORIGINS: Union[List[str], str] = [
         "http://localhost:8081",
         "exp://localhost:8081",
         "http://localhost:19006",  # Expo web
     ]
+    
+    @field_validator('ALLOWED_ORIGINS', mode='before')
+    @classmethod
+    def parse_allowed_origins(cls, v):
+        """Парсинг ALLOWED_ORIGINS из строки или списка"""
+        if isinstance(v, str):
+            # Если строка, разделяем по запятой
+            return [origin.strip() for origin in v.split(',')]
+        return v
     
     # Celery
     CELERY_BROKER_URL: str = "redis://localhost:6379/1"

@@ -8,6 +8,7 @@ import urllib.parse
 import asyncio
 import re
 from app.schemas.search import SearchResult
+from app.core.config import settings
 
 
 async def parse_google_search(query: str, domain: str) -> List[SearchResult]:
@@ -155,6 +156,102 @@ async def parse_google_search(query: str, domain: str) -> List[SearchResult]:
         return []
 
 
+async def search_google_custom_api(query: str, domain: str) -> List[SearchResult]:
+    """
+    Поиск через Google Custom Search API
+    
+    Args:
+        query: Поисковый запрос
+        domain: Домен для фильтрации (site:domain.com)
+    
+    Returns:
+        Список SearchResult (топ-3)
+    """
+    api_key = settings.GOOGLE_API_KEY
+    cx = settings.GOOGLE_CX
+    
+    if not api_key or not cx:
+        print("⚠️ Google API Key or CX not configured")
+        return []
+    
+    # Формируем запрос с site: фильтром
+    search_query = f"site:{domain} {query}"
+    
+    # Google Custom Search API endpoint
+    url = "https://www.googleapis.com/customsearch/v1"
+    params = {
+        'key': api_key,
+        'cx': cx,
+        'q': search_query,
+        'num': 3,  # Максимум 3 результата
+        'gl': 'ua',  # Географическая локализация - Украина
+        'hl': 'uk',  # Язык интерфейса - украинский
+    }
+    
+    try:
+        async with aiohttp.ClientSession() as session:
+            async with session.get(url, params=params, timeout=aiohttp.ClientTimeout(total=10)) as response:
+                if response.status != 200:
+                    error_text = await response.text()
+                    print(f"Google API returned status {response.status}: {error_text}")
+                    return []
+                
+                data = await response.json()
+        
+        results = []
+        
+        # Проверяем наличие результатов
+        if 'items' not in data:
+            print(f"No results found for {domain}")
+            if 'error' in data:
+                print(f"API Error: {data['error']}")
+            return []
+        
+        # Парсим результаты
+        for item in data['items']:
+            title = item.get('title', '')
+            snippet = item.get('snippet', '')
+            link = item.get('link', '')
+            
+            # Пытаемся извлечь дату из metatags
+            date = None
+            if 'pagemap' in item:
+                pagemap = item['pagemap']
+                
+                # Проверяем разные источники даты
+                if 'metatags' in pagemap and len(pagemap['metatags']) > 0:
+                    metatags = pagemap['metatags'][0]
+                    date = (
+                        metatags.get('article:modified_time') or
+                        metatags.get('article:published_time') or
+                        metatags.get('og:updated_time') or
+                        metatags.get('date')
+                    )
+            
+            if title and link:
+                results.append(SearchResult(
+                    title=title,
+                    description=snippet if snippet else f"Інформація з {domain}",
+                    url=link,
+                    source=domain,
+                    date=date
+                ))
+                
+                print(f"Found result: {title[:50]}... from {domain}")
+        
+        print(f"Google API returned {len(results)} results for {domain}")
+        return results[:3]
+        
+    except asyncio.TimeoutError:
+        print(f"Timeout while searching {domain} via Google API")
+        return []
+    except Exception as e:
+        print(f"Error searching {domain} via Google API: {e}")
+        import traceback
+        traceback.print_exc()
+        return []
+
+
 async def get_mock_results(query: str, domain: str) -> List[SearchResult]:
     """
     Временная mock-функция для демонстрации работы поиска
@@ -242,16 +339,33 @@ async def search_multiple_sources(query: str, domains: List[str]) -> List[Search
     
     print(f"Searching {len(domains_to_search)} domains: {domains_to_search}")
     
-    # TODO: Для production нужно использовать официальный Google Custom Search API или SerpAPI
-    # Прямой парсинг блокируется Google
-    # На данный момент используем mock данные для демонстрации
-    USE_MOCK = True  # Временный флаг, пока не настроим официальный API
+    # Проверяем наличие Google API credentials
+    api_key = settings.GOOGLE_API_KEY
+    cx = settings.GOOGLE_CX
+    USE_GOOGLE_API = bool(api_key and cx)
     
-    if USE_MOCK:
-        print("⚠️ Using MOCK data - Google blocks direct parsing")
-        print("   To fix: set up Google Custom Search API or SerpAPI")
+    if USE_GOOGLE_API:
+        print("✅ Using Google Custom Search API")
         
-        # Используем mock данные
+        # Используем официальный Google API
+        tasks = [search_google_custom_api(query, domain) for domain in domains_to_search]
+        results_arrays = await asyncio.gather(*tasks, return_exceptions=True)
+        
+        all_results = []
+        for i, results in enumerate(results_arrays):
+            if isinstance(results, list):
+                all_results.extend(results)
+                print(f"Domain {domains_to_search[i]} returned {len(results)} results via API")
+            elif isinstance(results, Exception):
+                print(f"Domain {domains_to_search[i]} failed with error: {results}")
+        
+        print(f"Total results collected via Google API: {len(all_results)}")
+        return all_results
+    else:
+        print("⚠️ Using MOCK data - Google API credentials not configured")
+        print("   Set GOOGLE_API_KEY and GOOGLE_CX in .env to use real search")
+        
+        # Fallback на mock данные
         tasks = [get_mock_results(query, domain) for domain in domains_to_search]
         results_arrays = await asyncio.gather(*tasks)
         
@@ -262,21 +376,5 @@ async def search_multiple_sources(query: str, domains: List[str]) -> List[Search
                 print(f"Domain {domains_to_search[i]} returned {len(results)} mock results")
         
         print(f"Total mock results collected: {len(all_results)}")
-        return all_results
-    else:
-        # Запускаем реальный поиск параллельно
-        tasks = [parse_google_search(query, domain) for domain in domains_to_search]
-        results_arrays = await asyncio.gather(*tasks, return_exceptions=True)
-        
-        # Объединяем результаты, игнорируя ошибки
-        all_results = []
-        for i, results in enumerate(results_arrays):
-            if isinstance(results, list):
-                all_results.extend(results)
-                print(f"Domain {domains_to_search[i]} returned {len(results)} results")
-            elif isinstance(results, Exception):
-                print(f"Domain {domains_to_search[i]} failed with error: {results}")
-        
-        print(f"Total results collected: {len(all_results)}")
         return all_results
 
