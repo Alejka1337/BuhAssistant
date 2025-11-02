@@ -5,7 +5,12 @@ export interface SearchResult {
   description: string;
   url: string;
   source: string;
+  date?: string | null;
 }
+
+// API URL - для разработки используем localhost
+// TODO: В production заменить на реальный адрес API
+const API_URL = __DEV__ ? 'http://localhost:8000' : 'https://api.buhassistant.com';
 
 /**
  * Формирует Google запрос с site: фильтром
@@ -105,7 +110,7 @@ async function fetchGoogleResults(query: string, domain: string): Promise<Search
 }
 
 /**
- * Выполняет поиск по выбранным источникам
+ * Выполняет поиск по выбранным источникам через backend API
  * @param query - поисковый запрос пользователя
  * @param selectedSourceIds - массив ID выбранных источников
  * @returns массив результатов поиска
@@ -114,33 +119,29 @@ export async function searchMultipleSources(
   query: string,
   selectedSourceIds: string[]
 ): Promise<SearchResult[]> {
-  // Получаем домены выбранных источников
-  const sourcesToSearch = SOURCES.filter(
-    (source) =>
-      selectedSourceIds.includes(source.id) && 
-      source.domain !== '' // исключаем "Всі"
-  );
+  try {
+    const response = await fetch(`${API_URL}/api/search/`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        query: query,
+        sources: selectedSourceIds,
+      }),
+    });
 
-  // Если выбрано "Всі" или ничего не выбрано, ищем по всем источникам
-  if (selectedSourceIds.includes('all') || sourcesToSearch.length === 0) {
-    const allSources = SOURCES.filter(s => s.domain !== '');
-    const promises = allSources.map((source) =>
-      fetchGoogleResults(query, source.domain)
-    );
-    const resultsArrays = await Promise.all(promises);
-    return resultsArrays.flat();
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({}));
+      throw new Error(errorData.detail || `HTTP error! status: ${response.status}`);
+    }
+
+    const data = await response.json();
+    return data.results || [];
+  } catch (error) {
+    console.error('Search API error:', error);
+    throw error;
   }
-
-  // Создаем массив промисов для параллельных запросов
-  const searchPromises = sourcesToSearch.map((source) =>
-    fetchGoogleResults(query, source.domain)
-  );
-
-  // Выполняем все запросы параллельно
-  const resultsArrays = await Promise.all(searchPromises);
-
-  // Объединяем все результаты в один массив
-  return resultsArrays.flat();
 }
 
 /**

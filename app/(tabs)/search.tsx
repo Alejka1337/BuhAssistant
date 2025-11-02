@@ -58,8 +58,22 @@ export default function SearchScreen() {
     setResults([]);
 
     try {
+      // Преобразуем ID источников в домены для API
+      let domainsToSearch: string[];
+      
+      if (selectedSources.includes('all') || selectedSources.length === 0) {
+        domainsToSearch = ['all'];
+      } else {
+        // Получаем домены для выбранных source IDs
+        domainsToSearch = selectedSources
+          .map(id => SOURCES.find(s => s.id === id)?.domain)
+          .filter(domain => domain && domain !== '') as string[];
+      }
+      
+      console.log('Search domains:', domainsToSearch);
+      
       // Выполняем поиск по выбранным источникам
-      const searchResults = await searchMultipleSources(query.trim(), selectedSources);
+      const searchResults = await searchMultipleSources(query.trim(), domainsToSearch);
       
       if (searchResults.length === 0) {
         setError('За вашим запитом нічого не знайдено. Спробуйте інші ключові слова.');
