@@ -55,6 +55,8 @@ class Settings(BaseSettings):
         "http://localhost:8081",
         "exp://localhost:8081",
         "http://localhost:19006",  # Expo web
+        "https://api.eglavbuh.com.ua",  # Production API
+        "*",  # Разрешить все origins для мобильного приложения
     ]
     
     @field_validator('ALLOWED_ORIGINS', mode='before')

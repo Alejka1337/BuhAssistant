@@ -13,12 +13,11 @@ import { Platform } from 'react-native';
 import Constants from 'expo-constants';
 
 // Конфигурация API URL
-// Для разработки выберите один из вариантов:
-const USE_NGROK = true; // Переключите на false для использования локального IP
 
-export const API_URL = USE_NGROK
-  ? 'https://e637d023274f.ngrok-free.app'  // ngrok - работает везде
-  : 'http://192.168.0.102:8000';  // Локальный IP - только в одной сети
+// Получаем API URL из app.json или используем production по умолчанию
+const API_URL_FROM_CONFIG = Constants.expoConfig?.extra?.apiUrl;
+
+export const API_URL = API_URL_FROM_CONFIG || 'https://api.eglavbuh.com.ua';
 
 console.log('🔗 API_URL:', API_URL); // Для отладки
 
