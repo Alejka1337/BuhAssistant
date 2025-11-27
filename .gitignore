@@ -50,4 +50,4 @@ backend/static/
 backend/templates/
 
 __pycache__/
-doc-files/
+doc-files/backend/.env.backup
