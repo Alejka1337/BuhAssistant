@@ -187,8 +187,13 @@ def send_activation_email(email: str, activation_code: str, user_name: Optional[
         msg.attach(part2)
         
         # Отправляем письмо
-        server = smtplib.SMTP(settings.SMTP_SERVER, settings.SMTP_PORT)
-        server.starttls()
+        # Используем SMTP_SSL для порта 465, обычный SMTP с STARTTLS для 587
+        if settings.SMTP_PORT == 465:
+            server = smtplib.SMTP_SSL(settings.SMTP_SERVER, settings.SMTP_PORT)
+        else:
+            server = smtplib.SMTP(settings.SMTP_SERVER, settings.SMTP_PORT)
+            server.starttls()
+        
         server.login(settings.SMTP_EMAIL, settings.SMTP_PASSWORD)
         server.send_message(msg)
         server.quit()
@@ -360,8 +365,13 @@ async def send_password_reset_email(email: str, reset_code: str, user_name: Opti
         msg.attach(part2)
         
         # Отправляем письмо
-        server = smtplib.SMTP(settings.SMTP_SERVER, settings.SMTP_PORT)
-        server.starttls()
+        # Используем SMTP_SSL для порта 465, обычный SMTP с STARTTLS для 587
+        if settings.SMTP_PORT == 465:
+            server = smtplib.SMTP_SSL(settings.SMTP_SERVER, settings.SMTP_PORT)
+        else:
+            server = smtplib.SMTP(settings.SMTP_SERVER, settings.SMTP_PORT)
+            server.starttls()
+        
         server.login(settings.SMTP_EMAIL, settings.SMTP_PASSWORD)
         server.send_message(msg)
         server.quit()
