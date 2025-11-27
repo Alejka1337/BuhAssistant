@@ -170,3 +170,24 @@ async def filter_relevant_news(articles: List[Dict]) -> List[Dict]:
             for article in articles
         ]
 
+
+class NewsFilterService:
+    """
+    Класс для управления фильтрацией новостей через OpenAI
+    """
+    
+    def __init__(self, api_key: str = None):
+        self.api_key = api_key or settings.OPENAI_API_KEY
+    
+    def filter_relevant_news(self, articles: List[Dict]) -> List[Dict]:
+        """
+        Синхронная обертка для async filter_relevant_news()
+        """
+        import asyncio
+        loop = asyncio.new_event_loop()
+        asyncio.set_event_loop(loop)
+        try:
+            return loop.run_until_complete(filter_relevant_news(articles))
+        finally:
+            loop.close()
+

@@ -2,15 +2,12 @@ import React, { useState } from 'react';
 import { View, Text, StyleSheet, Modal, TextInput, TouchableOpacity, Alert } from 'react-native';
 import { Audio } from 'expo-av';
 import { FontAwesome } from '@expo/vector-icons';
+import { API_ENDPOINTS } from '../constants/api';
 
 interface ConsultationModalProps {
   visible: boolean;
   onClose: () => void;
 }
-
-// !!! ЗАМЕНИТЕ НА АКТУАЛЬНЫЙ URL ВАШЕЙ РАЗВЕРНУТОЙ ФУНКЦИИ VERCEL !!!
-// Пример: 'https://your-project-name.vercel.app/api/sendEmail'
-const VERCEL_API_URL = 'https://buhassistant.vercel.app/api/sendEmail'; // Временно используем localhost для разработки
 
 export default function ConsultationModal({ visible, onClose }: ConsultationModalProps) {
   const [name, setName] = useState('');
@@ -29,25 +26,56 @@ export default function ConsultationModal({ visible, onClose }: ConsultationModa
 
     setIsSubmitting(true);
     try {
-      const response = await fetch(VERCEL_API_URL, {
+      // Создаем FormData для отправки файла
+      const formData = new FormData();
+      formData.append('name', name);
+      formData.append('email', email);
+      formData.append('message', message || '');
+
+      // Если есть запись, добавляем файл
+      if (recordedUri) {
+        try {
+          // Получаем имя файла из URI
+          const uriParts = recordedUri.split('/');
+          const fileName = uriParts[uriParts.length - 1];
+          
+          // Создаем объект файла для FormData
+          const audioFile = {
+            uri: recordedUri,
+            type: 'audio/m4a',
+            name: fileName,
+          } as any;
+          
+          formData.append('audio_file', audioFile);
+          console.log('Аудио файл добавлен к запросу:', fileName);
+        } catch (error) {
+          console.error('Ошибка при подготовке аудио файла:', error);
+          // Продолжаем без файла
+        }
+      }
+
+      const response = await fetch(API_ENDPOINTS.CONSULTATION.SUBMIT, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ name, email, message, recordedUri }),
+        body: formData,
+        // НЕ указываем Content-Type - браузер/RN сам установит правильный для multipart/form-data
       });
 
       const result = await response.json();
 
       if (response.ok) {
-        Alert.alert('Дякуємо!', 'Ваш запит надіслано. Ми зв`яжемося з вами найближчим часом.');
+        Alert.alert('Дякуємо!', 'Ваш запит надіслано. Ми зв\'яжемося з вами найближчим часом.');
+        // Очищаем форму
+        setName('');
+        setEmail('');
+        setMessage('');
+        setRecordedUri(null);
         onClose();
       } else {
-        Alert.alert('Помилка', result.error || 'Не вдалося надіслати запит.');
+        Alert.alert('Помилка', result.detail || 'Не вдалося надіслати запит.');
       }
     } catch (error) {
-      console.error('Ошибка при отправке:', error);
-      Alert.alert('Помилка', 'Произошла ошибка при отправке запроса.');
+      console.error('Помилка при відправці:', error);
+      Alert.alert('Помилка', 'Сталася помилка при відправці запиту.');
     } finally {
       setIsSubmitting(false);
     }
@@ -126,9 +154,19 @@ export default function ConsultationModal({ visible, onClose }: ConsultationModa
               placeholderTextColor="#7f8c8d"
             />
             <TouchableOpacity style={styles.micButton} onPress={recording ? stopRecording : startRecording}>
-              <FontAwesome name="microphone" size={24} color={isRecording ? '#e74c3c' : '#00bfa5'} />
+              <FontAwesome name="microphone" size={24} color={isRecording ? '#e74c3c' : '#282'} />
             </TouchableOpacity>
           </View>
+          
+          {recordedUri && (
+            <View style={styles.recordedContainer}>
+              <FontAwesome name="check-circle" size={16} color="#282" />
+              <Text style={styles.recordedText}>Голосове повідомлення записано</Text>
+              <TouchableOpacity onPress={() => setRecordedUri(null)}>
+                <FontAwesome name="times-circle" size={16} color="#e74c3c" />
+              </TouchableOpacity>
+            </View>
+          )}
           
           <TouchableOpacity 
             style={styles.submitButton} 
@@ -154,7 +192,7 @@ const styles = StyleSheet.create({
     },
     modalView: {
         width: '90%',
-        backgroundColor: '#2c3e50',
+        backgroundColor: '#22262c',
         borderRadius: 20,
         padding: 25,
         alignItems: 'center',
@@ -186,7 +224,7 @@ const styles = StyleSheet.create({
     input: {
         width: '100%',
         borderWidth: 1,
-        borderColor: '#00bfa5',
+        borderColor: '#282',
         backgroundColor: '#1a1d21',
         padding: 12,
         marginBottom: 15,
@@ -214,7 +252,7 @@ const styles = StyleSheet.create({
         borderRadius: 20,
     },
     submitButton: {
-        backgroundColor: '#00bfa5',
+        backgroundColor: '#282',
         borderRadius: 8,
         paddingVertical: 12,
         paddingHorizontal: 30,
@@ -226,5 +264,19 @@ const styles = StyleSheet.create({
         fontWeight: 'bold',
         textAlign: 'center',
         fontSize: 16,
+    },
+    recordedContainer: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        backgroundColor: '#1a1d21',
+        padding: 10,
+        borderRadius: 8,
+        marginBottom: 15,
+        gap: 8,
+    },
+    recordedText: {
+        flex: 1,
+        color: '#ecf0f1',
+        fontSize: 14,
     },
 });

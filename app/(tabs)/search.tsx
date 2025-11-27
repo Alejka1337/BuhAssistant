@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import {
   View,
   Text,
@@ -8,13 +8,19 @@ import {
   StyleSheet,
   Modal,
   ActivityIndicator,
+  KeyboardAvoidingView,
+  Platform,
 } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
 import { SOURCES } from '../../constants/sources';
 import { SearchResultCard } from '../../components/SearchResultCard';
 import { searchMultipleSources, SearchResult } from '../../utils/searchService';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { Colors, Typography, Spacing, BorderRadius } from '../../constants/Theme';
 
 export default function SearchScreen() {
+  const insets = useSafeAreaInsets();
+  const inputRef = useRef<TextInput>(null);
   const [query, setQuery] = useState('');
   const [selectedSources, setSelectedSources] = useState<string[]>(['all']);
   const [results, setResults] = useState<SearchResult[]>([]);
@@ -90,16 +96,33 @@ export default function SearchScreen() {
   };
 
   return (
-    <ScrollView style={styles.container}>
-      <View style={styles.searchContainer}>
-        <View style={styles.inputWrapper}>
-          <TextInput
-            value={query}
-            onChangeText={setQuery}
-            placeholder="Введіть запит..."
-            placeholderTextColor="#7f8c8d"
-            style={styles.input}
-          />
+    <KeyboardAvoidingView 
+      style={{ flex: 1 }}
+      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+    >
+      <ScrollView 
+        style={styles.container}
+        contentContainerStyle={{ paddingBottom: insets.bottom + 16 }}
+        keyboardShouldPersistTaps="handled"
+        keyboardDismissMode="on-drag"
+      >
+        <View style={styles.searchContainer}>
+          <View style={styles.inputWrapper} pointerEvents="box-none">
+            <TextInput
+              ref={inputRef}
+              value={query}
+              onChangeText={setQuery}
+              placeholder="Введіть запит..."
+              placeholderTextColor="#7f8c8d"
+              style={styles.input}
+              editable={true}
+              autoCapitalize="none"
+              autoCorrect={false}
+              returnKeyType="search"
+              onSubmitEditing={handleSearch}
+              keyboardAppearance="dark"
+              selectTextOnFocus={true}
+            />
           <TouchableOpacity 
             style={styles.sourceSelector}
             onPress={() => setShowSourceModal(true)}
@@ -107,7 +130,7 @@ export default function SearchScreen() {
             <Text style={styles.sourceSelectorText} numberOfLines={1}>
               {getSelectedSourcesLabel()}
             </Text>
-            <MaterialIcons name="arrow-drop-down" size={24} color="#00bfa5" />
+            <MaterialIcons name="arrow-drop-down" size={24} color={Colors.primary} />
           </TouchableOpacity>
         </View>
 
@@ -143,7 +166,7 @@ export default function SearchScreen() {
               >
                 <View style={styles.checkbox}>
                   {selectedSources.includes('all') && (
-                    <MaterialIcons name="check" size={20} color="#00bfa5" />
+                    <MaterialIcons name="check" size={20} color={Colors.primary} />
                   )}
                 </View>
                 <Text style={styles.sourceItemText}>Всі сайти</Text>
@@ -157,7 +180,7 @@ export default function SearchScreen() {
                 >
                   <View style={styles.checkbox}>
                     {selectedSources.includes(source.id) && (
-                      <MaterialIcons name="check" size={20} color="#00bfa5" />
+                      <MaterialIcons name="check" size={20} color={Colors.primary} />
                     )}
                   </View>
                   <Text style={styles.sourceItemText}>{source.label}</Text>
@@ -171,7 +194,7 @@ export default function SearchScreen() {
             <View style={styles.results}>
               {loading && (
                 <View style={styles.loadingContainer}>
-                  <ActivityIndicator size="large" color="#00bfa5" />
+                  <ActivityIndicator size="large" color={Colors.primary} />
                   <Text style={styles.loadingText}>Шукаємо результати...</Text>
                   <Text style={styles.loadingSubtext}>
                     Пошук на {selectedSources.includes('all') ? 'всіх сайтах' : `${selectedSources.length} сайт${selectedSources.length > 1 ? 'ах' : 'і'}`}
@@ -205,135 +228,144 @@ export default function SearchScreen() {
                 </View>
               )}
             </View>
-    </ScrollView>
+      </ScrollView>
+    </KeyboardAvoidingView>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#1a1d21' },
+  container: { 
+    flex: 1, 
+    backgroundColor: Colors.background 
+  },
   searchContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    padding: 16,
-    gap: 12,
+    padding: Spacing.md,
+    gap: Spacing.sm,
   },
   inputWrapper: {
     flex: 1,
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#2c3e50',
-    borderRadius: 12,
+    backgroundColor: Colors.cardBackground,
+    borderRadius: BorderRadius.lg,
     borderWidth: 2,
-    borderColor: '#00bfa5',
+    borderColor: Colors.primary,
     overflow: 'hidden',
   },
   input: {
     flex: 1,
-    paddingHorizontal: 16,
+    paddingHorizontal: Spacing.md,
     paddingVertical: 14,
-    fontSize: 15,
-    color: '#ecf0f1',
+    fontSize: Typography.body.fontSize,
+    fontFamily: Typography.body.fontFamily,
+    color: Colors.textPrimary,
+    minHeight: 48,
   },
   sourceSelector: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingHorizontal: 12,
+    paddingHorizontal: Spacing.sm,
     paddingVertical: 8,
     borderLeftWidth: 1,
-    borderLeftColor: '#1a1d21',
+    borderLeftColor: Colors.background,
     minWidth: 100,
     maxWidth: 140,
   },
   sourceSelectorText: {
-    color: '#00bfa5',
+    color: Colors.primary,
     fontSize: 14,
+    fontFamily: Typography.body.fontFamily,
     fontWeight: '600',
     flex: 1,
   },
   searchButton: {
-    backgroundColor: '#00bfa5',
+    backgroundColor: Colors.primary,
     padding: 14,
-    borderRadius: 12,
+    borderRadius: BorderRadius.lg,
     alignItems: 'center',
     justifyContent: 'center',
   },
   modalOverlay: {
     flex: 1,
     justifyContent: 'flex-end',
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    backgroundColor: Colors.overlay,
   },
   modalBackdrop: {
     flex: 1,
   },
   modalContent: {
-    backgroundColor: '#2c3e50',
-    borderTopLeftRadius: 20,
-    borderTopRightRadius: 20,
+    backgroundColor: Colors.cardBackground,
+    borderTopLeftRadius: BorderRadius.xl,
+    borderTopRightRadius: BorderRadius.xl,
     maxHeight: '70%',
   },
   modalHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    paddingHorizontal: 16,
-    paddingVertical: 16,
+    paddingHorizontal: Spacing.md,
+    paddingVertical: Spacing.md,
     borderBottomWidth: 1,
-    borderBottomColor: '#1a1d21',
+    borderBottomColor: Colors.background,
   },
   modalTitle: {
-    color: '#ecf0f1',
-    fontSize: 18,
-    fontWeight: '600',
+    ...Typography.h4,
+    color: Colors.textPrimary,
   },
   modalDoneButton: {
-    color: '#00bfa5',
+    color: Colors.primary,
     fontSize: 16,
+    fontFamily: Typography.body.fontFamily,
     fontWeight: '600',
   },
   sourcesList: {
-    paddingVertical: 8,
+    paddingVertical: Spacing.sm,
   },
   sourceItem: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingHorizontal: 20,
+    paddingHorizontal: Spacing.lg,
     paddingVertical: 14,
     borderBottomWidth: 1,
-    borderBottomColor: '#1a1d21',
+    borderBottomColor: Colors.background,
   },
   checkbox: {
     width: 24,
     height: 24,
     borderRadius: 6,
     borderWidth: 2,
-    borderColor: '#00bfa5',
-    marginRight: 12,
+    borderColor: Colors.primary,
+    marginRight: Spacing.sm,
     alignItems: 'center',
     justifyContent: 'center',
   },
   sourceItemText: {
-    color: '#ecf0f1',
-    fontSize: 16,
+    ...Typography.body,
+    color: Colors.textPrimary,
     flex: 1,
   },
-  results: { padding: 16 },
+  results: { 
+    padding: Spacing.md 
+  },
   loadingContainer: {
     alignItems: 'center',
     justifyContent: 'center',
     paddingVertical: 40,
   },
   loadingText: {
-    color: '#00bfa5',
+    ...Typography.body,
+    color: Colors.primary,
     textAlign: 'center',
-    marginTop: 16,
-    fontSize: 16,
+    marginTop: Spacing.md,
     fontWeight: '600',
   },
   loadingSubtext: {
-    color: '#7f8c8d',
+    ...Typography.caption,
+    color: Colors.textMuted,
     textAlign: 'center',
-    marginTop: 8,
-    fontSize: 14,
+    marginTop: Spacing.sm,
   },
   placeholderContainer: {
     alignItems: 'center',
@@ -342,34 +374,34 @@ const styles = StyleSheet.create({
     paddingHorizontal: 40,
   },
   placeholder: { 
-    color: '#bdc3c7', 
+    ...Typography.body,
+    color: Colors.textSecondary, 
     textAlign: 'center', 
-    marginTop: 20, 
-    fontSize: 16,
+    marginTop: Spacing.lg, 
     fontWeight: '600',
   },
   placeholderSubtext: {
-    color: '#7f8c8d',
+    ...Typography.caption,
+    color: Colors.textMuted,
     textAlign: 'center',
-    marginTop: 12,
-    fontSize: 14,
+    marginTop: Spacing.sm,
     lineHeight: 20,
   },
   resultsCount: {
-    color: '#00bfa5',
-    fontSize: 14,
-    fontWeight: '600',
-    marginBottom: 16,
+    ...Typography.h4,
+    color: Colors.textPrimary,
+    marginBottom: Spacing.md,
     paddingHorizontal: 4,
+    lineHeight: 22,
   },
   errorText: {
-    color: '#e74c3c',
+    ...Typography.body,
+    color: Colors.error,
     textAlign: 'center',
-    marginTop: 20,
-    fontSize: 15,
-    padding: 20,
-    backgroundColor: '#2c3e50',
-    borderRadius: 8,
+    marginTop: Spacing.lg,
+    padding: Spacing.lg,
+    backgroundColor: Colors.cardBackground,
+    borderRadius: BorderRadius.md,
     lineHeight: 22,
   },
 });

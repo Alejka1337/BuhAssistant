@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, Modal, TextInput, TouchableOpacity, Alert } from 'react-native';
+import { View, Text, StyleSheet, Modal, TextInput, TouchableOpacity, Alert, Keyboard } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
 
 interface SingleTaxGroup3ModalProps {
@@ -13,6 +13,7 @@ export default function SingleTaxGroup3Modal({ visible, onClose }: SingleTaxGrou
   const [result, setResult] = useState<string | null>(null);
 
   const calculateTax = () => {
+    Keyboard.dismiss(); // Закрываем клавиатуру
     const income = parseFloat(annualIncome);
     if (isNaN(income) || income < 0) {
       Alert.alert('Помилка', 'Будь ласка, введіть коректну суму доходу.');
@@ -63,7 +64,7 @@ export default function SingleTaxGroup3Modal({ visible, onClose }: SingleTaxGrou
             <MaterialIcons 
               name={isVatPayer ? 'check-box' : 'check-box-outline-blank'}
               size={24} 
-              color="#00bfa5" 
+              color="#282" 
             />
             <Text style={styles.checkboxLabel}>Я платник ПДВ</Text>
           </TouchableOpacity>
@@ -90,7 +91,7 @@ const styles = StyleSheet.create({
     },
     modalView: {
         width: '90%',
-        backgroundColor: '#2c3e50',
+        backgroundColor: '#22262c',
         borderRadius: 20,
         padding: 25,
         alignItems: 'center',
@@ -127,7 +128,7 @@ const styles = StyleSheet.create({
         width: '100%',
         backgroundColor: '#1a1d21',
         borderWidth: 1,
-        borderColor: '#00bfa5',
+        borderColor: '#282',
         padding: 12,
         marginBottom: 15,
         borderRadius: 8,
@@ -147,7 +148,7 @@ const styles = StyleSheet.create({
       color: '#ecf0f1'
     },
     calculateButton: {
-        backgroundColor: '#00bfa5',
+        backgroundColor: '#282',
         borderRadius: 8,
         paddingVertical: 12,
         paddingHorizontal: 30,

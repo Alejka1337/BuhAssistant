@@ -1,19 +1,12 @@
-const tintColorLight = '#2f95dc';
-const tintColorDark = '#fff';
+/**
+ * @deprecated Используйте Theme.ts для полной айдентики (цвета + шрифты)
+ * Этот файл оставлен для обратной совместимости
+ */
 
-export default {
-  light: {
-    text: '#000',
-    background: '#fff',
-    tint: tintColorLight,
-    tabIconDefault: '#ccc',
-    tabIconSelected: tintColorLight,
-  },
-  dark: {
-    text: '#fff',
-    background: '#000',
-    tint: tintColorDark,
-    tabIconDefault: '#ccc',
-    tabIconSelected: tintColorDark,
-  },
-};
+import { Colors as ThemeColors, LegacyColors } from './Theme';
+
+// Re-export цветов из Theme.ts
+export const Colors = ThemeColors;
+
+// Legacy export для старых компонентов
+export default LegacyColors;

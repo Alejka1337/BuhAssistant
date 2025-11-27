@@ -1,11 +1,12 @@
 import React from 'react';
 import { StyleSheet, View } from 'react-native';
-import AccountingCalendar from '../../components/AccountingCalendar';
+import InteractiveCalendar from '../../components/InteractiveCalendar';
+import { Colors } from '@/constants/Theme';
 
 export default function CalendarScreen() {
   return (
     <View style={styles.container}>
-      <AccountingCalendar />
+      <InteractiveCalendar />
     </View>
   );
 }
@@ -13,6 +14,6 @@ export default function CalendarScreen() {
 const styles = StyleSheet.create({
   container: { 
     flex: 1, 
-    backgroundColor: '#1a1d21' 
+    backgroundColor: Colors.background 
   },
 });

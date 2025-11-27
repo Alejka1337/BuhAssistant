@@ -1,48 +1,62 @@
 // app/(tabs)/_layout.tsx
 import { Tabs } from 'expo-router';
 import { MaterialIcons } from '@expo/vector-icons';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { Platform } from 'react-native';
+import { Colors } from '@/constants/Colors';
+import { Colors as ThemeColors, Typography } from '@/constants/Theme';
 
 export default function TabLayout() {
+  const insets = useSafeAreaInsets();
+  
   return (
     <Tabs
       screenOptions={{
         headerShown: true,
         headerStyle: {
-          backgroundColor: '#00bfa5',
+          backgroundColor: ThemeColors.cardBackground,
+          borderBottomWidth: 2,
+          borderBottomColor: ThemeColors.primary, // Зелёная полоска
         },
-        headerTintColor: '#fff',
+        headerTintColor: ThemeColors.textPrimary,
         headerTitleStyle: {
-          fontWeight: 'bold',
-          fontSize: 20,
+          fontFamily: Typography.h3.fontFamily,
+          fontSize: Typography.h3.fontSize,
+          fontWeight: Typography.h3.fontWeight as any,
+          color: ThemeColors.textPrimary,
         },
         headerTitleAlign: 'center',
-        tabBarActiveTintColor: '#00bfa5',
-        tabBarInactiveTintColor: '#7f8c8d',
+        tabBarActiveTintColor: ThemeColors.primary,
+        tabBarInactiveTintColor: ThemeColors.textMuted,
         tabBarStyle: { 
-          backgroundColor: '#1a1d21', 
+          backgroundColor: ThemeColors.cardBackground, 
           borderTopWidth: 1, 
-          borderTopColor: '#2c3e50',
-          height: 60,
-          paddingBottom: 8,
+          borderTopColor: ThemeColors.primary,
+          // Динамическая высота с учетом безопасной зоны
+          height: Platform.OS === 'ios' ? 60 + insets.bottom : 60,
+          paddingBottom: Platform.OS === 'ios' ? insets.bottom : 8,
           paddingTop: 8,
         },
         tabBarLabelStyle: {
           fontSize: 11,
           fontWeight: '600',
+          fontFamily: Typography.body.fontFamily,
         },
       }}
     >
       <Tabs.Screen
         name="index"
         options={{
-          title: 'Головна',
+          title: 'eGlavBuh Головна',
+          tabBarLabel: 'Головна',
           tabBarIcon: ({ color, size }) => <MaterialIcons name="home" size={size} color={color} />,
         }}
       />
       <Tabs.Screen
         name="calendar"
         options={{
-          title: 'Календар',
+          title: 'Календар бухгалтера',
+          tabBarLabel: 'Календар',
           tabBarIcon: ({ color, size }) => <MaterialIcons name="calendar-today" size={size} color={color} />,
         }}
       />
@@ -50,13 +64,14 @@ export default function TabLayout() {
         name="tools"
         options={{
           title: 'Інструменти',
+          tabBarLabel: 'Інструменти',
           tabBarIcon: ({ color, size }) => <MaterialIcons name="build" size={size} color={color} />,
         }}
       />
       <Tabs.Screen
         name="search"
         options={{
-          title: 'Пошук документів',
+          title: 'Пошук',
           tabBarLabel: 'Пошук',
           tabBarIcon: ({ color, size }) => <MaterialIcons name="search" size={size} color={color} />,
         }}

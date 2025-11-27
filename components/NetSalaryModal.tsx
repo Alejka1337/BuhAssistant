@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, Modal, TextInput, TouchableOpacity, Alert } from 'react-native';
+import { View, Text, StyleSheet, Modal, TextInput, TouchableOpacity, Alert, Keyboard } from 'react-native';
 
 interface NetSalaryModalProps {
   visible: boolean;
@@ -14,6 +14,7 @@ export default function NetSalaryModal({ visible, onClose }: NetSalaryModalProps
   const [result, setResult] = useState<string | null>(null);
 
   const calculateNetSalary = () => {
+    Keyboard.dismiss(); // Закрываем клавиатуру
     const salary = parseFloat(grossSalary);
     if (isNaN(salary) || salary < 0) {
       Alert.alert('Помилка', 'Будь ласка, введіть коректну суму зарплати.');
@@ -73,13 +74,13 @@ export default function NetSalaryModal({ visible, onClose }: NetSalaryModalProps
 
 const styles = StyleSheet.create({
     centeredView: { flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: 'rgba(0, 0, 0, 0.7)' },
-    modalView: { width: '90%', backgroundColor: '#2c3e50', borderRadius: 20, padding: 25, alignItems: 'center' },
+    modalView: { width: '90%', backgroundColor: '#22262c', borderRadius: 20, padding: 25, alignItems: 'center' },
     closeButton: { position: 'absolute', top: 10, right: 15 },
     closeButtonText: { fontSize: 30, color: '#ecf0f1' },
     modalTitle: { marginBottom: 20, textAlign: 'center', fontSize: 20, fontWeight: 'bold', color: '#ecf0f1' },
     label: { alignSelf: 'flex-start', marginLeft: 5, marginBottom: 5, color: '#bdc3c7', fontSize: 14 },
-    input: { width: '100%', backgroundColor: '#1a1d21', borderWidth: 1, borderColor: '#00bfa5', padding: 12, marginBottom: 20, borderRadius: 8, fontSize: 18, color: '#ecf0f1', textAlign: 'center' },
-    calculateButton: { backgroundColor: '#00bfa5', borderRadius: 8, paddingVertical: 12, width: '100%' },
+    input: { width: '100%', backgroundColor: '#1a1d21', borderWidth: 1, borderColor: '#282', padding: 12, marginBottom: 20, borderRadius: 8, fontSize: 18, color: '#ecf0f1', textAlign: 'center' },
+    calculateButton: { backgroundColor: '#282', borderRadius: 8, paddingVertical: 12, width: '100%' },
     buttonText: { color: '#fff', fontWeight: 'bold', textAlign: 'center', fontSize: 16 },
     resultText: { marginTop: 20, fontSize: 16, fontWeight: 'bold', color: '#ecf0f1', textAlign: 'center', lineHeight: 24 },
 });

@@ -2,71 +2,126 @@ import React, { useEffect, useState } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Platform, Modal } from 'react-native';
 import { Picker } from '@react-native-picker/picker';
 import { MaterialIcons } from '@expo/vector-icons';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 interface Report {
   date: Date;
   type: string;
   title: string;
-  who: string;
+  who: string[]; // Теперь массив категорий
 }
 
-// Mock data fetching function. In a real app, you would fetch this from your data source.
-// For now, I'm importing the JSON files directly.
-import data_10_2025 from '../data/10_2025.json';
-import data_11_2025 from '../data/11_2025.json';
+// Calendar data is now fetched from the backend API
+import { fetchAllCalendarEvents, CalendarEvent } from '../utils/calendarService';
 
 
-const normalizeReportData = (data: any[]): Report[] => {
+const normalizeReportData = (data: CalendarEvent[]): Report[] => {
   return data.map((item) => {
+    // Обработка формата даты: DD.MM.YY или DD.MM.YYYY
     const parts = item.date.split('.');
-    const date = new Date(`${parts[2]}-${parts[1]}-${parts[0]}`);
+    const day = parts[0];
+    const month = parts[1];
+    let year = parts[2];
+    
+    // Если год в формате YY, преобразуем в YYYY
+    if (year.length === 2) {
+      year = `20${year}`; // Предполагаем 20XX
+    }
+    
+    const date = new Date(`${year}-${month}-${day}`);
 
     return {
       date,
-      type: item.type || item.category,
-      title: item.title || item.name,
-      who: item.who,
+      type: item.type,
+      title: item.title,
+      who: item.who, // Уже массив
     };
   });
 };
 
+// Функция для форматирования даты
+const formatDate = (date: Date): string => {
+  const months = [
+    'січня', 'лютого', 'березня', 'квітня', 'травня', 'червня',
+    'липня', 'серпня', 'вересня', 'жовтня', 'листопада', 'грудня'
+  ];
+  
+  const day = date.getDate().toString().padStart(2, '0');
+  const month = months[date.getMonth()];
+  const year = date.getFullYear();
+  
+  return `${day} ${month} ${year}`;
+};
+
+// Функция для получения названия месяца и года
+const getMonthYearLabel = (date: Date): string => {
+  const months = [
+    'Січень', 'Лютий', 'Березень', 'Квітень', 'Травень', 'Червень',
+    'Липень', 'Серпень', 'Вересень', 'Жовтень', 'Листопад', 'Грудень'
+  ];
+  return `${months[date.getMonth()]} ${date.getFullYear()}`;
+};
+
 
 export default function AccountingCalendar() {
+  const insets = useSafeAreaInsets();
   const [reports, setReports] = useState<Report[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [expandedMonths, setExpandedMonths] = useState<Record<string, boolean>>({});
-  const [filterType, setFilterType] = useState('All');
-  const [filterWho, setFilterWho] = useState('All');
+  const [filterType, setFilterType] = useState('Всі');
+  const [filterWho, setFilterWho] = useState('Всі');
   const [showTypeModal, setShowTypeModal] = useState(false);
   const [showWhoModal, setShowWhoModal] = useState(false);
-  const [tempFilterType, setTempFilterType] = useState('All');
-  const [tempFilterWho, setTempFilterWho] = useState('All');
+  const [tempFilterType, setTempFilterType] = useState('Всі');
+  const [tempFilterWho, setTempFilterWho] = useState('Всі');
 
   useEffect(() => {
-    const fetchAndProcessReports = () => {
+    const loadCalendarData = async () => {
       try {
+        setLoading(true);
         setError(null);
-        const combinedData = [...data_10_2025, ...data_11_2025];
-        const normalizedData = normalizeReportData(combinedData);
         
+        console.log('📅 Loading all calendar events...');
+        
+        // Загружаем все события из all.json
+        const allEvents = await fetchAllCalendarEvents();
+        
+        if (allEvents.length === 0) {
+          setError('Немає доступних даних календаря');
+          setReports([]);
+          return;
+        }
+        
+        // Нормализуем данные
+        const normalizedData = normalizeReportData(allEvents);
+        
+        // Фильтруем только будущие события (дата которых еще не прошла)
         const today = new Date();
         today.setHours(0, 0, 0, 0);
-
+        
         const futureReports = normalizedData
           .filter(report => report.date >= today)
           .sort((a, b) => a.date.getTime() - b.date.getTime());
         
         setReports(futureReports);
+        console.log(`✅ Loaded ${futureReports.length} future events (from ${allEvents.length} total)`);
+        
+        // Автоматически раскрываем первый месяц
+        if (futureReports.length > 0) {
+          const firstMonthLabel = getMonthYearLabel(futureReports[0].date);
+          setExpandedMonths({ [firstMonthLabel]: true });
+        }
+        
       } catch (err) {
-        console.error("Failed to load or process reports:", err);
-        setError('Помилка завантаження даних календаря. Спробуйте пізніше.');
+        console.error('❌ Failed to load calendar:', err);
+        setError('Не вдалося завантажити календар. Перевірте підключення до інтернету.');
       } finally {
         setLoading(false);
       }
     };
 
-    fetchAndProcessReports();
+    loadCalendarData();
   }, []);
 
   const toggleMonth = (month: string) => {
@@ -94,8 +149,10 @@ export default function AccountingCalendar() {
   }
   
   const filteredReports = reports.filter(report => {
-    return (filterType === 'All' || report.type === filterType) &&
-           (filterWho === 'All' || report.who === filterWho);
+    const typeMatch = filterType === 'Всі' || report.type === filterType;
+    // who теперь массив - проверяем, включает ли он выбранную категорию
+    const whoMatch = filterWho === 'Всі' || report.who.includes(filterWho);
+    return typeMatch && whoMatch;
   });
 
   if (reports.length === 0) {
@@ -108,8 +165,12 @@ export default function AccountingCalendar() {
     )
   }
   
-  const reportTypes = ['All', ...Array.from(new Set(reports.map(r => r.type)))];
-  const reportWhos = ['All', ...Array.from(new Set(reports.map(r => r.who)))];
+  // Получаем уникальные типы
+  const reportTypes = ['Всі', ...Array.from(new Set(reports.map(r => r.type)))];
+  
+  // Для who нужно развернуть массивы и получить уникальные значения
+  const allWhoCategories = reports.flatMap(r => r.who);
+  const reportWhos = ['Всі', ...Array.from(new Set(allWhoCategories))];
 
   const openTypeModal = () => {
     setTempFilterType(filterType);
@@ -131,9 +192,9 @@ export default function AccountingCalendar() {
     setShowWhoModal(false);
   };
 
-  // Group reports by month
+  // Group reports by month (with Ukrainian month names)
   const groupedReports = filteredReports.reduce((acc, report) => {
-    const month = report.date.toLocaleString('default', { month: 'long', year: 'numeric' });
+    const month = getMonthYearLabel(report.date);
     if (!acc[month]) {
       acc[month] = [];
     }
@@ -143,20 +204,26 @@ export default function AccountingCalendar() {
 
 
   return (
-    <ScrollView style={styles.container} contentContainerStyle={styles.contentContainer}>
+    <ScrollView 
+      style={styles.container} 
+      contentContainerStyle={[
+        styles.contentContainer,
+        { paddingBottom: insets.bottom + 16 }
+      ]}
+    >
         <View style={styles.filtersContainer}>
             <View style={styles.pickerWrapper}>
                 <Text style={styles.pickerLabel}>Тип:</Text>
                 <TouchableOpacity style={styles.pickerButton} onPress={openTypeModal}>
                     <Text style={styles.pickerButtonText}>{filterType}</Text>
-                    <MaterialIcons name="arrow-drop-down" size={24} color="#00bfa5" />
+                    <MaterialIcons name="arrow-drop-down" size={24} color="#282" />
                 </TouchableOpacity>
             </View>
             <View style={styles.pickerWrapper}>
                 <Text style={styles.pickerLabel}>Хто подає:</Text>
                 <TouchableOpacity style={styles.pickerButton} onPress={openWhoModal}>
                     <Text style={styles.pickerButtonText}>{filterWho}</Text>
-                    <MaterialIcons name="arrow-drop-down" size={24} color="#00bfa5" />
+                    <MaterialIcons name="arrow-drop-down" size={24} color="#282" />
                 </TouchableOpacity>
             </View>
         </View>
@@ -242,15 +309,15 @@ export default function AccountingCalendar() {
                             <Text style={styles.reportTitle}>{report.title}</Text>
                             <View style={styles.reportDetailRow}>
                                 <Text style={styles.reportDetailLabel}>Дата:</Text>
-                                <Text style={styles.reportDetailValue}>{report.date.toLocaleDateString()}</Text>
+                                <Text style={styles.reportDateValue}>{formatDate(report.date)}</Text>
                             </View>
                             <View style={styles.reportDetailRow}>
                                 <Text style={styles.reportDetailLabel}>Тип:</Text>
-                                <Text style={styles.reportDetailValue}>{report.type}</Text>
+                                <Text style={styles.reportTypeValue}>{report.type}</Text>
                             </View>
                              <View style={styles.reportDetailRow}>
                                 <Text style={styles.reportDetailLabel}>Хто подає:</Text>
-                                <Text style={styles.reportDetailValue}>{report.who}</Text>
+                                <Text style={styles.reportDetailValue}>{report.who.join(', ')}</Text>
                             </View>
                         </View>
                     ))}
@@ -292,7 +359,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-between',
     borderWidth: 2,
-    borderColor: '#00bfa5',
+    borderColor: '#282',
     borderRadius: 10,
     backgroundColor: '#2c3e50',
     paddingHorizontal: 12,
@@ -337,7 +404,7 @@ const styles = StyleSheet.create({
     fontSize: 16,
   },
   modalDoneButton: {
-    color: '#00bfa5',
+    color: '#282',
     fontSize: 16,
     fontWeight: '600',
   },
@@ -356,7 +423,7 @@ const styles = StyleSheet.create({
     fontSize: 20,
     fontWeight: 'bold',
     color: '#fff',
-    backgroundColor: '#00bfa5',
+    backgroundColor: '#282',
     padding: 12,
     borderRadius: 8,
     overflow: 'hidden',
@@ -386,6 +453,20 @@ const styles = StyleSheet.create({
   reportDetailValue: {
     fontSize: 14,
     color: '#ecf0f1',
+    fontWeight: '500',
+    flexShrink: 1,
+    textAlign: 'right'
+  },
+  reportDateValue: {
+    fontSize: 14,
+    color: '#ff8a80',
+    fontWeight: '500',
+    flexShrink: 1,
+    textAlign: 'right'
+  },
+  reportTypeValue: {
+    fontSize: 14,
+    color: '#282',
     fontWeight: '500',
     flexShrink: 1,
     textAlign: 'right'

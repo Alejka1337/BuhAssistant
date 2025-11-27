@@ -1,4 +1,5 @@
 import { SOURCES } from '../constants/sources';
+import { API_URL, getHeaders } from '../constants/api';
 
 export interface SearchResult {
   title: string;
@@ -7,10 +8,6 @@ export interface SearchResult {
   source: string;
   date?: string | null;
 }
-
-// API URL - для разработки используем localhost
-// TODO: В production заменить на реальный адрес API
-const API_URL = __DEV__ ? 'http://localhost:8000' : 'https://api.buhassistant.com';
 
 /**
  * Формирует Google запрос с site: фильтром
@@ -122,9 +119,7 @@ export async function searchMultipleSources(
   try {
     const response = await fetch(`${API_URL}/api/search/`, {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
+      headers: getHeaders(),
       body: JSON.stringify({
         query: query,
         sources: selectedSourceIds,
@@ -157,7 +152,9 @@ async function fetchGoogleResultsReal(query: string, domain: string): Promise<Se
   const url = `https://www.googleapis.com/customsearch/v1?key=${GOOGLE_API_KEY}&cx=${GOOGLE_CX}&q=${encodeURIComponent(searchQuery)}&num=3`;
 
   try {
-    const response = await fetch(url);
+    const response = await fetch(url, {
+      headers: getHeaders(),
+    });
     const data = await response.json();
 
     if (!data.items) {

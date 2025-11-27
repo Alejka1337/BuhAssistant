@@ -1,25 +1,45 @@
 {
   "expo": {
-    "name": "buhassistant",
+    "name": "eGlavBuh",
     "slug": "buhassistant",
     "version": "1.0.0",
     "orientation": "portrait",
-    "icon": "./assets/images/icon.png",
+    "icon": "./assets/images/logo.png",
     "scheme": "myapp",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
     "splash": {
       "image": "./assets/images/splash-icon.png",
       "resizeMode": "contain",
-      "backgroundColor": "#ffffff"
+      "backgroundColor": "#228822"
     },
     "ios": {
+      "buildNumber": "8",
       "supportsTablet": true,
-      "bundleIdentifier": "com.anonymous.buhassistant"
+      "bundleIdentifier": "com.alejka1337.eglavbuh.dev",
+      "scheme": "com.googleusercontent.apps.914514821616-47musasu3ster3fjvjlbehc8fdrdgbno",
+      "config": {
+        "usesApns": true
+      },
+      "infoPlist": {
+        "UIBackgroundModes": [
+          "remote-notification"
+        ]
+      },
+      "entitlements": {
+        "aps-environment": "production"
+      }
+    },
+    "notification": {
+      "icon": "./assets/images/icon.png",
+      "color": "#228822",
+      "iosDisplayInForeground": true,
+      "androidMode": "default",
+      "androidCollapsedTitle": "eGlavBuh"
     },
     "android": {
       "adaptiveIcon": {
-        "foregroundImage": "./assets/images/adaptive-icon.png",
+        "foregroundImage": "./assets/images/logo.png",
         "backgroundColor": "#ffffff"
       },
       "package": "com.anonymous.buhassistant"
@@ -30,7 +50,15 @@
       "favicon": "./assets/images/favicon.png"
     },
     "plugins": [
-      "expo-router"
+      "expo-router",
+      [
+        "expo-notifications",
+        {
+          "icon": "./assets/images/icon.png",
+          "color": "#228822",
+          "sounds": []
+        }
+      ]
     ],
     "experiments": {
       "typedRoutes": true
@@ -41,7 +69,10 @@
       },
       "eas": {
         "projectId": "8698ae71-7811-4098-ab40-e39b6dcffcf4"
-      }
+      },
+      "googleWebClientId": "914514821616-rh81j21a2qbqu104j45j6j09661jo6qm.apps.googleusercontent.com",
+      "googleIosClientId": "914514821616-47musasu3ster3fjvjlbehc8fdrdgbno.apps.googleusercontent.com",
+      "apiUrl": "https://e637d023274f.ngrok-free.app"
     }
   }
 }

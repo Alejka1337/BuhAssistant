@@ -5,6 +5,7 @@ node_modules/
 
 # Expo
 .expo/
+.expo-credentials
 dist/
 web-build/
 expo-env.d.ts
@@ -36,3 +37,17 @@ yarn-error.*
 # typescript
 *.tsbuildinfo
 .vercel
+
+# vscode
+.vscode/
+.cursor/
+
+# backend
+
+backend/logs/
+backend/media/
+backend/static/
+backend/templates/
+
+__pycache__/
+doc-files/

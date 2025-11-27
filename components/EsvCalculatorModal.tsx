@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, Modal, TextInput, TouchableOpacity, Alert } from 'react-native';
+import { View, Text, StyleSheet, Modal, TextInput, TouchableOpacity, Alert, Keyboard } from 'react-native';
+import { Colors } from '@/constants/Colors';
 
 interface EsvCalculatorModalProps {
   visible: boolean;
@@ -11,6 +12,7 @@ export default function EsvCalculatorModal({ visible, onClose }: EsvCalculatorMo
   const [result, setResult] = useState<string | null>(null);
 
   const calculateESV = () => {
+    Keyboard.dismiss(); // Закрываем клавиатуру
     const salary = parseFloat(minSalary);
     if (isNaN(salary) || salary <= 0) {
       Alert.alert('Помилка', 'Будь ласка, введіть коректне значення зарплати.');
@@ -72,7 +74,7 @@ const styles = StyleSheet.create({
     },
     modalView: {
         width: '90%',
-        backgroundColor: '#2c3e50',
+        backgroundColor: '#22262c',
         borderRadius: 20,
         padding: 25,
         alignItems: 'center',
@@ -112,7 +114,7 @@ const styles = StyleSheet.create({
         width: '100%',
         backgroundColor: '#1a1d21',
         borderWidth: 1,
-        borderColor: '#00bfa5',
+        borderColor: '#282',
         padding: 12,
         marginBottom: 20,
         borderRadius: 8,
@@ -121,7 +123,7 @@ const styles = StyleSheet.create({
         textAlign: 'center',
     },
     calculateButton: {
-        backgroundColor: '#00bfa5',
+        backgroundColor: Colors.primary,
         borderRadius: 8,
         paddingVertical: 12,
         paddingHorizontal: 30,

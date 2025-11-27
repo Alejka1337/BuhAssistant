@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity } from 'react-native';
+import { MaterialIcons, MaterialCommunityIcons } from '@expo/vector-icons';
 import EsvCalculatorModal from '../../components/EsvCalculatorModal';
 import SingleTaxGroup1Modal from '../../components/SingleTaxGroup1Modal';
 import SingleTaxGroup2Modal from '../../components/SingleTaxGroup2Modal';
@@ -8,19 +9,27 @@ import PdfoCalculatorModal from '../../components/PdfoCalculatorModal';
 import MilitaryTaxModal from '../../components/MilitaryTaxModal';
 import NetSalaryModal from '../../components/NetSalaryModal';
 import TotalTaxLoadModal from '../../components/TotalTaxLoadModal';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { Colors } from '@/constants/Theme';
 
-const tools = [
-  'ЄСВ для ФОП',
-  'Єдиний податок 1 группа',
-  'Єдиний податок 2 группа',
-  'Єдиний податок 3 группа',
-  'ПДФО',
-  'Військовий збір',
-  'Чиста зарплата',
+interface Tool {
+  name: string;
+  icon: string;
+  iconFamily: 'MaterialIcons' | 'MaterialCommunityIcons';
+}
 
+const tools: Tool[] = [
+  { name: 'ЄСВ для ФОП', icon: 'account-balance', iconFamily: 'MaterialIcons' },
+  { name: 'Єдиний податок 1 группа', icon: 'store', iconFamily: 'MaterialIcons' },
+  { name: 'Єдиний податок 2 группа', icon: 'business', iconFamily: 'MaterialIcons' },
+  { name: 'Єдиний податок 3 группа', icon: 'domain', iconFamily: 'MaterialIcons' },
+  { name: 'ПДФО', icon: 'receipt-long', iconFamily: 'MaterialIcons' },
+  { name: 'Військовий збір', icon: 'shield', iconFamily: 'MaterialIcons' },
+  { name: 'Чиста зарплата', icon: 'account-cash', iconFamily: 'MaterialCommunityIcons' },
 ];
 
 export default function ToolsScreen() {
+  const insets = useSafeAreaInsets();
   const [esvModalVisible, setEsvModalVisible] = useState(false);
   const [singleTaxG1ModalVisible, setSingleTaxG1ModalVisible] = useState(false);
   const [singleTaxG2ModalVisible, setSingleTaxG2ModalVisible] = useState(false);
@@ -30,8 +39,8 @@ export default function ToolsScreen() {
   const [netSalaryModalVisible, setNetSalaryModalVisible] = useState(false);
   const [totalTaxLoadModalVisible, setTotalTaxLoadModalVisible] = useState(false);
 
-  const handleTilePress = (toolName: string) => {
-    switch (toolName) {
+  const handleTilePress = (tool: Tool) => {
+    switch (tool.name) {
       case 'ЄСВ для ФОП':
         setEsvModalVisible(true);
         break;
@@ -56,15 +65,21 @@ export default function ToolsScreen() {
       case 'Загальний податковий тягар':
         setTotalTaxLoadModalVisible(true);
         break;
-      // Add other cases here for future calculators
       default:
         break;
     }
   };
 
+  const renderIcon = (tool: Tool) => {
+    if (tool.iconFamily === 'MaterialCommunityIcons') {
+      return <MaterialCommunityIcons name={tool.icon as any} size={48} color={Colors.primary} />;
+    }
+    return <MaterialIcons name={tool.icon as any} size={48} color={Colors.primary} />;
+  };
+
   return (
     <View style={styles.container}>
-      <ScrollView>
+      <ScrollView contentContainerStyle={{ paddingBottom: insets.bottom + 16 }}>
         <View style={styles.tilesContainer}>
           {tools.map((tool, index) => (
             <TouchableOpacity 
@@ -72,7 +87,8 @@ export default function ToolsScreen() {
               style={styles.tile}
               onPress={() => handleTilePress(tool)}
             >
-              <Text style={styles.tileText}>{tool}</Text>
+              {renderIcon(tool)}
+              <Text style={styles.tileText}>{tool.name}</Text>
             </TouchableOpacity>
           ))}
         </View>
@@ -124,21 +140,29 @@ export default function ToolsScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#1a1d21',
+    backgroundColor: Colors.background,
   },
   tilesContainer: {
-    padding: 20,
+    padding: 16,
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    justifyContent: 'space-between',
   },
   tile: {
-    backgroundColor: '#2c3e50',
-    padding: 20,
+    backgroundColor: Colors.cardBackground,
+    width: '48%',
+    aspectRatio: 1,
     borderRadius: 12,
     alignItems: 'center',
-    marginBottom: 15,
+    justifyContent: 'center',
+    marginBottom: 16,
+    padding: 16,
   },
   tileText: {
-    color: '#ecf0f1',
-    fontSize: 16,
-    fontWeight: '600',
+    color: Colors.textPrimary,
+    fontSize: 17,
+    fontWeight: '500',
+    textAlign: 'center',
+    marginTop: 12,
   },
 });

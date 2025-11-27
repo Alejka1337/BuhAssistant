@@ -3,6 +3,7 @@ import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
 import { router } from 'expo-router';
+import { Colors, Typography, Spacing, BorderRadius } from '../constants/Theme';
 
 type Props = {
   title: string;
@@ -27,10 +28,12 @@ export const SearchResultCard = ({ title, description, url, site }: Props) => {
       <Text style={styles.title} numberOfLines={2}>{title}</Text>
       <Text style={styles.description} numberOfLines={3}>{description}</Text>
       <View style={styles.footer}>
-        <Text style={styles.site}>{site}</Text>
+        <View style={styles.siteTag}>
+          <Text style={styles.site}>{site}</Text>
+        </View>
         <TouchableOpacity onPress={handleOpen} style={styles.button}>
           <Text style={styles.buttonText}>Відкрити</Text>
-          <MaterialIcons name="arrow-forward" size={16} color="#fff" style={styles.buttonIcon} />
+          <MaterialIcons name="arrow-forward" size={16} color={Colors.white} style={styles.buttonIcon} />
         </TouchableOpacity>
       </View>
     </View>
@@ -39,28 +42,27 @@ export const SearchResultCard = ({ title, description, url, site }: Props) => {
 
 const styles = StyleSheet.create({
   card: {
-    backgroundColor: '#2c3e50',
-    borderRadius: 12,
-    padding: 16,
-    marginBottom: 12,
+    backgroundColor: Colors.cardBackground,
+    borderRadius: BorderRadius.lg,
+    padding: Spacing.md,
+    marginBottom: Spacing.sm,
     borderWidth: 1,
-    borderColor: '#00bfa5',
-    shadowColor: '#000',
+    borderColor: Colors.primary,
+    shadowColor: Colors.black,
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 4,
     elevation: 3,
   },
   title: { 
-    fontSize: 16, 
-    fontWeight: '700', 
-    marginBottom: 10,
-    color: '#ecf0f1',
+    ...Typography.bodyBold,
+    marginBottom: Spacing.sm,
+    color: Colors.textPrimary,
     lineHeight: 22,
   },
   description: {
-    fontSize: 14,
-    color: '#bdc3c7',
+    ...Typography.caption,
+    color: Colors.textSecondary,
     marginBottom: 14,
     lineHeight: 20,
   },
@@ -70,24 +72,37 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginTop: 4,
   },
+  siteTag: {
+    backgroundColor: 'rgba(210, 225, 214, 0.13)',
+    paddingHorizontal: Spacing.sm,
+    paddingVertical: 6,
+    borderRadius: BorderRadius.md,
+    borderWidth: 1,
+    borderColor: Colors.textSecondary,
+    shadowColor: Colors.textMuted,
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.3,
+    shadowRadius: 2,
+    elevation: 2,
+    marginRight: Spacing.sm,
+  },
   site: { 
-    color: '#00bfa5', 
-    fontSize: 12, 
-    fontWeight: '600',
-    flex: 1,
+    ...Typography.caption,
+    color: Colors.info, 
+    fontWeight: '700',
   },
   button: {
-    backgroundColor: '#00bfa5',
+    backgroundColor: Colors.primary,
     paddingVertical: 8,
     paddingHorizontal: 14,
-    borderRadius: 8,
+    borderRadius: BorderRadius.md,
     alignItems: 'center',
     flexDirection: 'row',
   },
   buttonText: { 
-    color: '#fff', 
-    fontWeight: '600', 
-    fontSize: 13,
+    ...Typography.caption,
+    color: Colors.white, 
+    fontWeight: '600',
     marginRight: 4,
   },
   buttonIcon: {

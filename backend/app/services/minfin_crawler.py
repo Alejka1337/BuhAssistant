@@ -145,6 +145,29 @@ async def crawl_minfin() -> List[MinfinArticle]:
     return list(unique_articles.values())
 
 
+class MinfinCrawler:
+    """
+    Класс для управления парсингом новостей с minfin.com.ua
+    """
+    
+    def __init__(self):
+        pass
+    
+    def crawl_all(self) -> List[Dict]:
+        """
+        Синхронная обертка для async crawl_minfin()
+        Возвращает список словарей вместо MinfinArticle объектов
+        """
+        loop = asyncio.new_event_loop()
+        asyncio.set_event_loop(loop)
+        try:
+            articles = loop.run_until_complete(crawl_minfin())
+            # Конвертируем в словари для совместимости с API
+            return [article.to_dict() for article in articles]
+        finally:
+            loop.close()
+
+
 # Для тестирования
 if __name__ == "__main__":
     async def test():

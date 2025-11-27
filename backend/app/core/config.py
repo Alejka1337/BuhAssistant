@@ -29,8 +29,9 @@ class Settings(BaseSettings):
     REFRESH_TOKEN_EXPIRE_DAYS: int = 7
     
     # Google OAuth2
-    GOOGLE_CLIENT_ID: str = ""
+    GOOGLE_CLIENT_ID: str = ""  # Web Client ID
     GOOGLE_CLIENT_SECRET: str = ""
+    GOOGLE_IOS_CLIENT_ID: str = ""  # iOS Client ID (для мобильного приложения)
     GOOGLE_REDIRECT_URI: str = "http://localhost:8000/api/auth/google/callback"
     
     # Google Custom Search API
@@ -42,6 +43,12 @@ class Settings(BaseSettings):
     
     # Expo Push Notifications
     EXPO_ACCESS_TOKEN: str = ""
+    
+    # Email (SMTP)
+    SMTP_SERVER: str = "smtp.gmail.com"
+    SMTP_PORT: int = 587
+    SMTP_EMAIL: str = ""
+    SMTP_PASSWORD: str = ""
     
     # CORS
     ALLOWED_ORIGINS: Union[List[str], str] = [

@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, Text, StyleSheet, Modal, TouchableOpacity } from 'react-native';
+import { View, Text, StyleSheet, Modal, TouchableOpacity, Keyboard } from 'react-native';
 
 interface SingleTaxGroup2ModalProps {
   visible: boolean;
@@ -48,7 +48,7 @@ const styles = StyleSheet.create({
     },
     modalView: {
         width: '90%',
-        backgroundColor: '#2c3e50',
+        backgroundColor: '#22262c',
         borderRadius: 20,
         padding: 35,
         alignItems: 'center',
@@ -85,7 +85,7 @@ const styles = StyleSheet.create({
         backgroundColor: '#1a1d21',
         borderRadius: 12,
         borderWidth: 1,
-        borderColor: '#00bfa5',
+        borderColor: '#282',
         alignItems: 'center',
         width: '100%',
     },
@@ -97,6 +97,6 @@ const styles = StyleSheet.create({
     resultValue: {
         fontSize: 24,
         fontWeight: 'bold',
-        color: '#00bfa5',
+        color: '#282',
     },
 });

@@ -76,6 +76,7 @@ services:
       - ELASTICSEARCH_URL=http://elasticsearch:9200
       - GOOGLE_API_KEY=your-key-here
       - GOOGLE_CX=your-cx-here
+      - OPENAI_API_KEY=your-key-here
     depends_on:
       postgres:
         condition: service_healthy
@@ -92,17 +93,19 @@ services:
       context: ./backend
       dockerfile: Dockerfile
     container_name: buhassistant_celery_worker
-    command: celery -A app.celery_app worker --loglevel=info
+    command: celery -A app.celery_app.celery_app worker --loglevel=info --concurrency=2 --queues=celery,crawler,notifications,default
     volumes:
       - ./backend:/app
     environment:
       - DATABASE_URL=postgresql://buhassistant:buhassistant123@postgres:5432/buhassistant_db
       - REDIS_URL=redis://redis:6379/0
-      - CELERY_BROKER_URL=redis://redis:6379/1
-      - CELERY_RESULT_BACKEND=redis://redis:6379/2
+      - ELASTICSEARCH_URL=http://elasticsearch:9200
+      - OPENAI_API_KEY=your-key-here
     depends_on:
-      - postgres
-      - redis
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
     networks:
       - buhassistant_network
 
@@ -112,17 +115,19 @@ services:
       context: ./backend
       dockerfile: Dockerfile
     container_name: buhassistant_celery_beat
-    command: celery -A app.celery_app beat --loglevel=info
+    command: celery -A app.celery_app.celery_app beat --loglevel=info
     volumes:
       - ./backend:/app
     environment:
       - DATABASE_URL=postgresql://buhassistant:buhassistant123@postgres:5432/buhassistant_db
       - REDIS_URL=redis://redis:6379/0
-      - CELERY_BROKER_URL=redis://redis:6379/1
-      - CELERY_RESULT_BACKEND=redis://redis:6379/2
+      - ELASTICSEARCH_URL=http://elasticsearch:9200
+      - OPENAI_API_KEY=your-key-here
     depends_on:
-      - postgres
-      - redis
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
     networks:
       - buhassistant_network
 

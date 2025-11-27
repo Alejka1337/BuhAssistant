@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, Modal, TextInput, TouchableOpacity, Alert } from 'react-native';
+import { View, Text, StyleSheet, Modal, TextInput, TouchableOpacity, Alert, Keyboard } from 'react-native';
 
 interface PdfoCalculatorModalProps {
   visible: boolean;
@@ -13,6 +13,7 @@ export default function PdfoCalculatorModal({ visible, onClose }: PdfoCalculator
   const [result, setResult] = useState<string | null>(null);
 
   const calculatePdfo = () => {
+    Keyboard.dismiss(); // Закрываем клавиатуру
     const salaryValue = parseFloat(salary);
     if (isNaN(salaryValue) || salaryValue < 0) {
       Alert.alert('Помилка', 'Будь ласка, введіть коректну суму зарплати.');
@@ -75,7 +76,7 @@ const styles = StyleSheet.create({
     },
     modalView: {
         width: '90%',
-        backgroundColor: '#2c3e50',
+        backgroundColor: '#22262c',
         borderRadius: 20,
         padding: 25,
         alignItems: 'center',
@@ -115,7 +116,7 @@ const styles = StyleSheet.create({
         width: '100%',
         backgroundColor: '#1a1d21',
         borderWidth: 1,
-        borderColor: '#00bfa5',
+        borderColor: '#282',
         padding: 12,
         marginBottom: 20,
         borderRadius: 8,
@@ -124,7 +125,7 @@ const styles = StyleSheet.create({
         textAlign: 'center',
     },
     calculateButton: {
-        backgroundColor: '#00bfa5',
+        backgroundColor: '#282',
         borderRadius: 8,
         paddingVertical: 12,
         paddingHorizontal: 30,

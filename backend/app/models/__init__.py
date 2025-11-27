@@ -5,6 +5,7 @@ from app.models.user import User
 from app.models.news import News
 from app.models.forum import ForumCategory, ForumThread, ForumPost, ForumLike
 from app.models.search_log import SearchLog
+from app.models.notification import NotificationSettings
 
 __all__ = [
     "User",
@@ -14,5 +15,6 @@ __all__ = [
     "ForumPost",
     "ForumLike",
     "SearchLog",
+    "NotificationSettings",
 ]
 

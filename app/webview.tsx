@@ -12,6 +12,7 @@ import { WebView } from 'react-native-webview';
 import { useLocalSearchParams, router } from 'expo-router';
 import { MaterialIcons } from '@expo/vector-icons';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { Colors, Typography, Spacing, BorderRadius } from '../constants/Theme';
 
 export default function WebViewScreen() {
   const params = useLocalSearchParams();
@@ -48,12 +49,12 @@ export default function WebViewScreen() {
 
   return (
     <SafeAreaView style={styles.container}>
-      <StatusBar barStyle="light-content" backgroundColor="#00bfa5" />
+      <StatusBar barStyle="light-content" backgroundColor={Colors.primary} />
       
       {/* Наша шапка */}
       <View style={styles.header}>
         <TouchableOpacity onPress={handleBack} style={styles.headerButton}>
-          <MaterialIcons name="arrow-back" size={24} color="#fff" />
+          <MaterialIcons name="arrow-back" size={24} color={Colors.white} />
         </TouchableOpacity>
 
         <View style={styles.headerCenter}>
@@ -66,7 +67,7 @@ export default function WebViewScreen() {
         </View>
 
         <TouchableOpacity onPress={handleClose} style={styles.headerButton}>
-          <MaterialIcons name="close" size={24} color="#fff" />
+          <MaterialIcons name="close" size={24} color={Colors.white} />
         </TouchableOpacity>
       </View>
 
@@ -80,7 +81,7 @@ export default function WebViewScreen() {
           <MaterialIcons
             name="arrow-back"
             size={24}
-            color={canGoBack ? '#00bfa5' : '#7f8c8d'}
+            color={canGoBack ? Colors.primary : Colors.textMuted}
           />
         </TouchableOpacity>
 
@@ -92,12 +93,12 @@ export default function WebViewScreen() {
           <MaterialIcons
             name="arrow-forward"
             size={24}
-            color={canGoForward ? '#00bfa5' : '#7f8c8d'}
+            color={canGoForward ? Colors.primary : Colors.textMuted}
           />
         </TouchableOpacity>
 
         <TouchableOpacity onPress={handleReload} style={styles.navButton}>
-          <MaterialIcons name="refresh" size={24} color="#00bfa5" />
+          <MaterialIcons name="refresh" size={24} color={Colors.primary} />
         </TouchableOpacity>
       </View>
 
@@ -117,7 +118,7 @@ export default function WebViewScreen() {
             startInLoadingState={true}
             renderLoading={() => (
               <View style={styles.loadingContainer}>
-                <ActivityIndicator size="large" color="#00bfa5" />
+                <ActivityIndicator size="large" color={Colors.primary} />
                 <Text style={styles.loadingText}>Завантаження...</Text>
               </View>
             )}
@@ -131,7 +132,7 @@ export default function WebViewScreen() {
           />
         ) : (
           <View style={styles.errorContainer}>
-            <MaterialIcons name="error-outline" size={64} color="#e74c3c" />
+            <MaterialIcons name="error-outline" size={64} color={Colors.error} />
             <Text style={styles.errorText}>Помилка: URL не вказано</Text>
             <TouchableOpacity onPress={handleClose} style={styles.errorButton}>
               <Text style={styles.errorButtonText}>Повернутися назад</Text>
@@ -146,60 +147,60 @@ export default function WebViewScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#1a1d21',
+    backgroundColor: Colors.background,
     paddingTop: Platform.OS === 'android' ? StatusBar.currentHeight : 0,
   },
   header: {
-    backgroundColor: '#00bfa5',
+    backgroundColor: Colors.cardBackground,
     flexDirection: 'row',
     alignItems: 'center',
-    paddingHorizontal: 12,
-    paddingVertical: 12,
+    paddingHorizontal: Spacing.sm,
+    paddingVertical: Spacing.sm,
     elevation: 4,
-    shadowColor: '#000',
+    shadowColor: Colors.black,
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.2,
     shadowRadius: 4,
   },
   headerButton: {
     padding: 8,
-    borderRadius: 8,
+    borderRadius: BorderRadius.md,
   },
   headerCenter: {
     flex: 1,
-    marginHorizontal: 12,
+    marginHorizontal: Spacing.sm,
   },
   headerTitle: {
-    color: '#fff',
-    fontSize: 16,
+    ...Typography.body,
+    color: Colors.white,
     fontWeight: '700',
     marginBottom: 2,
   },
   headerUrl: {
+    ...Typography.caption,
     color: 'rgba(255, 255, 255, 0.8)',
-    fontSize: 11,
   },
   navigationBar: {
-    backgroundColor: '#2c3e50',
+    backgroundColor: Colors.cardBackground,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'flex-start',
-    paddingHorizontal: 20,
+    paddingHorizontal: Spacing.lg,
     paddingVertical: 10,
     borderBottomWidth: 1,
-    borderBottomColor: '#1a1d21',
+    borderBottomColor: Colors.background,
   },
   navButton: {
     padding: 8,
-    marginRight: 20,
+    marginRight: Spacing.lg,
   },
   webviewContainer: {
     flex: 1,
-    backgroundColor: '#fff',
+    backgroundColor: Colors.white,
   },
   webview: {
     flex: 1,
-    backgroundColor: '#fff',
+    backgroundColor: Colors.white,
   },
   loadingContainer: {
     position: 'absolute',
@@ -209,38 +210,37 @@ const styles = StyleSheet.create({
     bottom: 0,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: '#1a1d21',
+    backgroundColor: Colors.background,
   },
   loadingText: {
-    marginTop: 16,
-    color: '#00bfa5',
-    fontSize: 16,
+    ...Typography.body,
+    marginTop: Spacing.md,
+    color: Colors.primary,
     fontWeight: '600',
   },
   errorContainer: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: '#1a1d21',
+    backgroundColor: Colors.background,
     padding: 40,
   },
   errorText: {
-    color: '#e74c3c',
-    fontSize: 18,
-    fontWeight: '600',
-    marginTop: 20,
+    ...Typography.h4,
+    color: Colors.error,
+    marginTop: Spacing.lg,
     marginBottom: 30,
     textAlign: 'center',
   },
   errorButton: {
-    backgroundColor: '#00bfa5',
+    backgroundColor: Colors.primary,
     paddingHorizontal: 24,
     paddingVertical: 12,
-    borderRadius: 8,
+    borderRadius: BorderRadius.md,
   },
   errorButtonText: {
-    color: '#fff',
-    fontSize: 16,
+    ...Typography.body,
+    color: Colors.white,
     fontWeight: '600',
   },
 });
