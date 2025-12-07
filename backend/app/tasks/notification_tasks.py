@@ -8,6 +8,8 @@ from typing import List, Dict, Any
 import json
 import os
 import logging
+import random
+import time
 
 from app.db.database import SessionLocal
 from app.models.user import User, UserType
@@ -173,97 +175,67 @@ def send_deadline_notifications():
 @shared_task(name="send_news_notifications")
 def send_news_notifications():
     """
-    Отправить персонализированные уведомления о новостях
-    Запускается 2 раза в неделю (понедельник и четверг в 10:00)
+    Отправить уведомления о новостях ВСЕМ пользователям (зарегистрированным + анонимным)
+    Запускается 2 раза в день: в 12:00 и 18:00 (с рандомной задержкой 0-120 минут)
     """
     logger.info("Starting news notifications task")
     
+    # РАНДОМНАЯ ЗАДЕРЖКА: 0-120 минут (0-7200 секунд)
+    delay_seconds = random.randint(0, 7200)  # 2 часа = 7200 секунд
+    delay_minutes = delay_seconds / 60
+    
+    logger.info(f"Applying random delay: {delay_minutes:.1f} minutes ({delay_seconds} seconds)")
+    time.sleep(delay_seconds)
+    
+    logger.info(f"Delay completed. Sending news notifications now at {datetime.now()}")
+    
     db = SessionLocal()
     try:
-        # Получаем новости за последнюю неделю
-        week_ago = datetime.now() - timedelta(days=7)
+        # Получаем свежие новости за последние 24 часа
+        day_ago = datetime.now() - timedelta(hours=24)
         
         recent_news = db.query(News).filter(
-            News.published_at >= week_ago
-        ).order_by(News.published_at.desc()).limit(50).all()
+            News.published_at >= day_ago
+        ).order_by(News.published_at.desc()).limit(10).all()
         
         if not recent_news:
             logger.info("No recent news found")
             return {"status": "success", "notifications_sent": 0}
         
-        # Получаем активных пользователей с включенными уведомлениями о новостях
-        users = db.query(User).filter(
-            User.is_active == True,
-            User.is_verified == True,
-            User.push_token.isnot(None)
-        ).all()
+        # Выбираем самую свежую новость
+        news_item = recent_news[0]
         
-        total_sent = 0
+        # Формируем уведомление
+        title = "📰 Нова стаття"
+        body = f"{news_item.title}"
         
-        for user in users:
-            # Проверяем настройки пользователя
-            if not user.notification_settings:
-                continue
-            
-            settings = user.notification_settings
-            if not settings.enable_news_notifications:
-                continue
-            
-            # Фильтруем новости по целевой аудитории
-            filtered_news = news_personalization_service.filter_news_by_target_audience(
-                recent_news,
-                user.user_type
-            )
-            
-            if not filtered_news:
-                logger.info(f"No relevant news for user {user.id}")
-                continue
-            
-            # Используем OpenAI для выбора наиболее релевантной новости
-            selected_news = news_personalization_service.select_best_news_for_user(
-                news_list=filtered_news,
-                user_type=user.user_type,
-                fop_group=user.fop_group,
-                tax_system=user.tax_system,
-                limit=1
-            )
-            
-            if not selected_news:
-                logger.info(f"No news selected for user {user.id}")
-                continue
-            
-            news_item = selected_news[0]
-            
-            # Формируем уведомление
-            title = "📰 Нова стаття для вас"
-            body = f"{news_item.title}"
-            
-            # Отправляем
-            result = push_service.send_push_notification(
-                push_token=user.push_token,
-                title=title,
-                body=body,
-                data={
-                    "type": "news",
-                    "news_id": news_item.id,
-                    "news_url": news_item.url,
-                    "source": news_item.source
-                }
-            )
-            
-            if result["success"]:
-                total_sent += 1
-                logger.info(f"News notification sent to user {user.id}: {news_item.title}")
-            else:
-                logger.error(f"Failed to send notification to user {user.id}: {result.get('error')}")
-                
-                # Если токен устарел, удаляем его
-                if result.get("should_remove_token"):
-                    user.push_token = None
-                    db.commit()
+        # Отправляем ВСЕМ (зарегистрированным + анонимным) через новый метод
+        result = push_service.send_news_to_all(
+            db=db,
+            title=title,
+            body=body,
+            data={
+                "type": "news",
+                "news_id": news_item.id,
+                "news_url": news_item.url,
+                "source": news_item.source
+            }
+        )
         
-        logger.info(f"News notifications task completed. Sent: {total_sent}")
-        return {"status": "success", "notifications_sent": total_sent}
+        logger.info(
+            f"News notifications task completed. "
+            f"Sent: {result['success']}/{result['total']} "
+            f"(Registered: {result['registered_users']}, Anonymous: {result['anonymous_users']})"
+        )
+        
+        return {
+            "status": "success",
+            "notifications_sent": result['success'],
+            "registered_users": result['registered_users'],
+            "anonymous_users": result['anonymous_users'],
+            "news_title": news_item.title,
+            "delay_minutes": delay_minutes
+        }
         
     except Exception as e:
         logger.error(f"Error in news notifications task: {e}")

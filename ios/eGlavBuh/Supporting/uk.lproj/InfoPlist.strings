@@ -1,0 +1,4 @@
+CFBundleDisplayName = "eGlavBuh";
+NSCameraUsageDescription = "eGlavBuh потребує доступ до камери для зйомки фото";
+NSMicrophoneUsageDescription = "eGlavBuh потребує доступ до мікрофона для запису аудіо консультацій";
+NSPhotoLibraryUsageDescription = "eGlavBuh потребує доступ до фото для завантаження зображень";

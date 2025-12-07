@@ -53,7 +53,13 @@
     "web": {
       "bundler": "metro",
       "output": "static",
-      "favicon": "./assets/images/favicon.png"
+      "favicon": "./assets/images/favicon.png",
+      "backgroundColor": "#1a1d21",
+      "themeColor": "#228822",
+      "lang": "uk",
+      "name": "eGlavBuh",
+      "shortName": "eGlavBuh",
+      "description": "Бухгалтерський помічник для ФОП та юридичних осіб"
     },
     "plugins": [
       "expo-router",
@@ -78,7 +84,7 @@
       },
       "googleWebClientId": "914514821616-rh81j21a2qbqu104j45j6j09661jo6qm.apps.googleusercontent.com",
       "googleIosClientId": "914514821616-47musasu3ster3fjvjlbehc8fdrdgbno.apps.googleusercontent.com",
-      "apiUrl": "https://api.eglavbuh.com.ua"
+      "apiUrl": "http://localhost:8000"
     }
   }
 }

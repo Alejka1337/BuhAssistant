@@ -1,8 +1,8 @@
 /**
  * Auth Service - работа с авторизацией
  */
-import * as SecureStore from 'expo-secure-store';
 import { API_ENDPOINTS, getHeaders } from '../constants/api';
+import * as secureStorage from './secureStorage';
 
 const TOKEN_KEY = 'auth_token';
 const REFRESH_TOKEN_KEY = 'refresh_token';
@@ -31,6 +31,7 @@ export interface User {
   tax_system: string | null;
   is_active: boolean;
   is_verified: boolean;
+  accepted_terms: boolean;
   created_at: string;
   last_login: string | null;
 }
@@ -61,12 +62,12 @@ export interface RegisterData {
 }
 
 /**
- * Сохранение токенов в SecureStore
+ * Сохранение токенов
  */
 export const saveTokens = async (accessToken: string, refreshToken: string): Promise<void> => {
   try {
-    await SecureStore.setItemAsync(TOKEN_KEY, accessToken);
-    await SecureStore.setItemAsync(REFRESH_TOKEN_KEY, refreshToken);
+    await secureStorage.setItem(TOKEN_KEY, accessToken);
+    await secureStorage.setItem(REFRESH_TOKEN_KEY, refreshToken);
   } catch (error) {
     console.error('Error saving tokens:', error);
     throw error;
@@ -74,11 +75,11 @@ export const saveTokens = async (accessToken: string, refreshToken: string): Pro
 };
 
 /**
- * Получение access token из SecureStore
+ * Получение access token
  */
 export const getAccessToken = async (): Promise<string | null> => {
   try {
-    return await SecureStore.getItemAsync(TOKEN_KEY);
+    return await secureStorage.getItem(TOKEN_KEY);
   } catch (error) {
     console.error('Error getting access token:', error);
     return null;
@@ -86,11 +87,11 @@ export const getAccessToken = async (): Promise<string | null> => {
 };
 
 /**
- * Получение refresh token из SecureStore
+ * Получение refresh token
  */
 export const getRefreshToken = async (): Promise<string | null> => {
   try {
-    return await SecureStore.getItemAsync(REFRESH_TOKEN_KEY);
+    return await secureStorage.getItem(REFRESH_TOKEN_KEY);
   } catch (error) {
     console.error('Error getting refresh token:', error);
     return null;
@@ -98,12 +99,12 @@ export const getRefreshToken = async (): Promise<string | null> => {
 };
 
 /**
- * Удаление токенов из SecureStore
+ * Удаление токенов
  */
 export const deleteTokens = async (): Promise<void> => {
   try {
-    await SecureStore.deleteItemAsync(TOKEN_KEY);
-    await SecureStore.deleteItemAsync(REFRESH_TOKEN_KEY);
+    await secureStorage.removeItem(TOKEN_KEY);
+    await secureStorage.removeItem(REFRESH_TOKEN_KEY);
   } catch (error) {
     console.error('Error deleting tokens:', error);
   }
@@ -173,16 +174,7 @@ export const login = async (credentials: LoginCredentials): Promise<AuthResponse
  * Получение информации о текущем пользователе
  */
 export const getCurrentUser = async (): Promise<User> => {
-  const token = await getAccessToken();
-  if (!token) {
-    throw new Error('No access token');
-  }
-
-  const response = await fetch(`${API_ENDPOINTS.AUTH.ME}`, {
-    headers: getHeaders({
-      'Authorization': `Bearer ${token}`,
-    }),
-  });
+  const response = await authenticatedFetch(`${API_ENDPOINTS.AUTH.ME}`);
 
   if (!response.ok) {
     throw new Error('Failed to get current user');
@@ -337,16 +329,7 @@ export const resendActivationCode = async (email: string): Promise<void> => {
  */
 export const fetchUserProfile = async (): Promise<User> => {
   try {
-    const token = await getAccessToken();
-    if (!token) {
-      throw new Error('No access token');
-    }
-
-    const response = await fetch(`${API_ENDPOINTS.PROFILE.ME}`, {
-      headers: getHeaders({
-        'Authorization': `Bearer ${token}`,
-      }),
-    });
+    const response = await authenticatedFetch(`${API_ENDPOINTS.PROFILE.ME}`);
 
     if (!response.ok) {
       throw new Error('Failed to fetch user profile');
@@ -364,16 +347,8 @@ export const fetchUserProfile = async (): Promise<User> => {
  */
 export const updateUserProfile = async (data: UserProfileUpdate): Promise<User> => {
   try {
-    const token = await getAccessToken();
-    if (!token) {
-      throw new Error('No access token');
-    }
-
-    const response = await fetch(`${API_ENDPOINTS.PROFILE.ME}`, {
+    const response = await authenticatedFetch(`${API_ENDPOINTS.PROFILE.ME}`, {
       method: 'PUT',
-      headers: getHeaders({
-        'Authorization': `Bearer ${token}`,
-      }),
       body: JSON.stringify(data),
     });
 
@@ -457,6 +432,33 @@ export const authenticatedFetch = async (
     return response;
   } catch (error) {
     console.error('❌ Authenticated fetch error:', error);
+    throw error;
+  }
+};
+
+/**
+ * Удаление аккаунта пользователя
+ * ⚠️ Необратимая операция! Удаляет все данные пользователя.
+ */
+export const deleteAccount = async (): Promise<void> => {
+  try {
+    const response = await authenticatedFetch(`${API_ENDPOINTS.AUTH.DELETE_ACCOUNT}`, {
+      method: 'DELETE',
+    });
+
+    // 204 No Content - успешное удаление
+    if (response.status === 204) {
+      // Очищаем локальные токены после удаления
+      await deleteTokens();
+      return;
+    }
+
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.detail || 'Failed to delete account');
+    }
+  } catch (error) {
+    console.error('Delete account error:', error);
     throw error;
   }
 };

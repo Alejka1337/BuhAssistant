@@ -1,7 +1,7 @@
 """
 Endpoints для авторизации
 """
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, status, Response
 from sqlalchemy.orm import Session
 from datetime import datetime, timezone, timedelta
 import logging
@@ -10,6 +10,8 @@ import random
 logger = logging.getLogger(__name__)
 from app.db.database import get_db
 from app.models.user import User
+from app.models.forum import ForumThread, ForumPost
+from app.models.notification import NotificationSettings
 from app.schemas.auth import (
     UserRegister,
     UserLogin,
@@ -558,6 +560,82 @@ def confirm_password_reset(
     }
 
 
+@router.post("/accept-terms")
+def accept_terms(
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """
+    Принятие условий использования (Terms of Service)
+    
+    Требует авторизации. Устанавливает флаг accepted_terms = True
+    и сохраняет время принятия условий.
+    """
+    if current_user.accepted_terms:
+        return {"status": "already_accepted", "message": "Terms already accepted"}
+    
+    current_user.accepted_terms = True
+    current_user.terms_accepted_at = datetime.now(timezone.utc)
+    db.commit()
+    db.refresh(current_user)
+    
+    logger.info(f"User {current_user.id} ({current_user.email}) accepted terms of service")
+    
+    return {
+        "status": "accepted",
+        "message": "Terms of service accepted successfully",
+        "accepted_at": current_user.terms_accepted_at.isoformat()
+    }
+
+
+@router.delete("/account", status_code=status.HTTP_204_NO_CONTENT)
+def delete_account(
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """
+    Полное удаление аккаунта пользователя
+    
+    Требует авторизации. После удаления:
+    - Удаляются все созданные пользователем посты и топики в форуме
+    - Удаляются настройки уведомлений
+    - Очищается push token
+    - Удаляется сам пользователь
+    
+    ⚠️ Это действие необратимо!
+    """
+    try:
+        logger.info(f"Starting account deletion for user_id={current_user.id}, email={current_user.email}")
+        
+        # 1. Удалить все посты пользователя
+        posts_deleted = db.query(ForumPost).filter(ForumPost.user_id == current_user.id).delete(synchronize_session=False)
+        logger.info(f"Deleted {posts_deleted} forum posts for user_id={current_user.id}")
+        
+        # 2. Удалить все топики пользователя
+        threads_deleted = db.query(ForumThread).filter(ForumThread.user_id == current_user.id).delete(synchronize_session=False)
+        logger.info(f"Deleted {threads_deleted} forum threads for user_id={current_user.id}")
+        
+        # 3. Удалить настройки уведомлений
+        notif_deleted = db.query(NotificationSettings).filter(NotificationSettings.user_id == current_user.id).delete(synchronize_session=False)
+        logger.info(f"Deleted {notif_deleted} notification settings for user_id={current_user.id}")
+        
+        # 4. Удалить пользователя (push_token удалится автоматически, так как это поле в User)
+        db.delete(current_user)
+        db.commit()
+        
+        logger.info(f"Successfully deleted account for user_id={current_user.id}, email={current_user.email}")
+        
+        return Response(status_code=status.HTTP_204_NO_CONTENT)
+    
+    except Exception as e:
+        db.rollback()
+        logger.error(f"Error deleting account for user_id={current_user.id}: {e}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Failed to delete account. Please try again later."
+        )
+
+
 @router.get("/health")
 def auth_health():
     """Health check для auth API"""
@@ -575,6 +653,7 @@ def auth_health():
             "me": "GET /api/auth/me (protected)",
             "google": "POST /api/auth/google (Google OAuth2)",
             "google_url": "GET /api/auth/google/url (Get auth URL)",
+            "account": "DELETE /api/auth/account (Delete account - protected)",
         }
     }
 

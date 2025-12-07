@@ -66,23 +66,63 @@ async function fetchGoogleResults(query: string, domain: string): Promise<Search
         source: domain,
       },
     ],
-    'buhgalter911.com.ua': [
+    'buhgalter911.com': [
       {
         title: 'Головна сторінка Бухгалтер 911',
         description: 'Актуальні новини, консультації та корисна інформація для бухгалтерів.',
-        url: 'https://buhgalter911.com.ua/',
+        url: 'https://buhgalter911.com/',
         source: domain,
       },
       {
         title: 'Новини для бухгалтера',
         description: 'Останні новини у сфері бухгалтерського обліку та оподаткування.',
-        url: 'https://buhgalter911.com.ua/uk/news/',
+        url: 'https://buhgalter911.com/uk/news/',
         source: domain,
       },
       {
         title: 'Консультації бухгалтера',
         description: 'Професійні відповіді на питання з бухобліку, податків та звітності.',
-        url: 'https://buhgalter911.com.ua/uk/consult/',
+        url: 'https://buhgalter911.com/uk/consult/',
+        source: domain,
+      },
+    ],
+    'buhplatforma.com.ua': [
+      {
+        title: 'Бухгалтер Платформа - Новини',
+        description: 'Актуальні новини, статті та консультації для бухгалтерів щодо оподаткування та звітності.',
+        url: 'https://buhplatforma.com.ua/news',
+        source: domain,
+      },
+      {
+        title: 'Статті для бухгалтерів',
+        description: 'Детальні статті з практичними порадами та роз\'ясненнями складних питань бухобліку.',
+        url: 'https://buhplatforma.com.ua/article',
+        source: domain,
+      },
+      {
+        title: 'Вебінари для бухгалтерів',
+        description: 'Безкоштовні вебінари та навчальні матеріали для підвищення кваліфікації.',
+        url: 'https://buhplatforma.com.ua/vebinari',
+        source: domain,
+      },
+    ],
+    '7eminar.ua': [
+      {
+        title: '7Семінар - Новини',
+        description: 'Професійні консультації, новини та навчальні матеріали для бухгалтерів та підприємців.',
+        url: 'https://7eminar.ua/news?type=all',
+        source: domain,
+      },
+      {
+        title: 'Безкоштовні вебінари',
+        description: 'Щоденні вебінари з актуальних питань бухобліку, оподаткування та звітності.',
+        url: 'https://7eminar.ua/webinars',
+        source: domain,
+      },
+      {
+        title: 'АІ-Консультант',
+        description: 'Миттєві відповіді на питання з бухобліку та оподаткування за допомогою штучного інтелекту.',
+        url: 'https://7eminar.ua/ai-consultant',
         source: domain,
       },
     ],

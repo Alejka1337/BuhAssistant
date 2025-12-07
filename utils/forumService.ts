@@ -182,8 +182,19 @@ export async function createThread(data: {
   });
 
   if (!response.ok) {
-    const error = await response.json();
-    throw new Error(error.detail || 'Failed to create thread');
+    const errorData = await response.json();
+    
+    // Проверяем, является ли это ошибкой модерации
+    if (errorData.detail && typeof errorData.detail === 'object' && errorData.detail.reason) {
+      // Создаем объект ошибки с полями модерации
+      const moderationError: any = new Error('Moderation error');
+      moderationError.status = response.status;
+      moderationError.detail = errorData.detail;
+      throw moderationError;
+    }
+    
+    // Обычная ошибка
+    throw new Error(errorData.detail || 'Failed to create thread');
   }
 
   return response.json();
@@ -237,8 +248,19 @@ export async function createPost(data: {
   });
 
   if (!response.ok) {
-    const error = await response.json();
-    throw new Error(error.detail || 'Failed to create post');
+    const errorData = await response.json();
+    
+    // Проверяем, является ли это ошибкой модерации
+    if (errorData.detail && typeof errorData.detail === 'object' && errorData.detail.reason) {
+      // Создаем объект ошибки с полями модерации
+      const moderationError: any = new Error('Moderation error');
+      moderationError.status = response.status;
+      moderationError.detail = errorData.detail;
+      throw moderationError;
+    }
+    
+    // Обычная ошибка
+    throw new Error(errorData.detail || 'Failed to create post');
   }
 
   return response.json();

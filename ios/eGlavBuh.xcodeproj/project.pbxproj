@@ -9,24 +9,26 @@
 /* Begin PBXBuildFile section */
 		13B07FBF1A68108700A75B9A /* Images.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 13B07FB51A68108700A75B9A /* Images.xcassets */; };
 		3E461D99554A48A4959DE609 /* SplashScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = AA286B85B6C04FC6940260E9 /* SplashScreen.storyboard */; };
-		7F3F32D5CFAF37F389215E21 /* libPods-eGlavBuh.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 1E0C53A4CBF06BA28C77A891 /* libPods-eGlavBuh.a */; };
-		953A285AE87E53907CBBFB8F /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = 81F10E36D77E9E63F521E20B /* PrivacyInfo.xcprivacy */; };
+		5F92380557C51E663A053060 /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = 7F777D7C118E65C41D85B298 /* PrivacyInfo.xcprivacy */; };
+		6FA846EE8020F716FB88947B /* ExpoModulesProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1808D3BC932041CB489C575D /* ExpoModulesProvider.swift */; };
+		7E6DA994BEC44C709DB3790E /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = 009D081EB4694D4AA61E38CF /* InfoPlist.strings */; };
+		A22D38BE194253921D907D83 /* libPods-eGlavBuh.a in Frameworks */ = {isa = PBXBuildFile; fileRef = DBE682D71A122D2013378FDD /* libPods-eGlavBuh.a */; };
 		BB2F792D24A3F905000567C9 /* Expo.plist in Resources */ = {isa = PBXBuildFile; fileRef = BB2F792C24A3F905000567C9 /* Expo.plist */; };
 		F11748422D0307B40044C1D9 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = F11748412D0307B40044C1D9 /* AppDelegate.swift */; };
-		FCCBA46ED035C5385126BD10 /* ExpoModulesProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = D8071162F1F9A7EB2AEEB438 /* ExpoModulesProvider.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
+		009D081EB4694D4AA61E38CF /* InfoPlist.strings */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 4; includeInIndex = 0; lastKnownFileType = text.plist.strings; name = InfoPlist.strings; path = uk.lproj/InfoPlist.strings; sourceTree = "<group>"; };
 		13B07F961A680F5B00A75B9A /* eGlavBuh.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = eGlavBuh.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		13B07FB51A68108700A75B9A /* Images.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; name = Images.xcassets; path = eGlavBuh/Images.xcassets; sourceTree = "<group>"; };
 		13B07FB61A68108700A75B9A /* Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; name = Info.plist; path = eGlavBuh/Info.plist; sourceTree = "<group>"; };
-		1E0C53A4CBF06BA28C77A891 /* libPods-eGlavBuh.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libPods-eGlavBuh.a"; sourceTree = BUILT_PRODUCTS_DIR; };
-		369F202FCA6022BCE573E9AF /* Pods-eGlavBuh.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-eGlavBuh.release.xcconfig"; path = "Target Support Files/Pods-eGlavBuh/Pods-eGlavBuh.release.xcconfig"; sourceTree = "<group>"; };
-		6BCF29E08D4C66442412D464 /* Pods-eGlavBuh.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-eGlavBuh.debug.xcconfig"; path = "Target Support Files/Pods-eGlavBuh/Pods-eGlavBuh.debug.xcconfig"; sourceTree = "<group>"; };
-		81F10E36D77E9E63F521E20B /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xml; name = PrivacyInfo.xcprivacy; path = eGlavBuh/PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
+		1808D3BC932041CB489C575D /* ExpoModulesProvider.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = ExpoModulesProvider.swift; path = "Pods/Target Support Files/Pods-eGlavBuh/ExpoModulesProvider.swift"; sourceTree = "<group>"; };
+		7F777D7C118E65C41D85B298 /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; includeInIndex = 1; name = PrivacyInfo.xcprivacy; path = eGlavBuh/PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
 		AA286B85B6C04FC6940260E9 /* SplashScreen.storyboard */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file.storyboard; name = SplashScreen.storyboard; path = eGlavBuh/SplashScreen.storyboard; sourceTree = "<group>"; };
 		BB2F792C24A3F905000567C9 /* Expo.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; path = Expo.plist; sourceTree = "<group>"; };
-		D8071162F1F9A7EB2AEEB438 /* ExpoModulesProvider.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = ExpoModulesProvider.swift; path = "Pods/Target Support Files/Pods-eGlavBuh/ExpoModulesProvider.swift"; sourceTree = "<group>"; };
+		CD2233C177668C1EA9878DDB /* Pods-eGlavBuh.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-eGlavBuh.release.xcconfig"; path = "Target Support Files/Pods-eGlavBuh/Pods-eGlavBuh.release.xcconfig"; sourceTree = "<group>"; };
+		DBE682D71A122D2013378FDD /* libPods-eGlavBuh.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libPods-eGlavBuh.a"; sourceTree = BUILT_PRODUCTS_DIR; };
+		E172250F5E712E9F11765E1B /* Pods-eGlavBuh.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-eGlavBuh.debug.xcconfig"; path = "Target Support Files/Pods-eGlavBuh/Pods-eGlavBuh.debug.xcconfig"; sourceTree = "<group>"; };
 		ED297162215061F000B7C4FE /* JavaScriptCore.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = JavaScriptCore.framework; path = System/Library/Frameworks/JavaScriptCore.framework; sourceTree = SDKROOT; };
 		F11748412D0307B40044C1D9 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = AppDelegate.swift; path = eGlavBuh/AppDelegate.swift; sourceTree = "<group>"; };
 		F11748442D0722820044C1D9 /* eGlavBuh-Bridging-Header.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = "eGlavBuh-Bridging-Header.h"; path = "eGlavBuh/eGlavBuh-Bridging-Header.h"; sourceTree = "<group>"; };
@@ -37,7 +39,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				7F3F32D5CFAF37F389215E21 /* libPods-eGlavBuh.a in Frameworks */,
+				A22D38BE194253921D907D83 /* libPods-eGlavBuh.a in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -53,7 +55,7 @@
 				13B07FB51A68108700A75B9A /* Images.xcassets */,
 				13B07FB61A68108700A75B9A /* Info.plist */,
 				AA286B85B6C04FC6940260E9 /* SplashScreen.storyboard */,
-				81F10E36D77E9E63F521E20B /* PrivacyInfo.xcprivacy */,
+				7F777D7C118E65C41D85B298 /* PrivacyInfo.xcprivacy */,
 			);
 			name = eGlavBuh;
 			sourceTree = "<group>";
@@ -62,26 +64,34 @@
 			isa = PBXGroup;
 			children = (
 				ED297162215061F000B7C4FE /* JavaScriptCore.framework */,
-				1E0C53A4CBF06BA28C77A891 /* libPods-eGlavBuh.a */,
+				DBE682D71A122D2013378FDD /* libPods-eGlavBuh.a */,
 			);
 			name = Frameworks;
 			sourceTree = "<group>";
 		};
-		42E3014BAA51EE1D18B16FD9 /* eGlavBuh */ = {
+		2EEF5E31F0313B517FBAAC5C /* eGlavBuh */ = {
 			isa = PBXGroup;
 			children = (
-				D8071162F1F9A7EB2AEEB438 /* ExpoModulesProvider.swift */,
+				1808D3BC932041CB489C575D /* ExpoModulesProvider.swift */,
 			);
 			name = eGlavBuh;
 			sourceTree = "<group>";
 		};
-		723E0A32E55538F20FBEEE66 /* Pods */ = {
+		549CCB8C161048B6A57A09D7 /* uk.lproj */ = {
 			isa = PBXGroup;
 			children = (
-				6BCF29E08D4C66442412D464 /* Pods-eGlavBuh.debug.xcconfig */,
-				369F202FCA6022BCE573E9AF /* Pods-eGlavBuh.release.xcconfig */,
+				009D081EB4694D4AA61E38CF /* InfoPlist.strings */,
 			);
-			path = Pods;
+			name = uk.lproj;
+			path = "";
+			sourceTree = "<group>";
+		};
+		7663744F97974B7278428CE7 /* ExpoModulesProviders */ = {
+			isa = PBXGroup;
+			children = (
+				2EEF5E31F0313B517FBAAC5C /* eGlavBuh */,
+			);
+			name = ExpoModulesProviders;
 			sourceTree = "<group>";
 		};
 		832341AE1AAA6A7D00B99B32 /* Libraries */ = {
@@ -98,8 +108,8 @@
 				832341AE1AAA6A7D00B99B32 /* Libraries */,
 				83CBBA001A601CBA00E9B192 /* Products */,
 				2D16E6871FA4F8E400B85C8A /* Frameworks */,
-				723E0A32E55538F20FBEEE66 /* Pods */,
-				8DB7040239560CEFE76A8CC6 /* ExpoModulesProviders */,
+				AFABC77FFE3FC654DA6113FB /* Pods */,
+				7663744F97974B7278428CE7 /* ExpoModulesProviders */,
 			);
 			indentWidth = 2;
 			sourceTree = "<group>";
@@ -114,18 +124,21 @@
 			name = Products;
 			sourceTree = "<group>";
 		};
-		8DB7040239560CEFE76A8CC6 /* ExpoModulesProviders */ = {
+		AFABC77FFE3FC654DA6113FB /* Pods */ = {
 			isa = PBXGroup;
 			children = (
-				42E3014BAA51EE1D18B16FD9 /* eGlavBuh */,
+				E172250F5E712E9F11765E1B /* Pods-eGlavBuh.debug.xcconfig */,
+				CD2233C177668C1EA9878DDB /* Pods-eGlavBuh.release.xcconfig */,
 			);
-			name = ExpoModulesProviders;
+			name = Pods;
+			path = Pods;
 			sourceTree = "<group>";
 		};
 		BB2F792B24A3F905000567C9 /* Supporting */ = {
 			isa = PBXGroup;
 			children = (
 				BB2F792C24A3F905000567C9 /* Expo.plist */,
+				549CCB8C161048B6A57A09D7 /* uk.lproj */,
 			);
 			name = Supporting;
 			path = eGlavBuh/Supporting;
@@ -139,13 +152,13 @@
 			buildConfigurationList = 13B07F931A680F5B00A75B9A /* Build configuration list for PBXNativeTarget "eGlavBuh" */;
 			buildPhases = (
 				08A4A3CD28434E44B6B9DE2E /* [CP] Check Pods Manifest.lock */,
-				FC0FF8AACD951A641D91290B /* [Expo] Configure project */,
+				A78113378FE5F0FB8B356807 /* [Expo] Configure project */,
 				13B07F871A680F5B00A75B9A /* Sources */,
 				13B07F8C1A680F5B00A75B9A /* Frameworks */,
 				13B07F8E1A680F5B00A75B9A /* Resources */,
 				00DD1BFF1BD5951E006B06BC /* Bundle React Native code and images */,
 				800E24972A6A228C8D4807E9 /* [CP] Copy Pods Resources */,
-				26D21DFE2661878284DD2021 /* [CP] Embed Pods Frameworks */,
+				BBC227A6EBC27C6D4A768A41 /* [CP] Embed Pods Frameworks */,
 			);
 			buildRules = (
 			);
@@ -195,7 +208,8 @@
 				BB2F792D24A3F905000567C9 /* Expo.plist in Resources */,
 				13B07FBF1A68108700A75B9A /* Images.xcassets in Resources */,
 				3E461D99554A48A4959DE609 /* SplashScreen.storyboard in Resources */,
-				953A285AE87E53907CBBFB8F /* PrivacyInfo.xcprivacy in Resources */,
+				7E6DA994BEC44C709DB3790E /* InfoPlist.strings in Resources */,
+				5F92380557C51E663A053060 /* PrivacyInfo.xcprivacy in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -241,28 +255,6 @@
 			shellScript = "diff \"${PODS_PODFILE_DIR_PATH}/Podfile.lock\" \"${PODS_ROOT}/Manifest.lock\" > /dev/null\nif [ $? != 0 ] ; then\n    # print error to STDERR\n    echo \"error: The sandbox is not in sync with the Podfile.lock. Run 'pod install' or update your CocoaPods installation.\" >&2\n    exit 1\nfi\n# This output is used by Xcode 'outputs' to avoid re-running this script phase.\necho \"SUCCESS\" > \"${SCRIPT_OUTPUT_FILE_0}\"\n";
 			showEnvVarsInLog = 0;
 		};
-		26D21DFE2661878284DD2021 /* [CP] Embed Pods Frameworks */ = {
-			isa = PBXShellScriptBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-			);
-			inputPaths = (
-				"${PODS_ROOT}/Target Support Files/Pods-eGlavBuh/Pods-eGlavBuh-frameworks.sh",
-				"${PODS_XCFRAMEWORKS_BUILD_DIR}/React-Core-prebuilt/React.framework/React",
-				"${PODS_XCFRAMEWORKS_BUILD_DIR}/ReactNativeDependencies/ReactNativeDependencies.framework/ReactNativeDependencies",
-				"${PODS_XCFRAMEWORKS_BUILD_DIR}/hermes-engine/Pre-built/hermes.framework/hermes",
-			);
-			name = "[CP] Embed Pods Frameworks";
-			outputPaths = (
-				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/React.framework",
-				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/ReactNativeDependencies.framework",
-				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/hermes.framework",
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-			shellPath = /bin/sh;
-			shellScript = "\"${PODS_ROOT}/Target Support Files/Pods-eGlavBuh/Pods-eGlavBuh-frameworks.sh\"\n";
-			showEnvVarsInLog = 0;
-		};
 		800E24972A6A228C8D4807E9 /* [CP] Copy Pods Resources */ = {
 			isa = PBXShellScriptBuildPhase;
 			buildActionMask = 2147483647;
@@ -301,7 +293,7 @@
 			shellScript = "\"${PODS_ROOT}/Target Support Files/Pods-eGlavBuh/Pods-eGlavBuh-resources.sh\"\n";
 			showEnvVarsInLog = 0;
 		};
-		FC0FF8AACD951A641D91290B /* [Expo] Configure project */ = {
+		A78113378FE5F0FB8B356807 /* [Expo] Configure project */ = {
 			isa = PBXShellScriptBuildPhase;
 			alwaysOutOfDate = 1;
 			buildActionMask = 2147483647;
@@ -325,6 +317,28 @@
 			shellPath = /bin/sh;
 			shellScript = "# This script configures Expo modules and generates the modules provider file.\nbash -l -c \"./Pods/Target\\ Support\\ Files/Pods-eGlavBuh/expo-configure-project.sh\"\n";
 		};
+		BBC227A6EBC27C6D4A768A41 /* [CP] Embed Pods Frameworks */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputPaths = (
+				"${PODS_ROOT}/Target Support Files/Pods-eGlavBuh/Pods-eGlavBuh-frameworks.sh",
+				"${PODS_XCFRAMEWORKS_BUILD_DIR}/React-Core-prebuilt/React.framework/React",
+				"${PODS_XCFRAMEWORKS_BUILD_DIR}/ReactNativeDependencies/ReactNativeDependencies.framework/ReactNativeDependencies",
+				"${PODS_XCFRAMEWORKS_BUILD_DIR}/hermes-engine/Pre-built/hermes.framework/hermes",
+			);
+			name = "[CP] Embed Pods Frameworks";
+			outputPaths = (
+				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/React.framework",
+				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/ReactNativeDependencies.framework",
+				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/hermes.framework",
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "\"${PODS_ROOT}/Target Support Files/Pods-eGlavBuh/Pods-eGlavBuh-frameworks.sh\"\n";
+			showEnvVarsInLog = 0;
+		};
 /* End PBXShellScriptBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
@@ -333,7 +347,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				F11748422D0307B40044C1D9 /* AppDelegate.swift in Sources */,
-				FCCBA46ED035C5385126BD10 /* ExpoModulesProvider.swift in Sources */,
+				6FA846EE8020F716FB88947B /* ExpoModulesProvider.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -342,13 +356,12 @@
 /* Begin XCBuildConfiguration section */
 		13B07F941A680F5B00A75B9A /* Debug */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReference = 6BCF29E08D4C66442412D464 /* Pods-eGlavBuh.debug.xcconfig */;
+			baseConfigurationReference = E172250F5E712E9F11765E1B /* Pods-eGlavBuh.debug.xcconfig */;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CLANG_ENABLE_MODULES = YES;
 				CODE_SIGN_ENTITLEMENTS = eGlavBuh/eGlavBuh.entitlements;
 				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_TEAM = 4A95HF64S6;
 				ENABLE_BITCODE = NO;
 				GCC_PREPROCESSOR_DEFINITIONS = (
 					"$(inherited)",
@@ -379,13 +392,12 @@
 		};
 		13B07F951A680F5B00A75B9A /* Release */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReference = 369F202FCA6022BCE573E9AF /* Pods-eGlavBuh.release.xcconfig */;
+			baseConfigurationReference = CD2233C177668C1EA9878DDB /* Pods-eGlavBuh.release.xcconfig */;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CLANG_ENABLE_MODULES = YES;
 				CODE_SIGN_ENTITLEMENTS = eGlavBuh/eGlavBuh.entitlements;
 				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_TEAM = 4A95HF64S6;
 				INFOPLIST_FILE = eGlavBuh/Info.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = 15.1;
 				LD_RUNPATH_SEARCH_PATHS = (

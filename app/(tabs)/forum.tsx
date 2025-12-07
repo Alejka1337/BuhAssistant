@@ -9,7 +9,7 @@ import {
   ActivityIndicator,
   Alert,
 } from 'react-native';
-import { useRouter } from 'expo-router';
+import { useRouter, useFocusEffect } from 'expo-router';
 import { MaterialIcons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Colors, Typography, Spacing, BorderRadius } from '@/constants/Theme';
@@ -20,6 +20,7 @@ import {
   ForumCategory,
   ForumThreadListItem,
 } from '@/utils/forumService';
+import { getBlockedUserIds } from '@/utils/blockService';
 import CategoryCard from '@/components/forum/CategoryCard';
 import ThreadCard from '@/components/forum/ThreadCard';
 
@@ -39,6 +40,7 @@ export default function ForumScreen() {
   const [loadingMore, setLoadingMore] = useState(false);
   const [offset, setOffset] = useState(0);
   const [hasMore, setHasMore] = useState(true);
+  const [blockedUserIds, setBlockedUserIds] = useState<number[]>([]);
 
   const flatListRef = React.useRef<FlatList>(null);
   const headerHeightRef = React.useRef(0);
@@ -54,6 +56,16 @@ export default function ForumScreen() {
     loadThreads(true);
   }, [selectedCategory, sortType]);
 
+  // Перезагрузка заблокированных пользователей при фокусе на странице
+  useFocusEffect(
+    useCallback(() => {
+      if (user) {
+        console.log('🔄 Forum screen focused - reloading blocked users');
+        loadBlockedUsersAndRefresh();
+      }
+    }, [user])
+  );
+
   const loadCategories = async () => {
     try {
       const data = await getCategories();
@@ -64,7 +76,30 @@ export default function ForumScreen() {
     }
   };
 
-  const loadThreads = async (reset: boolean = false) => {
+  const loadBlockedUsers = async () => {
+    try {
+      const blocked = await getBlockedUserIds();
+      console.log('📛 Blocked user IDs loaded in forum list:', blocked);
+      setBlockedUserIds(blocked);
+      return blocked;
+    } catch (error) {
+      console.error('Error loading blocked users:', error);
+      // В случае ошибки устанавливаем пустой массив
+      setBlockedUserIds([]);
+      return [];
+    }
+  };
+
+  const loadBlockedUsersAndRefresh = async () => {
+    const blocked = await loadBlockedUsers();
+    // После загрузки заблокированных - перезагружаем топики с актуальным списком
+    console.log('🔄 Reloading threads after loading blocked users');
+    await loadThreads(true, blocked);
+  };
+
+  const loadThreads = async (reset: boolean = false, customBlockedIds?: number[]) => {
+    // Используем переданный список или текущий из состояния
+    const currentBlockedIds = customBlockedIds !== undefined ? customBlockedIds : blockedUserIds;
     if (reset) {
       setLoading(true);
       setThreads([]); // Очищаем список перед загрузкой
@@ -79,14 +114,26 @@ export default function ForumScreen() {
       const newOffset = reset ? 0 : offset;
       const data = await getThreads(selectedCategory, sortType, LIMIT, newOffset);
       
+      // Фильтруем топики от заблокированных пользователей
+      console.log('🔍 Filtering threads. Total:', data.items.length, 'Blocked users:', currentBlockedIds);
+      const filteredItems = data.items.filter(item => {
+        const userId = item.author?.id;
+        const isBlocked = userId ? currentBlockedIds.includes(userId) : false;
+        if (isBlocked) {
+          console.log('🚫 Hiding thread from blocked user:', userId, item.title);
+        }
+        return !isBlocked;
+      });
+      console.log('✅ Filtered threads count:', filteredItems.length);
+      
       if (reset) {
-        setThreads(data.items);
+        setThreads(filteredItems);
         setOffset(LIMIT); // Устанавливаем offset для следующей загрузки
       } else {
         // Фильтруем дубликаты при добавлении
         setThreads(prev => {
           const existingIds = new Set(prev.map(t => t.id));
-          const newItems = data.items.filter(item => !existingIds.has(item.id));
+          const newItems = filteredItems.filter(item => !existingIds.has(item.id));
           return [...prev, ...newItems];
         });
         setOffset(newOffset + LIMIT);

@@ -3,8 +3,10 @@
 """
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.staticfiles import StaticFiles
+from pathlib import Path
 from app.core.config import settings
-from app.api import health, search, news, calendar, auth, consultation, profile, push, forum
+from app.api import health, search, news, calendar, auth, consultation, profile, push, forum, reports, blocks, articles, uploads, media
 
 # Создаем приложение FastAPI
 app = FastAPI(
@@ -35,6 +37,21 @@ app.include_router(consultation.router, tags=["consultation"])
 app.include_router(profile.router, tags=["profile"])
 app.include_router(push.router, tags=["push-notifications"])
 app.include_router(forum.router, tags=["forum"])
+app.include_router(reports.router, tags=["reports"])
+app.include_router(blocks.router, tags=["blocks"])
+app.include_router(articles.router, tags=["articles"])
+app.include_router(uploads.router, prefix="/api", tags=["uploads"])
+app.include_router(media.router, prefix="/api", tags=["media"])
+
+# Настройка статических файлов для обслуживания загруженных медиа
+import os
+if os.path.exists("/app/app"):  # Мы в Docker
+    STATIC_DIR = Path("/app/static")
+else:  # Локальная разработка
+    STATIC_DIR = Path(__file__).parent.parent / "static"
+
+STATIC_DIR.mkdir(parents=True, exist_ok=True)
+app.mount("/static", StaticFiles(directory=str(STATIC_DIR)), name="static")
 
 
 @app.on_event("startup")

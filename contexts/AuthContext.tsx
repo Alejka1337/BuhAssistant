@@ -2,8 +2,9 @@
  * Auth Context - управление состоянием авторизации
  */
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import { Platform } from 'react-native';
 import { User, AuthResponse, LoginCredentials, RegisterData, UserProfileUpdate, login as apiLogin, register as apiRegister, logout as apiLogout, googleAuth as apiGoogleAuth, getCurrentUser, getAccessToken, fetchUserProfile, updateUserProfile, UserType, FOPGroup } from '../utils/authService';
-import { registerForPushNotificationsAsync, sendPushTokenToBackend, removePushTokenFromBackend } from '../utils/pushNotificationService';
+import { initializePushNotifications, removePushToken } from '../utils/pushService';
 
 interface AuthContextType {
   user: User | null;
@@ -55,18 +56,23 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   };
 
   /**
-   * Регистрация push-токена
+   * Инициализация push-уведомлений (поддерживает анонимных + зарегистрированных пользователей)
    */
-  const registerPushToken = async () => {
+  const registerPushToken = async (authToken?: string) => {
+    // Push-уведомления работают только на iOS и Android
+    if (Platform.OS === 'web') {
+      console.log('Push notifications are disabled on web');
+      return;
+    }
+    
     try {
-      const pushToken = await registerForPushNotificationsAsync();
+      const isAuth = !!user;
+      const token = authToken || await getAccessToken();
       
-      if (pushToken) {
-        await sendPushTokenToBackend(pushToken);
-      }
+      await initializePushNotifications(isAuth, token || undefined);
     } catch (error) {
       // Тихо обрабатываем ошибку - push notifications не критичны
-      console.error('Failed to register push token:', error);
+      console.error('Failed to initialize push notifications:', error);
     }
   };
 
@@ -79,9 +85,9 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       const response: AuthResponse = await apiLogin(credentials);
       setUser(response.user);
       
-      // Регистрируем push-токен после входа
+      // Привязываем анонимный токен к пользователю и регистрируем push
       if (response.user.is_verified) {
-        await registerPushToken();
+        await registerPushToken(response.access_token);
       }
       
       return response;
@@ -101,6 +107,12 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       setIsLoading(true);
       const response: AuthResponse = await apiRegister(data);
       setUser(response.user);
+      
+      // Привязываем анонимный токен к новому пользователю
+      if (response.user.is_verified) {
+        await registerPushToken(response.access_token);
+      }
+      
       return response;
     } catch (error) {
       console.error('Registration failed:', error);
@@ -132,8 +144,12 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
    */
   const logout = async () => {
     try {
+      const token = await getAccessToken();
+      
       // Удаляем push-токен перед выходом
-      await removePushTokenFromBackend();
+      if (token) {
+        await removePushToken(token);
+      }
       
       await apiLogout();
       setUser(null);

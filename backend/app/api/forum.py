@@ -6,10 +6,17 @@ from sqlalchemy.orm import Session, joinedload
 from sqlalchemy import func, desc, or_
 from typing import List, Optional
 from datetime import datetime
+import logging
 
 from app.db.database import get_db
 from app.models.user import User
 from app.models.forum import ForumCategory, ForumThread, ForumPost, ForumLike
+from app.models.report import UserBlock
+from app.models.moderation import ModerationLog, ContentType, ModerationDecision
+from app.services.moderation_service import check_forum_content
+from app.schemas.moderation import ModerationError
+
+logger = logging.getLogger(__name__)
 from app.schemas.forum import (
     ForumCategoryResponse,
     ForumThreadCreate,
@@ -26,11 +33,24 @@ from app.schemas.forum import (
     ThreadSortType,
 )
 from app.api.deps import get_current_user, get_current_user_optional
+from app.core.deps import get_current_moderator
 
 router = APIRouter(prefix="/api/forum", tags=["forum"])
 
 
 # ========== Вспомогательные функции ==========
+
+def get_blocked_user_ids(current_user_id: Optional[int], db: Session) -> List[int]:
+    """Получить список ID заблокированных пользователей"""
+    if not current_user_id:
+        return []
+    
+    blocked_ids = db.query(UserBlock.blocked_id).filter(
+        UserBlock.blocker_id == current_user_id
+    ).all()
+    
+    return [blocked_id[0] for blocked_id in blocked_ids]
+
 
 def build_post_tree(posts: List[ForumPost], parent_id: Optional[int], current_user_id: Optional[int], db: Session) -> List[dict]:
     """Рекурсивно строим дерево комментариев"""
@@ -246,20 +266,51 @@ def get_thread(
 
 
 @router.post("/threads", response_model=ForumThreadResponse, status_code=status.HTTP_201_CREATED)
-def create_thread(
+async def create_thread(
     thread_data: ForumThreadCreate,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user)
 ):
     """
-    Создать новый топик (требуется авторизация)
+    Создать новый топик с AI-модерацией (требуется авторизация)
     """
-    # Проверяем существование категории
+    # 1. AI-модерация контента перед созданием
+    logger.info(f"🤖 Moderating thread from user_id={current_user.id}")
+    moderation_result = await check_forum_content(
+        title=thread_data.title,
+        content=thread_data.content
+    )
+    
+    # Логируем результат модерации
+    moderation_log = ModerationLog(
+        content_type=ContentType.THREAD,
+        content_id=None,  # Пока не создан
+        user_id=current_user.id,
+        decision=ModerationDecision.APPROVED if moderation_result.approved else ModerationDecision.REJECTED,
+        reason=moderation_result.reason,
+        ai_response=moderation_result.raw_response,
+        content_text=f"{thread_data.title}\n\n{thread_data.content or ''}"
+    )
+    db.add(moderation_log)
+    db.commit()
+    
+    # Если контент не прошел модерацию - возвращаем ошибку
+    if not moderation_result.approved:
+        logger.warning(f"⛔ Thread rejected for user_id={current_user.id}: {moderation_result.reason}")
+        error = ModerationError.from_reason(moderation_result.reason or "Контент порушує правила")
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=error.dict()
+        )
+    
+    logger.info(f"✅ Thread approved for user_id={current_user.id}")
+    
+    # 2. Проверяем существование категории
     category = db.query(ForumCategory).filter(ForumCategory.id == thread_data.category_id).first()
     if not category:
         raise HTTPException(status_code=404, detail="Категория не найдена")
     
-    # Создаем топик
+    # 3. Создаем топик
     new_thread = ForumThread(
         category_id=thread_data.category_id,
         user_id=current_user.id,
@@ -270,6 +321,10 @@ def create_thread(
     db.add(new_thread)
     db.commit()
     db.refresh(new_thread)
+    
+    # 4. Обновляем moderation_log с content_id
+    moderation_log.content_id = new_thread.id
+    db.commit()
     
     # Загружаем связи
     new_thread = db.query(ForumThread).options(
@@ -384,24 +439,55 @@ def delete_thread(
 # ========== Posts Endpoints ==========
 
 @router.post("/posts", response_model=ForumPostResponse, status_code=status.HTTP_201_CREATED)
-def create_post(
+async def create_post(
     post_data: ForumPostCreate,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user)
 ):
     """
-    Создать комментарий/ответ (требуется авторизация)
+    Создать комментарий/ответ с AI-модерацией (требуется авторизация)
     """
-    # Проверяем существование топика
+    # 1. AI-модерация контента перед созданием
+    logger.info(f"🤖 Moderating post from user_id={current_user.id}")
+    moderation_result = await check_forum_content(
+        title="",  # У постов нет заголовка
+        content=post_data.content
+    )
+    
+    # Логируем результат модерации
+    moderation_log = ModerationLog(
+        content_type=ContentType.POST,
+        content_id=None,  # Пока не создан
+        user_id=current_user.id,
+        decision=ModerationDecision.APPROVED if moderation_result.approved else ModerationDecision.REJECTED,
+        reason=moderation_result.reason,
+        ai_response=moderation_result.raw_response,
+        content_text=post_data.content
+    )
+    db.add(moderation_log)
+    db.commit()
+    
+    # Если контент не прошел модерацию - возвращаем ошибку
+    if not moderation_result.approved:
+        logger.warning(f"⛔ Post rejected for user_id={current_user.id}: {moderation_result.reason}")
+        error = ModerationError.from_reason(moderation_result.reason or "Контент порушує правила")
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=error.dict()
+        )
+    
+    logger.info(f"✅ Post approved for user_id={current_user.id}")
+    
+    # 2. Проверяем существование топика
     thread = db.query(ForumThread).filter(ForumThread.id == post_data.thread_id).first()
     if not thread:
         raise HTTPException(status_code=404, detail="Топик не найден")
     
-    # Проверяем, не закрыт ли топик
+    # 3. Проверяем, не закрыт ли топик
     if thread.is_closed:
         raise HTTPException(status_code=403, detail="Топик закрыт для комментариев")
     
-    # Если это ответ на комментарий, проверяем существование родителя
+    # 4. Если это ответ на комментарий, проверяем существование родителя
     if post_data.parent_id:
         parent_post = db.query(ForumPost).filter(
             ForumPost.id == post_data.parent_id,
@@ -410,7 +496,7 @@ def create_post(
         if not parent_post:
             raise HTTPException(status_code=404, detail="Родительский комментарий не найден")
     
-    # Создаем комментарий
+    # 5. Создаем комментарий
     new_post = ForumPost(
         thread_id=post_data.thread_id,
         user_id=current_user.id,
@@ -420,11 +506,15 @@ def create_post(
     
     db.add(new_post)
     
-    # Обновляем время последнего обновления топика
+    # 6. Обновляем время последнего обновления топика
     thread.updated_at = datetime.utcnow()
     
     db.commit()
     db.refresh(new_post)
+    
+    # 7. Обновляем moderation_log с content_id
+    moderation_log.content_id = new_post.id
+    db.commit()
     
     # Явно строим ответ
     return {
@@ -643,5 +733,164 @@ def search_forum(
     return {
         "items": results,
         "total": len(results),
+    }
+
+
+# ===== Endpoints для модераторов =====
+
+@router.delete("/threads/{thread_id}/moderate", status_code=status.HTTP_200_OK)
+def moderate_delete_thread(
+    thread_id: int,
+    ban_user: bool = Query(False, description="Ban the thread author"),
+    moderator: User = Depends(get_current_moderator),
+    db: Session = Depends(get_db)
+):
+    """
+    Удалить топик (только для модераторов)
+    
+    Опционально можно забанить автора топика.
+    Требует роль moderator или admin.
+    """
+    thread = db.query(ForumThread).filter(ForumThread.id == thread_id).first()
+    
+    if not thread:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Thread not found"
+        )
+    
+    author_id = thread.user_id
+    thread_title = thread.title
+    
+    # Удаляем топик (cascade удалит все комментарии)
+    db.delete(thread)
+    
+    # Опционально баним автора
+    if ban_user:
+        author = db.query(User).filter(User.id == author_id).first()
+        if author:
+            author.is_active = False
+            logger.warning(f"Moderator {moderator.id} banned user {author_id}")
+    
+    db.commit()
+    
+    logger.info(f"Moderator {moderator.id} deleted thread {thread_id} ('{thread_title}')")
+    
+    return {
+        "status": "deleted",
+        "thread_id": thread_id,
+        "banned_user": ban_user
+    }
+
+
+@router.delete("/posts/{post_id}/moderate", status_code=status.HTTP_200_OK)
+def moderate_delete_post(
+    post_id: int,
+    ban_user: bool = Query(False, description="Ban the post author"),
+    moderator: User = Depends(get_current_moderator),
+    db: Session = Depends(get_db)
+):
+    """
+    Удалить комментарий (только для модераторов)
+    
+    Опционально можно забанить автора комментария.
+    Требует роль moderator или admin.
+    """
+    post = db.query(ForumPost).filter(ForumPost.id == post_id).first()
+    
+    if not post:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Post not found"
+        )
+    
+    author_id = post.user_id
+    
+    # Удаляем комментарий (cascade удалит все вложенные ответы)
+    db.delete(post)
+    
+    # Опционально баним автора
+    if ban_user:
+        author = db.query(User).filter(User.id == author_id).first()
+        if author:
+            author.is_active = False
+            logger.warning(f"Moderator {moderator.id} banned user {author_id}")
+    
+    db.commit()
+    
+    logger.info(f"Moderator {moderator.id} deleted post {post_id}")
+    
+    return {
+        "status": "deleted",
+        "post_id": post_id,
+        "banned_user": ban_user
+    }
+
+
+@router.post("/users/{user_id}/ban", status_code=status.HTTP_200_OK)
+def ban_user(
+    user_id: int,
+    moderator: User = Depends(get_current_moderator),
+    db: Session = Depends(get_db)
+):
+    """
+    Забанить пользователя (только для модераторов)
+    
+    Устанавливает is_active = False для пользователя.
+    Требует роль moderator или admin.
+    """
+    if user_id == moderator.id:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="You cannot ban yourself"
+        )
+    
+    user = db.query(User).filter(User.id == user_id).first()
+    
+    if not user:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="User not found"
+        )
+    
+    user.is_active = False
+    db.commit()
+    
+    logger.warning(f"Moderator {moderator.id} banned user {user_id}")
+    
+    return {
+        "status": "banned",
+        "user_id": user_id
+    }
+
+
+@router.post("/users/{user_id}/unban", status_code=status.HTTP_200_OK)
+def unban_user(
+    user_id: int,
+    moderator: User = Depends(get_current_moderator),
+    db: Session = Depends(get_db)
+):
+    """
+    Разбанить пользователя (только для модераторов)
+    
+    Устанавливает is_active = True для пользователя.
+    Требует роль moderator или admin.
+    """
+    user = db.query(User).filter(User.id == user_id).first()
+    
+    if not user:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="User not found"
+        )
+    
+    user.is_active = True
+    db.commit()
+    
+    logger.info(f"Moderator {moderator.id} unbanned user {user_id}")
+    
+    return {
+        "status": "unbanned",
+        "user_id": user_id
     }
 

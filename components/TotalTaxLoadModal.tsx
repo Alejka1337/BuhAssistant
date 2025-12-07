@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, Modal, TextInput, TouchableOpacity, Alert, Keyboard } from 'react-native';
+import { View, Text, StyleSheet, Modal, TextInput, TouchableOpacity, Alert, Keyboard, Platform, Dimensions } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
 
 interface TotalTaxLoadModalProps {
@@ -18,6 +18,9 @@ export default function TotalTaxLoadModal({ visible, onClose }: TotalTaxLoadModa
   const [fopGroup, setFopGroup] = useState<FopGroup | null>(null);
   const [annualIncome, setAnnualIncome] = useState('');
   const [isVatPayer, setIsVatPayer] = useState(false);
+  
+  const isDesktop = Platform.OS === 'web' && Dimensions.get('window').width >= 1024;
+  const modalWidth = isDesktop ? '50%' : '90%';
   const [result, setResult] = useState<string | null>(null);
 
   useEffect(() => {
@@ -117,7 +120,7 @@ export default function TotalTaxLoadModal({ visible, onClose }: TotalTaxLoadModa
   return (
     <Modal animationType="fade" transparent={true} visible={visible} onRequestClose={handleClose}>
       <View style={styles.centeredView}>
-        <View style={styles.modalView}><TouchableOpacity style={styles.closeButton} onPress={handleClose}><Text style={styles.closeButtonText}>×</Text></TouchableOpacity>{renderContent()}</View>
+        <View style={[styles.modalView, { width: modalWidth }]}><TouchableOpacity style={styles.closeButton} onPress={handleClose}><Text style={styles.closeButtonText}>×</Text></TouchableOpacity>{renderContent()}</View>
       </View>
     </Modal>
   );
@@ -125,7 +128,7 @@ export default function TotalTaxLoadModal({ visible, onClose }: TotalTaxLoadModa
 
 const styles = StyleSheet.create({
     centeredView: { flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: 'rgba(0, 0, 0, 0.7)' },
-    modalView: { width: '90%', backgroundColor: '#22262c', borderRadius: 20, padding: 25, paddingTop: 50, alignItems: 'center' },
+    modalView: { backgroundColor: '#22262c', borderRadius: 20, padding: 25, paddingTop: 50, alignItems: 'center' },
     closeButton: { position: 'absolute', top: 10, right: 15, zIndex: 1 },
     closeButtonText: { fontSize: 30, color: '#ecf0f1' },
     modalTitle: { marginBottom: 20, textAlign: 'center', fontSize: 20, fontWeight: 'bold', color: '#ecf0f1' },

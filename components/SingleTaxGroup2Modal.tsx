@@ -1,5 +1,7 @@
 import React from 'react';
-import { View, Text, StyleSheet, Modal, TouchableOpacity, Keyboard } from 'react-native';
+import { View, Text, StyleSheet, Modal, TouchableOpacity, ScrollView, Platform } from 'react-native';
+import { MaterialIcons } from '@expo/vector-icons';
+import { Colors, Fonts, Spacing, BorderRadius } from '../constants/Theme';
 
 interface SingleTaxGroup2ModalProps {
   visible: boolean;
@@ -12,27 +14,35 @@ const MONTHLY_TAX = MIN_SALARY * TAX_RATE;
 
 export default function SingleTaxGroup2Modal({ visible, onClose }: SingleTaxGroup2ModalProps) {
   return (
-    <Modal
-      animationType="fade"
-      transparent={true}
-      visible={visible}
-      onRequestClose={onClose}
-    >
-      <View style={styles.centeredView}>
-        <View style={styles.modalView}>
-          <TouchableOpacity style={styles.closeButton} onPress={onClose}>
-            <Text style={styles.closeButtonText}>×</Text>
-          </TouchableOpacity>
-          <Text style={styles.modalTitle}>Єдиний податок (2 група)</Text>
-
-          <Text style={styles.descriptionText}>
-            Ставка єдиного податку для 2-ї групи ФОП є фіксованою і становить 20% від мінімальної заробітної плати.
-          </Text>
-
-          <View style={styles.resultContainer}>
-            <Text style={styles.resultLabel}>Сума податку на місяць:</Text>
-            <Text style={styles.resultValue}>{MONTHLY_TAX.toFixed(2)} грн</Text>
+    <Modal visible={visible} animationType="slide" transparent={true} onRequestClose={onClose}>
+      <View style={styles.overlay}>
+        <View style={styles.modalContainer}>
+          {/* Header */}
+          <View style={styles.header}>
+            <Text style={styles.title}>Єдиний податок 2 група</Text>
+            <TouchableOpacity onPress={onClose} style={styles.closeButton}>
+              <MaterialIcons name="close" size={24} color={Colors.textPrimary} />
+            </TouchableOpacity>
           </View>
+
+          {/* Content */}
+          <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
+            <View style={styles.formContainer}>
+              <Text style={styles.descriptionText}>
+                Ставка єдиного податку для 2-ї групи ФОП є фіксованою і становить 20% від мінімальної заробітної плати.
+              </Text>
+
+              <View style={styles.resultContainer}>
+                <MaterialIcons name="check-circle" size={48} color={Colors.success} />
+                <Text style={styles.resultTitle}>Розрахунок податку</Text>
+                
+                <View style={styles.resultCard}>
+                  <Text style={styles.resultLabel}>Сума податку на місяць:</Text>
+                  <Text style={styles.resultValue}>{MONTHLY_TAX.toFixed(2)} грн</Text>
+                </View>
+              </View>
+            </View>
+          </ScrollView>
         </View>
       </View>
     </Modal>
@@ -40,63 +50,98 @@ export default function SingleTaxGroup2Modal({ visible, onClose }: SingleTaxGrou
 }
 
 const styles = StyleSheet.create({
-    centeredView: {
-        flex: 1,
-        justifyContent: 'center',
-        alignItems: 'center',
-        backgroundColor: 'rgba(0, 0, 0, 0.7)',
-    },
-    modalView: {
-        width: '90%',
-        backgroundColor: '#22262c',
-        borderRadius: 20,
-        padding: 35,
-        alignItems: 'center',
+  overlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  modalContainer: {
+    width: '90%',
+    maxWidth: 500,
+    maxHeight: '90%',
+    backgroundColor: Colors.cardBackground,
+    borderRadius: BorderRadius.lg,
+    overflow: 'hidden',
+    ...Platform.select({
+      ios: {
         shadowColor: '#000',
         shadowOffset: { width: 0, height: 2 },
         shadowOpacity: 0.25,
         shadowRadius: 4,
+      },
+      android: {
         elevation: 5,
-    },
-    closeButton: {
-        position: 'absolute',
-        top: 10,
-        right: 15,
-    },
-    closeButtonText: {
-        fontSize: 30,
-        color: '#ecf0f1',
-    },
-    modalTitle: {
-        marginBottom: 15,
-        textAlign: 'center',
-        fontSize: 22,
-        fontWeight: 'bold',
-        color: '#ecf0f1',
-    },
-    descriptionText: {
-        fontSize: 16,
-        color: '#bdc3c7',
-        textAlign: 'center',
-        marginBottom: 25,
-    },
-    resultContainer: {
-        padding: 20,
-        backgroundColor: '#1a1d21',
-        borderRadius: 12,
-        borderWidth: 1,
-        borderColor: '#282',
-        alignItems: 'center',
-        width: '100%',
-    },
-    resultLabel: {
-        fontSize: 16,
-        color: '#bdc3c7',
-        marginBottom: 8,
-    },
-    resultValue: {
-        fontSize: 24,
-        fontWeight: 'bold',
-        color: '#282',
-    },
+      },
+    }),
+  },
+  header: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    padding: Spacing.md,
+    borderBottomWidth: 1,
+    borderBottomColor: Colors.borderColor,
+    backgroundColor: Colors.background,
+  },
+  title: {
+    fontSize: Fonts.sizes.lg,
+    fontWeight: Fonts.weights.semibold as any,
+    color: Colors.textPrimary,
+    fontFamily: Fonts.heading,
+    flex: 1,
+    textAlign: 'center',
+  },
+  closeButton: {
+    padding: Spacing.xs,
+  },
+  content: {
+    flexShrink: 1,
+  },
+  formContainer: {
+    padding: Spacing.lg,
+  },
+  descriptionText: {
+    fontSize: Fonts.sizes.base,
+    color: Colors.textSecondary,
+    textAlign: 'center',
+    marginBottom: Spacing.xl,
+    fontFamily: Fonts.body,
+    lineHeight: 24,
+  },
+  resultContainer: {
+    alignItems: 'center',
+    marginTop: Spacing.md,
+  },
+  resultTitle: {
+    fontSize: Fonts.sizes.xl,
+    fontWeight: Fonts.weights.bold as any,
+    color: Colors.textPrimary,
+    marginTop: Spacing.md,
+    marginBottom: Spacing.lg,
+    fontFamily: Fonts.heading,
+  },
+  resultCard: {
+    backgroundColor: Colors.background,
+    borderRadius: BorderRadius.md,
+    padding: Spacing.lg,
+    width: '100%',
+    borderLeftWidth: 4,
+    borderLeftColor: Colors.success,
+    alignItems: 'center',
+  },
+  resultLabel: {
+    fontSize: Fonts.sizes.sm,
+    color: Colors.textPrimary,
+    marginBottom: Spacing.xs,
+    fontFamily: Fonts.body,
+    textAlign: 'center',
+  },
+  resultValue: {
+    fontSize: Fonts.sizes.xxl,
+    fontWeight: Fonts.weights.bold as any,
+    color: Colors.textPrimary,
+    fontFamily: Fonts.heading,
+    textAlign: 'center',
+  },
 });

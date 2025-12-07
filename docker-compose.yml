@@ -73,6 +73,7 @@ services:
       - "127.0.0.1:8000:8000"
     volumes:
       - ./backend:/app
+      - ./backend/static:/app/static
     env_file:
       - ./backend/.env
     depends_on:
@@ -91,7 +92,7 @@ services:
       context: ./backend
       dockerfile: Dockerfile
     container_name: eglavbuh_celery_worker
-    command: celery -A app.celery_app.celery_app worker --loglevel=info --concurrency=2
+    command: celery -A app.celery_app.celery_app worker --loglevel=info --concurrency=2 --queues=celery,crawler,notifications,default
     volumes:
       - ./backend:/app
     env_file:

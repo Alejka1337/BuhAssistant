@@ -17,9 +17,14 @@ import Constants from 'expo-constants';
 // Получаем API URL из app.json или используем production по умолчанию
 const API_URL_FROM_CONFIG = Constants.expoConfig?.extra?.apiUrl;
 
-export const API_URL = API_URL_FROM_CONFIG || 'https://api.eglavbuh.com.ua';
+// Debug logs
+console.log('📋 Constants.expoConfig?.extra?.apiUrl:', Constants.expoConfig?.extra?.apiUrl);
+console.log('📋 API_URL_FROM_CONFIG:', API_URL_FROM_CONFIG);
 
-console.log('🔗 API_URL:', API_URL); // Для отладки
+// export const API_URL = API_URL_FROM_CONFIG || 'https://api.eglavbuh.com.ua';
+// export const API_URL = API_URL_FROM_CONFIG || 'https://90a8375ea3d8.ngrok-free.app'; // Локальный ngrok для тестирования
+export const API_URL = API_URL_FROM_CONFIG || 'http://localhost:8000'; // Для тестирования без ngrok
+console.log('🔗 API_URL (final):', API_URL); // Для отладки
 
 // Базовые заголовки для всех запросов (включая обход ngrok warning)
 export const getHeaders = (additionalHeaders?: Record<string, string>) => ({
@@ -43,6 +48,8 @@ export const API_ENDPOINTS = {
     RESEND_CODE: `${API_URL}/api/auth/resend-code`,
     GOOGLE: `${API_URL}/api/auth/google`,
     GOOGLE_URL: `${API_URL}/api/auth/google/url`,
+    DELETE_ACCOUNT: `${API_URL}/api/auth/account`,
+    ACCEPT_TERMS: `${API_URL}/api/auth/accept-terms`,
     HEALTH: `${API_URL}/api/auth/health`,
   },
   CONSULTATION: {
@@ -58,6 +65,16 @@ export const API_ENDPOINTS = {
     SETTINGS: `${API_URL}/api/push/settings`,
     TEST: `${API_URL}/api/push/test`,
     DELETE_TOKEN: `${API_URL}/api/push/token`,
+  },
+  REPORTS: {
+    CREATE: `${API_URL}/api/reports`,
+    MY: `${API_URL}/api/reports/my`,
+  },
+  BLOCKS: {
+    CREATE: `${API_URL}/api/blocks`,
+    DELETE: (userId: number) => `${API_URL}/api/blocks/${userId}`,
+    LIST: `${API_URL}/api/blocks`,
+    IDS: `${API_URL}/api/blocks/ids`,
   },
 };
 

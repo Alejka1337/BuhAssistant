@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, Modal, TextInput, TouchableOpacity, Alert } from 'react-native';
+import { View, Text, StyleSheet, Modal, TextInput, TouchableOpacity, Alert, Platform } from 'react-native';
 import { Audio } from 'expo-av';
 import { FontAwesome } from '@expo/vector-icons';
 import { API_ENDPOINTS } from '../constants/api';
@@ -32,8 +32,8 @@ export default function ConsultationModal({ visible, onClose }: ConsultationModa
       formData.append('email', email);
       formData.append('message', message || '');
 
-      // Если есть запись, добавляем файл
-      if (recordedUri) {
+      // Если есть запись, добавляем файл (только для нативных платформ)
+      if (recordedUri && Platform.OS !== 'web') {
         try {
           // Получаем имя файла из URI
           const uriParts = recordedUri.split('/');
@@ -147,15 +147,17 @@ export default function ConsultationModal({ visible, onClose }: ConsultationModa
           <View style={styles.messageContainer}>
             <TextInput
               style={[styles.input, styles.messageInput]}
-              placeholder="Ваше повідомлення (або використайте голосовий ввід)"
+              placeholder={Platform.OS === 'web' ? "Ваше повідомлення" : "Ваше повідомлення (або використайте голосовий ввід)"}
               value={message}
               onChangeText={setMessage}
               multiline={true}
               placeholderTextColor="#7f8c8d"
             />
-            <TouchableOpacity style={styles.micButton} onPress={recording ? stopRecording : startRecording}>
-              <FontAwesome name="microphone" size={24} color={isRecording ? '#e74c3c' : '#282'} />
-            </TouchableOpacity>
+            {Platform.OS !== 'web' && (
+              <TouchableOpacity style={styles.micButton} onPress={recording ? stopRecording : startRecording}>
+                <FontAwesome name="microphone" size={24} color={isRecording ? '#e74c3c' : '#282'} />
+              </TouchableOpacity>
+            )}
           </View>
           
           {recordedUri && (

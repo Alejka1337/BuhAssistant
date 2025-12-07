@@ -22,7 +22,7 @@ celery_app.conf.update(
     timezone='Europe/Kyiv',
     enable_utc=True,
     task_track_started=True,
-    task_time_limit=30 * 60,  # 30 минут максимум на задачу
+    task_time_limit=4 * 60 * 60,  # 4 часа максимум на задачу (для задач с рандомной задержкой до 2 часов)
     worker_prefetch_multiplier=1,
     worker_max_tasks_per_child=1000,
 )
@@ -43,10 +43,15 @@ celery_app.conf.beat_schedule = {
         'options': {'queue': 'notifications'}
     },
     
-    # Push-уведомления о новостях: понедельник и четверг в 10:00 (Киев)
-    'send-news-notifications-twice-weekly': {
+    # Push-уведомления о новостях: каждый день 2 раза (12:00-14:00 и 18:00-20:00) (Киев)
+    'send-news-notifications-noon': {
         'task': 'send_news_notifications',
-        'schedule': crontab(minute=0, hour=10, day_of_week='1,4'),  # Пн и Чт в 10:00
+        'schedule': crontab(minute=0, hour=12),  # 12:00 каждый день, рандомная задержка 0-120 мин
+        'options': {'queue': 'notifications'}
+    },
+    'send-news-notifications-evening': {
+        'task': 'send_news_notifications',
+        'schedule': crontab(minute=0, hour=18),  # 18:00 каждый день, рандомная задержка 0-120 мин
         'options': {'queue': 'notifications'}
     },
     
@@ -63,6 +68,11 @@ celery_app.conf.task_routes = {
     'crawl_minfin_news_task': {'queue': 'crawler'},
     'crawl_liga_net_news_task': {'queue': 'crawler'},
     'crawl_buhgalter911_news_task': {'queue': 'crawler'},
+    'crawl_tax_gov_ua_playwright_task': {'queue': 'crawler'},
+    'crawl_diia_gov_ua_playwright_task': {'queue': 'crawler'},
+    'crawl_dtkt_task': {'queue': 'crawler'},
+    'crawl_buhplatforma_task': {'queue': 'crawler'},
+    'crawl_7eminar_task': {'queue': 'crawler'},
     'crawl_all_news_sources_task': {'queue': 'crawler'},
     'send_deadline_notifications': {'queue': 'notifications'},
     'send_news_notifications': {'queue': 'notifications'},

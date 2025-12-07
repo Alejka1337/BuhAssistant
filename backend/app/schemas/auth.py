@@ -44,8 +44,11 @@ class UserResponse(BaseModel):
     full_name: Optional[str] = None
     user_type: Optional[str] = None
     fop_group: Optional[str] = None
+    tax_system: Optional[str] = None
     is_active: bool
     is_verified: bool
+    role: str = "user"  # user, moderator, admin
+    accepted_terms: bool = False
     created_at: datetime
     last_login: Optional[datetime] = None
     

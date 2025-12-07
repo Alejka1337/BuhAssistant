@@ -1,0 +1,75 @@
+# ========================================
+# НОВЫЕ ПЕРЕМЕННЫЕ ОКРУЖЕНИЯ ДЛЯ ПРОДАКШН
+# ========================================
+# 
+# Добавьте эти переменные в /root/buhassistant/backend/.env
+# Команда: ssh root@your-server "nano /root/buhassistant/backend/.env"
+# 
+# После добавления перезапустите: docker-compose restart backend celery celery-beat
+
+# ------------------
+# OpenAI API
+# ------------------
+# Для модерации форума (проверка спама, оскорблений, нерелевантного контента)
+# Получить ключ: https://platform.openai.com/api-keys
+OPENAI_API_KEY=sk-proj-your-openai-api-key-here
+
+# ------------------
+# Expo Push Notifications
+# ------------------
+# Для отправки push-уведомлений на iOS/Android
+# Получить токен: https://expo.dev/accounts/[your-account]/settings/access-tokens
+EXPO_ACCESS_TOKEN=your-expo-access-token-here
+
+# ------------------
+# Google Custom Search
+# ------------------
+# Для поиска по украинским бухгалтерским ресурсам
+# API Key: https://console.cloud.google.com/apis/credentials
+# CX (Search Engine ID): https://programmablesearchengine.google.com/
+GOOGLE_API_KEY=your-google-api-key-here
+GOOGLE_CX=your-google-cx-here
+
+# ------------------
+# ВАЖНО: Обновить ALLOWED_ORIGINS
+# ------------------
+# Добавьте ваш продакшн домен и веб-версию
+ALLOWED_ORIGINS=https://your-domain.com,https://web.your-domain.com,http://localhost:8081
+
+# ------------------
+# ВАЖНО: Обновить Google OAuth Redirect URI
+# ------------------
+# Для продакшн версии измените на ваш домен
+GOOGLE_REDIRECT_URI=https://your-domain.com/api/auth/google/callback
+
+# ========================================
+# ПРИМЕРЫ ЗНАЧЕНИЙ ДЛЯ СПРАВКИ
+# ========================================
+
+# OpenAI API Key формат:
+# sk-proj-xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+
+# Expo Access Token формат:
+# xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx
+
+# Google API Key формат:
+# AIzaSyXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+
+# Google CX формат:
+# 0123456789abcdef0:xxxxxxxxxx
+
+# ========================================
+# КОМАНДЫ ДЛЯ ПРОВЕРКИ
+# ========================================
+
+# Проверить, что переменные загружены:
+# docker exec buhassistant-backend-1 printenv | grep OPENAI
+# docker exec buhassistant-backend-1 printenv | grep EXPO
+# docker exec buhassistant-backend-1 printenv | grep GOOGLE
+
+# Проверить модерацию OpenAI:
+# docker-compose logs backend | grep "AI Moderation"
+
+# Проверить Celery задачи:
+# docker exec buhassistant-celery-1 celery -A app.celery_app inspect registered
+

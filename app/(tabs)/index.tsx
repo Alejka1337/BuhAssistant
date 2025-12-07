@@ -208,7 +208,7 @@ export default function CalendarScreen() {
         </TouchableOpacity>
         <TouchableOpacity 
           style={styles.searchButton}
-          onPress={() => router.push('/search')}
+          onPress={() => router.push('/(tabs)/search')}
         >
           <Text style={styles.buttonText}>Пошук</Text>
         </TouchableOpacity>
@@ -343,44 +343,6 @@ const styles = StyleSheet.create({
     height: undefined,
     aspectRatio: 16 / 9,
     borderRadius: BorderRadius.xl,
-  },
-  stickyButtonsContainer: {
-    position: 'absolute',
-    left: 0,
-    right: 0,
-    zIndex: 1000,
-    backgroundColor: Colors.background,
-    paddingBottom: Spacing.sm,
-    paddingTop: Spacing.sm,
-    paddingHorizontal: 0,
-    flexDirection: 'column',
-    alignItems: 'center',
-    gap: Spacing.sm,
-    shadowColor: Colors.black,
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 6,
-    elevation: 8,
-  },
-  stickyConsultationButton: {
-    backgroundColor: Colors.primary,
-    paddingVertical: 14,
-    borderRadius: BorderRadius.lg,
-    alignItems: 'center',
-    width: '80%',
-  },
-  stickySearchButton: {
-    backgroundColor: Colors.error,
-    paddingVertical: 14,
-    borderRadius: BorderRadius.lg,
-    alignItems: 'center',
-    width: '80%',
-  },
-  stickyButtonText: {
-    ...Typography.body,
-    color: Colors.white,
-    fontWeight: '700',
-    fontSize: 17,
   },
   featuresSection: {
     paddingHorizontal: Spacing.lg,
@@ -554,5 +516,43 @@ const styles = StyleSheet.create({
     ...Typography.body,
     color: Colors.white,
     fontWeight: '600',
+  },
+  stickyButtonsContainer: {
+    position: 'absolute',
+    left: 0,
+    right: 0,
+    zIndex: 1000,
+    backgroundColor: Colors.background,
+    paddingBottom: Spacing.sm,
+    paddingTop: Spacing.sm,
+    paddingHorizontal: 0,
+    flexDirection: 'column',
+    alignItems: 'center',
+    gap: Spacing.sm as any,
+    shadowColor: Colors.black,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 6,
+    elevation: 8,
+  },
+  stickyConsultationButton: {
+    backgroundColor: Colors.primary,
+    paddingVertical: 14,
+    borderRadius: BorderRadius.lg,
+    alignItems: 'center',
+    width: '80%',
+  },
+  stickySearchButton: {
+    backgroundColor: Colors.error,
+    paddingVertical: 14,
+    borderRadius: BorderRadius.lg,
+    alignItems: 'center',
+    width: '80%',
+  },
+  stickyButtonText: {
+    ...Typography.body,
+    color: Colors.white,
+    fontWeight: '700',
+    fontSize: 17,
   },
 });

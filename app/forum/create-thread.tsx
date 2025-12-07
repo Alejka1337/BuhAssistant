@@ -16,6 +16,7 @@ import { Picker } from '@react-native-picker/picker';
 import { MaterialIcons } from '@expo/vector-icons';
 import { Colors, Typography, Spacing, BorderRadius } from '@/constants/Theme';
 import { getCategories, createThread, ForumCategory } from '@/utils/forumService';
+import { ModerationErrorModal } from '@/components/ModerationErrorModal';
 
 export default function CreateThreadScreen() {
   const router = useRouter();
@@ -26,6 +27,12 @@ export default function CreateThreadScreen() {
   const [content, setContent] = useState('');
   const [loading, setLoading] = useState(false);
   const [loadingCategories, setLoadingCategories] = useState(true);
+  
+  // Moderation error state
+  const [moderationError, setModerationError] = useState<{
+    reason: string;
+    suggestions: string[];
+  } | null>(null);
 
   useEffect(() => {
     loadCategories();
@@ -80,6 +87,21 @@ export default function CreateThreadScreen() {
       ]);
     } catch (error: any) {
       console.error('Error creating thread:', error);
+      
+      // Проверяем, является ли это ошибкой модерации
+      if (error.status === 400 && error.detail) {
+        const detail = error.detail;
+        if (detail.reason && detail.suggestions) {
+          // Показываем модальное окно с ошибкой модерации
+          setModerationError({
+            reason: detail.reason,
+            suggestions: detail.suggestions || [],
+          });
+          return;
+        }
+      }
+      
+      // Для других ошибок показываем обычный Alert
       Alert.alert('Помилка', error.message || 'Не вдалося створити топік');
     } finally {
       setLoading(false);
@@ -196,6 +218,16 @@ export default function CreateThreadScreen() {
           )}
         </TouchableOpacity>
       </ScrollView>
+      
+      {/* Moderation Error Modal */}
+      {moderationError && (
+        <ModerationErrorModal
+          visible={!!moderationError}
+          reason={moderationError.reason}
+          suggestions={moderationError.suggestions}
+          onClose={() => setModerationError(null)}
+        />
+      )}
     </KeyboardAvoidingView>
   );
 }

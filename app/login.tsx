@@ -106,7 +106,17 @@ export default function LoginScreen() {
         return;
       }
       
-      // Если верифицирован, переходим на главный экран
+      // Проверяем, принял ли пользователь Terms of Service
+      if (!response.user.accepted_terms) {
+        // Перенаправляем на экран Terms of Service
+        router.push({
+          pathname: '/terms-of-service',
+          params: { from: 'registration' },
+        });
+        return;
+      }
+      
+      // Если верифицирован и принял условия, переходим на главный экран
       router.replace('/(tabs)');
     } catch (error: any) {
       Alert.alert('Помилка входу', error.message || 'Невірний email або пароль');

@@ -290,13 +290,45 @@ async def get_mock_results(query: str, domain: str) -> List[SearchResult]:
                 date="10 лют. 2025 р."
             ),
         ],
-        'buhgalter911.com.ua': [
+        'buhgalter911.com': [
             SearchResult(
                 title=f"Практичний порадник - {query}",
                 description="Детальні інструкції та роз'яснення для бухгалтерів щодо ведення обліку та звітності.",
-                url="https://buhgalter911.com.ua/news/",
+                url="https://buhgalter911.com/uk/news/",
                 source=domain,
                 date="20 лют. 2025 р."
+            ),
+        ],
+        'buhplatforma.com.ua': [
+            SearchResult(
+                title=f"Бухгалтер Платформа - {query}",
+                description="Актуальні новини, статті та консультації для бухгалтерів щодо оподаткування та звітності.",
+                url="https://buhplatforma.com.ua/news",
+                source=domain,
+                date="4 груд. 2025 р."
+            ),
+            SearchResult(
+                title="Вебінари для бухгалтерів",
+                description="Безкоштовні вебінари та навчальні матеріали для підвищення кваліфікації бухгалтерів.",
+                url="https://buhplatforma.com.ua/vebinari",
+                source=domain,
+                date="1 груд. 2025 р."
+            ),
+        ],
+        '7eminar.ua': [
+            SearchResult(
+                title=f"7Семінар - {query}",
+                description="Професійні консультації, новини та навчальні матеріали для бухгалтерів та підприємців.",
+                url="https://7eminar.ua/news?type=all",
+                source=domain,
+                date="6 груд. 2025 р."
+            ),
+            SearchResult(
+                title="Безкоштовні вебінари для бухгалтерів",
+                description="Щоденні вебінари з актуальних питань бухобліку, оподаткування та звітності.",
+                url="https://7eminar.ua/webinars",
+                source=domain,
+                date="5 груд. 2025 р."
             ),
         ],
     }
@@ -319,7 +351,9 @@ async def search_multiple_sources(query: str, domains: List[str]) -> List[Search
     all_domains = [
         'tax.gov.ua',
         'zakon.rada.gov.ua',
-        'buhgalter911.com.ua',
+        'buhgalter911.com',
+        'buhplatforma.com.ua',
+        '7eminar.ua',
         'ligazakon.net',
         'dtkt.ua',
         'minfin.gov.ua',

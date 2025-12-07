@@ -21,6 +21,12 @@ class FOPGroup(str, enum.Enum):
     GROUP_3 = "3"
 
 
+class UserRole(str, enum.Enum):
+    USER = "user"
+    MODERATOR = "moderator"
+    ADMIN = "admin"
+
+
 class User(Base):
     __tablename__ = "users"
 
@@ -46,6 +52,13 @@ class User(Base):
     is_verified = Column(Boolean, default=False)
     is_superuser = Column(Boolean, default=False)
     
+    # Роль пользователя
+    role = Column(
+        SQLEnum(UserRole, name='userrole', values_callable=lambda x: [e.value for e in x]),
+        default=UserRole.USER,
+        nullable=False
+    )
+    
     # Email активация
     activation_code = Column(String, nullable=True, index=True)
     activation_code_expires_at = Column(DateTime(timezone=True), nullable=True)
@@ -53,6 +66,10 @@ class User(Base):
     # Сброс пароля
     reset_password_code = Column(String, nullable=True, index=True)
     reset_password_code_expires_at = Column(DateTime(timezone=True), nullable=True)
+    
+    # Terms of Service / EULA
+    accepted_terms = Column(Boolean, default=False, nullable=False)
+    terms_accepted_at = Column(DateTime(timezone=True), nullable=True)
     
     # Временные метки
     created_at = Column(DateTime(timezone=True), server_default=func.now())

@@ -1,6 +1,7 @@
 /**
  * Обработчик push-уведомлений
  * Обрабатывает входящие уведомления в foreground и background
+ * Только для iOS и Android (отключено для веб)
  */
 import React, { useEffect, useRef } from 'react';
 import * as Notifications from 'expo-notifications';
@@ -9,10 +10,16 @@ import { Alert, Platform } from 'react-native';
 
 export const NotificationHandler: React.FC = () => {
   const router = useRouter();
-  const notificationListener = useRef<Notifications.Subscription>();
-  const responseListener = useRef<Notifications.Subscription>();
+  const notificationListener = useRef<Notifications.Subscription | null>(null);
+  const responseListener = useRef<Notifications.Subscription | null>(null);
 
   useEffect(() => {
+    // Push-уведомления работают только на iOS и Android
+    if (Platform.OS === 'web') {
+      console.log('Push notifications are disabled on web');
+      return;
+    }
+
     // Слушатель уведомлений, полученных в foreground
     notificationListener.current = Notifications.addNotificationReceivedListener(notification => {
       console.log('Уведомление получено в foreground:', notification);
@@ -38,13 +45,13 @@ export const NotificationHandler: React.FC = () => {
       // Навигация в зависимости от типа уведомления
       if (data?.type === 'deadline') {
         // Переход на календарь
-        router.push('/(tabs)/calendar');
+        router.push('/(tabs)/calendar' as any);
       } else if (data?.type === 'news' && data?.news_url) {
         // Переход на экран новостей или webview
         router.push({
           pathname: '/webview',
-          params: { url: data.news_url },
-        });
+          params: { url: data.news_url as string },
+        } as any);
       } else if (data?.type === 'test') {
         Alert.alert(
           'Тестове повідомлення',
@@ -56,10 +63,10 @@ export const NotificationHandler: React.FC = () => {
     // Cleanup
     return () => {
       if (notificationListener.current) {
-        Notifications.removeNotificationSubscription(notificationListener.current);
+        notificationListener.current.remove();
       }
       if (responseListener.current) {
-        Notifications.removeNotificationSubscription(responseListener.current);
+        responseListener.current.remove();
       }
     };
   }, [router]);
@@ -69,4 +76,3 @@ export const NotificationHandler: React.FC = () => {
 };
 
 export default NotificationHandler;
-

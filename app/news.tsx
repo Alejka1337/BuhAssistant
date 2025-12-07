@@ -8,7 +8,8 @@ import {
   TouchableOpacity, 
   ActivityIndicator,
   RefreshControl,
-  Animated 
+  Animated,
+  Platform 
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import { Stack } from 'expo-router';
@@ -132,14 +133,23 @@ export default function NewsScreen() {
     return title.substring(0, maxLength) + '...';
   };
 
-  const renderNewsItem = ({ item }: { item: NewsItem }) => (
-    <TouchableOpacity 
-      style={styles.newsCard}
-      onPress={() => router.push({
-        pathname: '/webview',
-        params: { url: item.url, title: item.title }
-      })}
-    >
+  const renderNewsItem = ({ item }: { item: NewsItem }) => {
+    const handlePress = () => {
+      if (Platform.OS === 'web') {
+        window.open(item.url, '_blank');
+      } else {
+        router.push({
+          pathname: '/webview',
+          params: { url: item.url, title: item.title }
+        });
+      }
+    };
+    
+    return (
+      <TouchableOpacity 
+        style={styles.newsCard}
+        onPress={handlePress}
+      >
       <View style={styles.newsHeader}>
         <Text style={styles.newsSource}>{item.source}</Text>
         {item.categories && item.categories.length > 0 && (
@@ -159,7 +169,8 @@ export default function NewsScreen() {
         </View>
       )}
     </TouchableOpacity>
-  );
+    );
+  };
 
   const renderFooter = () => {
     if (!loadingMore) return null;
@@ -205,6 +216,7 @@ export default function NewsScreen() {
           ),
         }} 
       />
+    
       
       <View style={styles.container}>
         {loading && news.length === 0 ? (

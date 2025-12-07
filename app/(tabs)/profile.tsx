@@ -4,10 +4,12 @@ import { MaterialIcons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { router } from 'expo-router';
 import { useAuth } from '../../contexts/AuthContext';
-import { User, UserType, FOPGroup, updateUserProfile } from '../../utils/authService';
-import { Picker } from '@react-native-picker/picker';
+import { User, UserType, FOPGroup, updateUserProfile, deleteAccount, getAccessToken } from '../../utils/authService';
+import Select from '../../components/web/Select';
 import { NotificationSettings, getNotificationSettings, updateNotificationSettings } from '../../utils/pushNotificationService';
 import { Colors, Typography, Spacing, BorderRadius } from '../../constants/Theme';
+import DeleteAccountModal from '../../components/DeleteAccountModal';
+import { API_ENDPOINTS, getHeaders } from '../../constants/api';
 
 // Опции для выпадающих списков
 const USER_TYPE_OPTIONS = [
@@ -47,6 +49,14 @@ export default function ProfileScreen() {
   
   // Состояние для раскрытия блока "Про додаток"
   const [isAboutExpanded, setIsAboutExpanded] = useState(false);
+  
+  // Состояние для модального окна удаления аккаунта
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  
+  // Состояние для управления блокировками
+  const [showBlockedUsers, setShowBlockedUsers] = useState(false);
+  const [blockedUsers, setBlockedUsers] = useState<Array<{id: number, blocked_id: number, blocked_user?: {email: string, full_name: string | null}}>>([]);
+  const [loadingBlocked, setLoadingBlocked] = useState(false);
 
   useEffect(() => {
     if (user) {
@@ -129,6 +139,84 @@ export default function ProfileScreen() {
     } catch (error: any) {
       console.error('Update notification setting error:', error);
       Alert.alert('Помилка', 'Не вдалося оновити налаштування.');
+    }
+  };
+
+  const handleDeleteAccount = async () => {
+    try {
+      await deleteAccount();
+      Alert.alert(
+        'Успіх',
+        'Ваш обліковий запис успішно видалено.',
+        [
+          {
+            text: 'OK',
+            onPress: () => {
+              setShowDeleteModal(false);
+              // Перезагружаем состояние через logout
+              logout();
+            },
+          },
+        ]
+      );
+    } catch (error: any) {
+      console.error('Delete account error:', error);
+      Alert.alert('Помилка', error.message || 'Не вдалося видалити обліковий запис. Спробуйте ще раз.');
+    }
+  };
+
+  const loadBlockedUsers = async () => {
+    setLoadingBlocked(true);
+    try {
+      const token = await getAccessToken();
+      if (!token) throw new Error('No access token');
+
+      const response = await fetch(API_ENDPOINTS.BLOCKS.LIST, {
+        headers: getHeaders({
+          'Authorization': `Bearer ${token}`,
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to load blocked users');
+      }
+
+      const data = await response.json();
+      setBlockedUsers(data);
+    } catch (error: any) {
+      console.error('Load blocked users error:', error);
+      Alert.alert('Помилка', 'Не вдалося завантажити список заблокованих користувачів.');
+    } finally {
+      setLoadingBlocked(false);
+    }
+  };
+
+  const handleShowBlockedUsers = async () => {
+    setShowBlockedUsers(true);
+    await loadBlockedUsers();
+  };
+
+  const handleUnblockUser = async (userId: number) => {
+    try {
+      const token = await getAccessToken();
+      if (!token) throw new Error('No access token');
+
+      const response = await fetch(API_ENDPOINTS.BLOCKS.DELETE(userId), {
+        method: 'DELETE',
+        headers: getHeaders({
+          'Authorization': `Bearer ${token}`,
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to unblock user');
+      }
+
+      Alert.alert('Успіх', 'Користувача розблоковано');
+      await loadBlockedUsers();
+    } catch (error: any) {
+      console.error('Unblock user error:', error);
+      Alert.alert('Помилка', error.message || 'Не вдалося розблокувати користувача.');
     }
   };
 
@@ -293,56 +381,44 @@ export default function ProfileScreen() {
 
               <View style={styles.pickerBlock}>
                 <Text style={styles.label}>Тип користувача:</Text>
-                <View style={styles.pickerContainer}>
-                  <Picker
-                    selectedValue={userType}
-                    onValueChange={(itemValue: UserType | null) => setUserType(itemValue)}
-                    style={styles.picker}
-                    itemStyle={styles.pickerItem}
-                  >
-                    <Picker.Item label="Оберіть тип" value={null} />
-                    {USER_TYPE_OPTIONS.map((option) => (
-                      <Picker.Item key={option.value} label={option.label} value={option.value} />
-                    ))}
-                  </Picker>
-                </View>
+                <Select
+                  value={userType}
+                  onValueChange={(itemValue: UserType | null) => setUserType(itemValue)}
+                  items={[
+                    { label: 'Оберіть тип', value: null },
+                    ...USER_TYPE_OPTIONS
+                  ]}
+                  style={styles.selectStyle}
+                />
               </View>
 
               {userType === UserType.FOP && (
                 <View style={styles.pickerBlock}>
                   <Text style={styles.label}>Група ФОП:</Text>
-                  <View style={styles.pickerContainer}>
-                    <Picker
-                      selectedValue={fopGroup}
-                      onValueChange={(itemValue: FOPGroup | null) => setFopGroup(itemValue)}
-                      style={styles.picker}
-                      itemStyle={styles.pickerItem}
-                    >
-                      <Picker.Item label="Оберіть групу" value={null} />
-                      {FOP_GROUP_OPTIONS.map((option) => (
-                        <Picker.Item key={option.value} label={option.label} value={option.value} />
-                      ))}
-                    </Picker>
-                  </View>
+                  <Select
+                    value={fopGroup}
+                    onValueChange={(itemValue: FOPGroup | null) => setFopGroup(itemValue)}
+                    items={[
+                      { label: 'Оберіть групу', value: null },
+                      ...FOP_GROUP_OPTIONS
+                    ]}
+                    style={styles.selectStyle}
+                  />
                 </View>
               )}
 
               {userType === UserType.LEGAL_ENTITY && (
                 <View style={styles.pickerBlock}>
                   <Text style={styles.label}>Система оподаткування:</Text>
-                  <View style={styles.pickerContainer}>
-                    <Picker
-                      selectedValue={taxSystem}
-                      onValueChange={(itemValue: string | null) => setTaxSystem(itemValue)}
-                      style={styles.picker}
-                      itemStyle={styles.pickerItem}
-                    >
-                      <Picker.Item label="Оберіть систему" value={null} />
-                      {TAX_SYSTEM_OPTIONS.map((option) => (
-                        <Picker.Item key={option.value} label={option.label} value={option.value} />
-                      ))}
-                    </Picker>
-                  </View>
+                  <Select
+                    value={taxSystem}
+                    onValueChange={(itemValue: string | null) => setTaxSystem(itemValue)}
+                    items={[
+                      { label: 'Оберіть систему', value: null },
+                      ...TAX_SYSTEM_OPTIONS
+                    ]}
+                    style={styles.selectStyle}
+                  />
                 </View>
               )}
 
@@ -394,6 +470,12 @@ export default function ProfileScreen() {
               <TouchableOpacity style={styles.menuItem} onPress={handleShowNotificationSettings}>
                 <MaterialIcons name="notifications" size={24} color={Colors.primary} />
                 <Text style={styles.menuItemText}>Сповіщення</Text>
+                <MaterialIcons name="chevron-right" size={24} color={Colors.textMuted} />
+              </TouchableOpacity>
+              
+              <TouchableOpacity style={styles.menuItem} onPress={handleShowBlockedUsers}>
+                <MaterialIcons name="block" size={24} color={Colors.primary} />
+                <Text style={styles.menuItemText}>Заблоковані користувачі</Text>
                 <MaterialIcons name="chevron-right" size={24} color={Colors.textMuted} />
               </TouchableOpacity>
               
@@ -456,11 +538,38 @@ export default function ProfileScreen() {
           )}
         </View>
 
+        {/* Небезпечна зона */}
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>Небезпечна зона</Text>
+          
+          <TouchableOpacity 
+            style={styles.dangerButton}
+            onPress={() => setShowDeleteModal(true)}
+          >
+            <MaterialIcons name="delete-forever" size={24} color={Colors.error} />
+            <View style={styles.dangerButtonContent}>
+              <Text style={styles.dangerButtonTitle}>Видалити обліковий запис</Text>
+              <Text style={styles.dangerButtonSubtitle}>
+                Ця дія незворотна. Усі ваші дані будуть видалені назавжди.
+              </Text>
+            </View>
+            <MaterialIcons name="chevron-right" size={24} color={Colors.error} />
+          </TouchableOpacity>
+        </View>
+
         <TouchableOpacity style={styles.logoutButton} onPress={handleLogout}>
           <MaterialIcons name="exit-to-app" size={20} color={Colors.error} />
           <Text style={styles.logoutButtonText}>Вийти з облікового запису</Text>
         </TouchableOpacity>
       </ScrollView>
+
+      {/* Модальное окно удаления аккаунта */}
+      <DeleteAccountModal
+        visible={showDeleteModal}
+        onClose={() => setShowDeleteModal(false)}
+        onConfirm={handleDeleteAccount}
+        userEmail={user?.email || ''}
+      />
 
       {/* Модальное окно настроек уведомлений */}
       <Modal
@@ -525,6 +634,60 @@ export default function ProfileScreen() {
               <View style={styles.modalError}>
                 <MaterialIcons name="error-outline" size={48} color={Colors.error} />
                 <Text style={styles.modalErrorText}>Не вдалося завантажити налаштування</Text>
+              </View>
+            )}
+          </View>
+        </View>
+      </Modal>
+
+      {/* Модальное окно заблокированных пользователей */}
+      <Modal
+        visible={showBlockedUsers}
+        animationType="slide"
+        transparent={true}
+        onRequestClose={() => setShowBlockedUsers(false)}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContent}>
+            <View style={styles.modalHeader}>
+              <Text style={styles.modalTitle}>Заблоковані користувачі</Text>
+              <TouchableOpacity onPress={() => setShowBlockedUsers(false)}>
+                <MaterialIcons name="close" size={28} color={Colors.textPrimary} />
+              </TouchableOpacity>
+            </View>
+
+            {loadingBlocked ? (
+              <View style={styles.modalLoader}>
+                <ActivityIndicator size="large" color={Colors.primary} />
+              </View>
+            ) : blockedUsers.length > 0 ? (
+              <ScrollView style={styles.modalBody}>
+                {blockedUsers.map((block) => (
+                  <View key={block.id} style={styles.blockedUserItem}>
+                    <View style={styles.blockedUserInfo}>
+                      <MaterialIcons name="person" size={32} color={Colors.textMuted} />
+                      <View style={styles.blockedUserText}>
+                        <Text style={styles.blockedUserName}>
+                          {block.blocked_user?.full_name || 'Користувач'}
+                        </Text>
+                        <Text style={styles.blockedUserEmail}>
+                          {block.blocked_user?.email || ''}
+                        </Text>
+                      </View>
+                    </View>
+                    <TouchableOpacity
+                      style={styles.unblockButton}
+                      onPress={() => handleUnblockUser(block.blocked_id)}
+                    >
+                      <Text style={styles.unblockButtonText}>Розблокувати</Text>
+                    </TouchableOpacity>
+                  </View>
+                ))}
+              </ScrollView>
+            ) : (
+              <View style={styles.modalError}>
+                <MaterialIcons name="check-circle" size={48} color={Colors.primary} />
+                <Text style={styles.modalErrorText}>Немає заблокованих користувачів</Text>
               </View>
             )}
           </View>
@@ -744,41 +907,28 @@ const styles = StyleSheet.create({
     ...Typography.body,
     color: Colors.textPrimary,
     marginBottom: Spacing.sm,
-    marginTop: Spacing.sm,
+    marginTop: Spacing.lg,
   },
   inputField: {
     backgroundColor: Colors.cardBackground,
     color: Colors.textPrimary,
     borderRadius: BorderRadius.md,
-    padding: Spacing.sm,
+    paddingHorizontal: Spacing.sm,
+    paddingVertical: Spacing.md,
     fontSize: Typography.body.fontSize,
     fontFamily: Typography.body.fontFamily,
     marginBottom: Spacing.sm,
+    minHeight: 48,
   },
   pickerBlock: {
     marginTop: Spacing.md,
-    marginBottom: 30,
+    marginBottom: Spacing.xl,
   },
-  pickerContainer: {
-    backgroundColor: Colors.cardBackground,
-    borderRadius: BorderRadius.md,
-    marginBottom: Spacing.lg,
-    height: 150,
-    justifyContent: 'center',
-  },
-  picker: {
-    color: Colors.textPrimary,
-    height: 150,
-  },
-  pickerItem: {
-    color: Colors.textPrimary,
-    backgroundColor: Colors.cardBackground,
-  },
-  pickerSpacing: {
-    marginTop: Spacing.md,
+  selectStyle: {
+    marginTop: Spacing.sm,
   },
   saveButton: {
-    marginTop: 30,
+    marginTop: Spacing.xxl,
   },
   saveButtonDisabled: {
     opacity: 0.6,
@@ -891,5 +1041,70 @@ const styles = StyleSheet.create({
     ...Typography.body,
     color: Colors.textPrimary,
     flex: 1,
+  },
+  // Стили для секции "Небезпечна зона"
+  dangerButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: Colors.cardBackground,
+    padding: Spacing.md,
+    borderRadius: BorderRadius.md,
+    borderWidth: 1,
+    borderColor: Colors.error,
+    gap: Spacing.sm,
+  },
+  dangerButtonContent: {
+    flex: 1,
+  },
+  dangerButtonTitle: {
+    ...Typography.body,
+    color: Colors.error,
+    fontWeight: '600',
+    marginBottom: 4,
+  },
+  dangerButtonSubtitle: {
+    ...Typography.caption,
+    color: Colors.textMuted,
+  },
+  // Стили для заблокированных пользователей
+  blockedUserItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    backgroundColor: Colors.cardBackground,
+    borderRadius: BorderRadius.md,
+    padding: Spacing.md,
+    marginBottom: Spacing.sm,
+  },
+  blockedUserInfo: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    flex: 1,
+    marginRight: Spacing.md,
+  },
+  blockedUserText: {
+    marginLeft: Spacing.sm,
+    flex: 1,
+  },
+  blockedUserName: {
+    ...Typography.body,
+    color: Colors.textPrimary,
+    fontWeight: '600',
+    marginBottom: 2,
+  },
+  blockedUserEmail: {
+    ...Typography.caption,
+    color: Colors.textMuted,
+  },
+  unblockButton: {
+    backgroundColor: Colors.primary,
+    paddingVertical: Spacing.xs,
+    paddingHorizontal: Spacing.sm,
+    borderRadius: BorderRadius.sm,
+  },
+  unblockButtonText: {
+    ...Typography.caption,
+    color: Colors.white,
+    fontWeight: '600',
   },
 });

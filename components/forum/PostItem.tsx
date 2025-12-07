@@ -13,6 +13,7 @@ interface PostItemProps {
   onEdit: (postId: number, content: string) => void;
   onDelete: (postId: number) => void;
   onLike: (postId: number) => void;
+  onMenuPress?: () => void;
   parentPost?: ForumPost; // Родительский комментарий для цитаты
 }
 
@@ -47,6 +48,7 @@ export default function PostItem({
   onEdit,
   onDelete,
   onLike,
+  onMenuPress,
   parentPost,
 }: PostItemProps) {
   const [showActions, setShowActions] = useState(false);
@@ -192,6 +194,24 @@ export default function PostItem({
             </TouchableOpacity>
           </>
         )}
+        
+        {!isAuthor && currentUserId && onMenuPress && (
+          <TouchableOpacity
+            style={styles.actionButton}
+            onPress={() => {
+              console.log('PostItem menu button pressed:', {
+                post_id: post.id,
+                post_user_id: post.user_id,
+                currentUserId,
+                isAuthor
+              });
+              onMenuPress();
+            }}
+            hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+          >
+            <MaterialIcons name="more-vert" size={20} color={Colors.textSecondary} />
+          </TouchableOpacity>
+        )}
       </View>
 
       {/* Рекурсивно отображаем вложенные ответы */}
@@ -210,6 +230,7 @@ export default function PostItem({
                 onEdit={onEdit}
                 onDelete={onDelete}
                 onLike={onLike}
+                onMenuPress={onMenuPress}
                 parentPost={post} // Передаем текущий пост как родителя
               />
             </View>

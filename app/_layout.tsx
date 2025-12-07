@@ -4,11 +4,13 @@ import { useFonts } from 'expo-font';
 import { Stack } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
 import { useEffect } from 'react';
+import { Platform } from 'react-native';
 import 'react-native-reanimated';
 
 import { useColorScheme } from '@/components/useColorScheme';
 import { AuthProvider } from '../contexts/AuthContext';
 import NotificationHandler from '../components/NotificationHandler';
+import { initializePushNotifications, setupNotificationHandlers } from '../utils/pushService';
 
 export {
   // Catch any errors thrown by the Layout component.
@@ -54,6 +56,22 @@ export default function RootLayout() {
     }
   }, [loaded]);
 
+  // Инициализация push уведомлений при первом запуске (для анонимных пользователей)
+  useEffect(() => {
+    if (loaded && Platform.OS !== 'web') {
+      console.log('🔔 Setting up push notifications for anonymous users...');
+      
+      // Настройка обработчиков уведомлений
+      setupNotificationHandlers();
+      
+      // Инициализация для анонимных пользователей
+      // AuthContext позже обновит токен для зарегистрированных
+      initializePushNotifications(false).catch(error => {
+        console.error('Failed to initialize anonymous push notifications:', error);
+      });
+    }
+  }, [loaded]);
+
   if (!loaded) {
     return null;
   }
@@ -86,7 +104,7 @@ function RootLayoutNav() {
         <Stack.Screen
           name="news"
           options={{
-            headerShown: true,
+            headerShown: Platform.OS !== 'web',
             presentation: 'card',
           }}
         />
@@ -106,6 +124,20 @@ function RootLayoutNav() {
         />
         <Stack.Screen
           name="verify-email"
+          options={{
+            headerShown: false,
+            presentation: 'card',
+          }}
+        />
+        <Stack.Screen
+          name="forgot-password"
+          options={{
+            headerShown: false,
+            presentation: 'card',
+          }}
+        />
+        <Stack.Screen
+          name="reset-password"
           options={{
             headerShown: false,
             presentation: 'card',

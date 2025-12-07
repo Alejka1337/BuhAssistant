@@ -1,14 +1,54 @@
 // app/(tabs)/_layout.tsx
-import { Tabs } from 'expo-router';
+import { Tabs, Stack } from 'expo-router';
 import { MaterialIcons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { Platform } from 'react-native';
+import { Platform, View } from 'react-native';
 import { Colors } from '@/constants/Colors';
 import { Colors as ThemeColors, Typography } from '@/constants/Theme';
+import { useResponsive } from '@/utils/responsive';
+import DesktopLayout from '@/components/web/DesktopLayout';
+import MobileMenu, { MobileMenuWrapper } from '@/components/web/MobileMenu';
 
 export default function TabLayout() {
   const insets = useSafeAreaInsets();
+  const { isDesktop, isMobile } = useResponsive();
   
+  // Для Desktop Web - используем Sidebar вместо Tabs
+  if (Platform.OS === 'web' && isDesktop) {
+    return (
+      <DesktopLayout>
+        <Stack screenOptions={{ headerShown: false }}>
+          <Stack.Screen name="index" />
+          <Stack.Screen name="calendar" />
+          <Stack.Screen name="tools" />
+          <Stack.Screen name="search" />
+          <Stack.Screen name="forum" />
+          <Stack.Screen name="profile" />
+        </Stack>
+      </DesktopLayout>
+    );
+  }
+  
+  // Для Mobile Web - используем Stack с бургер-меню
+  if (Platform.OS === 'web' && isMobile) {
+    return (
+      <View style={{ flex: 1, backgroundColor: ThemeColors.background }}>
+        <MobileMenu />
+        <MobileMenuWrapper>
+          <Stack screenOptions={{ headerShown: false }}>
+            <Stack.Screen name="index" />
+            <Stack.Screen name="calendar" />
+            <Stack.Screen name="tools" />
+            <Stack.Screen name="search" />
+            <Stack.Screen name="forum" />
+            <Stack.Screen name="profile" />
+          </Stack>
+        </MobileMenuWrapper>
+      </View>
+    );
+  }
+  
+  // Для iOS и Android - текущая реализация с Tabs
   return (
     <Tabs
       screenOptions={{

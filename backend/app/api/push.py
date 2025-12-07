@@ -4,16 +4,23 @@ API endpoints для push-уведомлений
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 from typing import Optional
+from datetime import datetime
 
 from app.db.database import get_db
 from app.models.user import User
 from app.models.notification import NotificationSettings
+from app.models.push_token import AnonymousPushToken
 from app.schemas.notification import (
     PushTokenRegister,
     NotificationSettingsUpdate,
     NotificationSettingsResponse,
     TestNotificationRequest,
     NotificationResponse
+)
+from app.schemas.push_token import (
+    AnonymousPushTokenCreate,
+    AnonymousPushTokenResponse,
+    LinkTokenToUserRequest
 )
 from app.api.deps import get_current_user
 from app.services.push_notification import push_service
@@ -207,5 +214,114 @@ def remove_push_token(
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"Failed to remove push token: {str(e)}"
+        )
+
+
+# === Endpoints для анонимных push токенов ===
+
+@router.post("/register-anonymous", response_model=AnonymousPushTokenResponse)
+def register_anonymous_push_token(
+    token_data: AnonymousPushTokenCreate,
+    db: Session = Depends(get_db)
+):
+    """
+    Регистрация анонимного push токена для незарегистрированных пользователей.
+    Позволяет отправлять push-уведомления о новостях до регистрации.
+    """
+    try:
+        # Проверяем, существует ли уже такой токен
+        existing_token = db.query(AnonymousPushToken).filter(
+            AnonymousPushToken.token == token_data.token
+        ).first()
+        
+        if existing_token:
+            # Обновляем last_active_at
+            existing_token.last_active_at = datetime.utcnow()
+            db.commit()
+            db.refresh(existing_token)
+            logger.info(f"Anonymous push token updated: {existing_token.id}")
+            return AnonymousPushTokenResponse.from_orm(existing_token)
+        
+        # Создаем новый анонимный токен
+        new_token = AnonymousPushToken(
+            token=token_data.token,
+            platform=token_data.platform,
+            device_id=token_data.device_id
+        )
+        
+        db.add(new_token)
+        db.commit()
+        db.refresh(new_token)
+        
+        logger.info(f"Anonymous push token registered: {new_token.id}, platform: {new_token.platform}")
+        
+        return AnonymousPushTokenResponse.from_orm(new_token)
+        
+    except Exception as e:
+        logger.error(f"Error registering anonymous push token: {e}")
+        db.rollback()
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Failed to register anonymous push token: {str(e)}"
+        )
+
+
+@router.post("/link-to-user", response_model=NotificationResponse)
+def link_anonymous_token_to_user(
+    link_request: LinkTokenToUserRequest,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """
+    Привязать анонимный push токен к зарегистрированному пользователю.
+    Вызывается при регистрации или логине пользователя.
+    """
+    try:
+        # Найти анонимный токен
+        anonymous_token = db.query(AnonymousPushToken).filter(
+            AnonymousPushToken.token == link_request.anonymous_token,
+            AnonymousPushToken.is_linked_to_user.is_(None)
+        ).first()
+        
+        if not anonymous_token:
+            # Токен не найден или уже привязан - не критично
+            logger.warning(f"Anonymous token not found or already linked: {link_request.anonymous_token[:20]}...")
+            return NotificationResponse(
+                success=False,
+                message="Anonymous token not found or already linked"
+            )
+        
+        # Перенести токен в User
+        current_user.push_token = anonymous_token.token
+        
+        # Пометить анонимный токен как привязанный
+        anonymous_token.is_linked_to_user = current_user.id
+        
+        # Создать настройки уведомлений, если их нет
+        if not current_user.notification_settings:
+            settings = NotificationSettings(
+                user_id=current_user.id,
+                enable_deadline_notifications=True,
+                enable_news_notifications=True,
+                deadline_days_before=[1, 3]
+            )
+            db.add(settings)
+        
+        db.commit()
+        
+        logger.info(f"Anonymous token {anonymous_token.id} linked to user {current_user.id}")
+        
+        return NotificationResponse(
+            success=True,
+            message="Anonymous token successfully linked to user",
+            details={"user_id": current_user.id, "anonymous_token_id": anonymous_token.id}
+        )
+        
+    except Exception as e:
+        logger.error(f"Error linking anonymous token to user: {e}")
+        db.rollback()
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Failed to link anonymous token: {str(e)}"
         )
 

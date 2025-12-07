@@ -10,6 +10,7 @@ from exponent_server_sdk import (
     PushTicketError,
 )
 from requests.exceptions import ConnectionError, HTTPError
+from sqlalchemy.orm import Session
 import logging
 
 logger = logging.getLogger(__name__)
@@ -245,6 +246,127 @@ class PushNotificationService:
             "tokens_to_remove": tokens_to_remove,
             "results": results
         }
+    
+    def send_news_to_all(
+        self,
+        db: Session,
+        title: str,
+        body: str,
+        data: Optional[Dict[str, Any]] = None
+    ) -> Dict[str, Any]:
+        """
+        Отправить новость ВСЕМ пользователям (зарегистрированным + анонимным)
+        
+        Args:
+            db: Database session
+            title: Заголовок новости
+            body: Текст новости
+            data: Дополнительные данные
+        
+        Returns:
+            Статистика отправки с разбивкой по типам пользователей
+        """
+        from app.models.user import User
+        from app.models.push_token import AnonymousPushToken
+        
+        all_tokens = []
+        
+        # 1. Получить токены зарегистрированных пользователей
+        registered_users = db.query(User).filter(
+            User.push_token.isnot(None),
+            User.is_active == True
+        ).all()
+        
+        registered_tokens = [user.push_token for user in registered_users]
+        all_tokens.extend(registered_tokens)
+        
+        logger.info(f"Found {len(registered_tokens)} registered users with push tokens")
+        
+        # 2. Получить токены анонимных пользователей (не привязанные к users)
+        anonymous_tokens_query = db.query(AnonymousPushToken).filter(
+            AnonymousPushToken.is_linked_to_user.is_(None)
+        ).all()
+        
+        anonymous_tokens = [token.token for token in anonymous_tokens_query]
+        all_tokens.extend(anonymous_tokens)
+        
+        logger.info(f"Found {len(anonymous_tokens)} anonymous users with push tokens")
+        
+        # 3. Отправить всем
+        if not all_tokens:
+            logger.warning("No push tokens found for news notification")
+            return {
+                "total": 0,
+                "success": 0,
+                "failed": 0,
+                "registered_users": 0,
+                "anonymous_users": 0
+            }
+        
+        results = self.send_to_users(
+            user_tokens=all_tokens,
+            title=title,
+            body=body,
+            data=data
+        )
+        
+        # 4. Добавить статистику по типам пользователей
+        results["registered_users"] = len(registered_tokens)
+        results["anonymous_users"] = len(anonymous_tokens)
+        
+        logger.info(f"News push sent: {results['success']}/{results['total']} successful "
+                   f"(Registered: {len(registered_tokens)}, Anonymous: {len(anonymous_tokens)})")
+        
+        return results
+    
+    def send_deadline_notifications(
+        self,
+        db: Session,
+        title: str,
+        body: str,
+        data: Optional[Dict[str, Any]] = None
+    ) -> Dict[str, Any]:
+        """
+        Отправить уведомление о дедлайнах ТОЛЬКО зарегистрированным пользователям
+        с включенными уведомлениями о дедлайнах
+        
+        Args:
+            db: Database session
+            title: Заголовок
+            body: Текст
+            data: Дополнительные данные
+        
+        Returns:
+            Статистика отправки
+        """
+        from app.models.user import User
+        from app.models.notification import NotificationSettings
+        
+        # Получить пользователей с включенными уведомлениями о дедлайнах
+        users_with_settings = db.query(User).join(NotificationSettings).filter(
+            User.push_token.isnot(None),
+            User.is_active == True,
+            NotificationSettings.enable_deadline_notifications == True
+        ).all()
+        
+        tokens = [user.push_token for user in users_with_settings]
+        
+        if not tokens:
+            logger.warning("No users with enabled deadline notifications found")
+            return {
+                "total": 0,
+                "success": 0,
+                "failed": 0
+            }
+        
+        logger.info(f"Sending deadline notification to {len(tokens)} users")
+        
+        return self.send_to_users(
+            user_tokens=tokens,
+            title=title,
+            body=body,
+            data=data
+        )
 
 
 # Singleton instance

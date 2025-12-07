@@ -65,7 +65,7 @@ class ForumThreadResponse(BaseModel):
     is_pinned: bool
     is_closed: bool
     created_at: datetime
-    updated_at: datetime
+    updated_at: Optional[datetime]
     
     # Дополнительные данные
     author: Optional[ForumThreadAuthor] = None
@@ -133,7 +133,7 @@ class ForumPostResponse(BaseModel):
     parent_id: Optional[int]
     content: str
     created_at: datetime
-    updated_at: datetime
+    updated_at: Optional[datetime]
     edited_at: Optional[datetime]
     
     # Дополнительные данные

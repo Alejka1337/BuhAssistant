@@ -27,6 +27,7 @@ export default function RegisterScreen() {
   const [confirmPassword, setConfirmPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [acceptedTerms, setAcceptedTerms] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   
   const { register } = useAuth();
@@ -54,6 +55,11 @@ export default function RegisterScreen() {
       return;
     }
 
+    if (!acceptedTerms) {
+      Alert.alert('Помилка', 'Ви повинні прийняти Умови використання для продовження');
+      return;
+    }
+
     try {
       setIsLoading(true);
       const response = await register({
@@ -71,6 +77,25 @@ export default function RegisterScreen() {
       const { getAccessToken } = await import('../utils/authService');
       const savedToken = await getAccessToken();
       console.log('Token after registration:', savedToken ? 'Saved' : 'NOT SAVED');
+      
+      // Автоматически принимаем Terms of Service после успешной регистрации
+      try {
+        const { API_ENDPOINTS, getHeaders } = await import('../constants/api');
+        const { getAccessToken } = await import('../utils/authService');
+        const token = await getAccessToken();
+        
+        if (token) {
+          await fetch(`${API_ENDPOINTS.AUTH.ACCEPT_TERMS}`, {
+            method: 'POST',
+            headers: getHeaders({
+              'Authorization': `Bearer ${token}`,
+            }),
+          });
+        }
+      } catch (termsError) {
+        console.error('Failed to accept terms:', termsError);
+        // Не останавливаем flow регистрации
+      }
       
       // Если пользователь не верифицирован, перенаправляем на экран активации
       if (!response.user.is_verified) {
@@ -199,11 +224,37 @@ export default function RegisterScreen() {
           {/* Password Requirements */}
           <Text style={styles.passwordHint}>Пароль повинен містити мінімум 6 символів</Text>
 
+          {/* Terms of Service Checkbox */}
+          <TouchableOpacity
+            style={styles.termsContainer}
+            onPress={() => setAcceptedTerms(!acceptedTerms)}
+            disabled={isLoading}
+          >
+            <View style={[styles.checkbox, acceptedTerms && styles.checkboxChecked]}>
+              {acceptedTerms && <MaterialIcons name="check" size={18} color={Colors.white} />}
+            </View>
+            <Text style={styles.termsText}>
+              Я погоджуюсь з{' '}
+              <Text
+                style={styles.termsLink}
+                onPress={(e) => {
+                  e.stopPropagation();
+                  router.push('/terms-of-service');
+                }}
+              >
+                Умовами використання
+              </Text>
+            </Text>
+          </TouchableOpacity>
+
           {/* Register Button */}
           <TouchableOpacity
-            style={[styles.registerButton, isLoading && styles.registerButtonDisabled]}
+            style={[
+              styles.registerButton,
+              (isLoading || !acceptedTerms) && styles.registerButtonDisabled
+            ]}
             onPress={handleRegister}
-            disabled={isLoading}
+            disabled={isLoading || !acceptedTerms}
           >
             {isLoading ? (
               <ActivityIndicator color="#fff" />
@@ -296,6 +347,35 @@ const styles = StyleSheet.create({
     marginTop: -8,
     marginBottom: Spacing.md,
     paddingHorizontal: 4,
+  },
+  termsContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: Spacing.md,
+    gap: Spacing.sm,
+  },
+  checkbox: {
+    width: 24,
+    height: 24,
+    borderRadius: BorderRadius.sm,
+    borderWidth: 2,
+    borderColor: Colors.textMuted,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  checkboxChecked: {
+    backgroundColor: Colors.primary,
+    borderColor: Colors.primary,
+  },
+  termsText: {
+    ...Typography.body,
+    color: Colors.textPrimary,
+    flex: 1,
+  },
+  termsLink: {
+    color: Colors.primary,
+    fontWeight: '600',
+    textDecorationLine: 'underline',
   },
   registerButton: {
     backgroundColor: Colors.primary,
