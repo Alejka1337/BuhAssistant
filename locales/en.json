@@ -1,0 +1,7 @@
+{
+  "CFBundleDisplayName": "eGlavBuh",
+  "NSCameraUsageDescription": "eGlavBuh needs camera access to take photos",
+  "NSMicrophoneUsageDescription": "eGlavBuh needs microphone access for audio consultations",
+  "NSPhotoLibraryUsageDescription": "eGlavBuh needs photo library access to upload images"
+}
+

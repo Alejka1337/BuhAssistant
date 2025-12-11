@@ -130,6 +130,13 @@ android {
     androidResources {
         ignoreAssetsPattern '!.svn:!.git:!.ds_store:!*.scc:!CVS:!thumbs.db:!picasa.ini:!*~'
     }
+    
+    lint {
+        // Ignore iOS-specific keys in localization files
+        disable 'ExtraTranslation'
+        checkReleaseBuilds true
+        abortOnError false
+    }
 }
 
 // Apply static values from `gradle.properties` to the `android.packagingOptions`

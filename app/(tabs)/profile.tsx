@@ -178,14 +178,24 @@ export default function ProfileScreen() {
       });
 
       if (!response.ok) {
-        throw new Error('Failed to load blocked users');
+        // Якщо помилка 401 або 404, просто показуємо пустий список
+        if (response.status === 401 || response.status === 404) {
+          console.log('Blocked users not available or user not authenticated');
+          setBlockedUsers([]);
+          return;
+        }
+        throw new Error(`Failed to load blocked users: ${response.status}`);
       }
 
       const data = await response.json();
       setBlockedUsers(data);
     } catch (error: any) {
       console.error('Load blocked users error:', error);
-      Alert.alert('Помилка', 'Не вдалося завантажити список заблокованих користувачів.');
+      // Показуємо помилку тільки якщо це не проблема з авторизацією
+      if (!error.message?.includes('401') && !error.message?.includes('404')) {
+        Alert.alert('Помилка', 'Не вдалося завантажити список заблокованих користувачів.');
+      }
+      setBlockedUsers([]);
     } finally {
       setLoadingBlocked(false);
     }

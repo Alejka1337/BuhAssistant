@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { View, Text, TouchableOpacity, StyleSheet, Animated, Platform } from 'react-native';
+import { View, Text, TouchableOpacity, StyleSheet, Animated, Platform, ScrollView } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
 import { useRouter, usePathname } from 'expo-router';
 import { Colors, Typography, Spacing, BorderRadius } from '@/constants/Theme';
@@ -13,6 +13,7 @@ const NAVIGATION_ITEMS = [
   { name: 'search', label: 'Пошук', icon: 'search', path: '/(tabs)/search' },
   { name: 'forum', label: 'Форум', icon: 'forum', path: '/(tabs)/forum' },
   { name: 'articles', label: 'Статті', icon: 'library-books', path: '/articles' },
+  { name: 'tax-requisites', label: 'Реквізити', icon: 'account-balance', path: '/tax-requisites' },
   { name: 'profile', label: 'Профіль', icon: 'person', path: '/(tabs)/profile' },
 ];
 
@@ -44,34 +45,36 @@ export default function Sidebar() {
 
   return (
     <View style={styles.sidebar}>
-      <View style={styles.topSection}>
-        <View style={styles.logo}>
-          <Text style={styles.logoText}>eGlavBuh</Text>
-          <Text style={styles.logoSubtext}>Бухгалтерський помічник</Text>
-        </View>
-        
-        <View style={styles.navigation}>
-          {NAVIGATION_ITEMS.map((item) => {
-            const isActive = pathname.includes(item.name);
-            return (
-              <TouchableOpacity
-                key={item.name}
-                style={[styles.navItem, isActive && styles.navItemActive]}
-                onPress={() => router.push(item.path as any)}
-              >
-                <MaterialIcons 
-                  name={item.icon as any} 
-                  size={24} 
-                  color={isActive ? Colors.primary : Colors.textMuted} 
-                />
-                <Text style={[styles.navLabel, isActive && styles.navLabelActive]}>
-                  {item.label}
-                </Text>
-              </TouchableOpacity>
-            );
-          })}
-        </View>
+      <View style={styles.logo}>
+        <Text style={styles.logoText}>eGlavBuh</Text>
+        <Text style={styles.logoSubtext}>Бухгалтерський помічник</Text>
       </View>
+      
+      <ScrollView 
+        style={styles.navigationScroll}
+        contentContainerStyle={styles.navigation}
+        showsVerticalScrollIndicator={false}
+      >
+        {NAVIGATION_ITEMS.map((item) => {
+          const isActive = pathname.includes(item.name);
+          return (
+            <TouchableOpacity
+              key={item.name}
+              style={[styles.navItem, isActive && styles.navItemActive]}
+              onPress={() => router.push(item.path as any)}
+            >
+              <MaterialIcons 
+                name={item.icon as any} 
+                size={24} 
+                color={isActive ? Colors.primary : Colors.textMuted} 
+              />
+              <Text style={[styles.navLabel, isActive && styles.navLabelActive]}>
+                {item.label}
+              </Text>
+            </TouchableOpacity>
+          );
+        })}
+      </ScrollView>
 
       {/* Кнопка консультации с пульсацией */}
       <View style={styles.consultationContainer}>
@@ -101,19 +104,18 @@ const styles = StyleSheet.create({
     borderRightWidth: 2,
     borderRightColor: Colors.primary,
     height: '100vh' as any,
-    paddingVertical: Spacing.lg,
-    justifyContent: 'space-between',
+    paddingTop: Spacing.lg,
     flexDirection: 'column',
-  },
-  topSection: {
-    flex: 1,
   },
   logo: {
     paddingHorizontal: Spacing.lg,
-    paddingBottom: Spacing.xl,
+    paddingBottom: Spacing.lg,
     borderBottomWidth: 1,
     borderBottomColor: Colors.borderColor,
-    marginBottom: Spacing.lg,
+    marginBottom: Spacing.md,
+  },
+  navigationScroll: {
+    flex: 1,
   },
   logoText: {
     ...Typography.h2,
@@ -127,6 +129,7 @@ const styles = StyleSheet.create({
   navigation: {
     gap: Spacing.xs as any,
     paddingHorizontal: Spacing.sm,
+    paddingBottom: Spacing.md,
   },
   navItem: {
     flexDirection: 'row',
@@ -149,7 +152,9 @@ const styles = StyleSheet.create({
   },
   consultationContainer: {
     paddingHorizontal: Spacing.md,
-    paddingBottom: Spacing.lg,
+    paddingVertical: Spacing.lg,
+    borderTopWidth: 1,
+    borderTopColor: Colors.borderColor,
   },
   consultationButton: {
     flexDirection: 'row',

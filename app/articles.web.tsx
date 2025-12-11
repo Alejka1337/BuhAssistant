@@ -122,10 +122,25 @@ export default function ArticlesScreen() {
 
     return (
       <View style={[styles.content, isDesktop && styles.contentDesktop]}>
-        {/* Header */}
-        <View style={styles.header}>
-          <Text style={styles.title}>Статті</Text>
-          {user && ((user as any).role?.toUpperCase() === 'MODERATOR' || (user as any).role?.toUpperCase() === 'ADMIN') && (
+        {/* Header - только для десктопа */}
+        {isDesktop && (
+          <View style={styles.header}>
+            <Text style={styles.title}>Статті</Text>
+            {user && ((user as any).role?.toUpperCase() === 'MODERATOR' || (user as any).role?.toUpperCase() === 'ADMIN') && (
+              <TouchableOpacity
+                style={styles.createButton}
+                onPress={() => router.push('/admin/articles/new' as any)}
+              >
+                <MaterialIcons name="add" size={20} color="#fff" />
+                <Text style={styles.createButtonText}>Створити статтю</Text>
+              </TouchableOpacity>
+            )}
+          </View>
+        )}
+
+        {/* Кнопка создать для мобильных */}
+        {isMobile && user && ((user as any).role?.toUpperCase() === 'MODERATOR' || (user as any).role?.toUpperCase() === 'ADMIN') && (
+          <View style={styles.mobileCreateButtonContainer}>
             <TouchableOpacity
               style={styles.createButton}
               onPress={() => router.push('/admin/articles/new' as any)}
@@ -133,8 +148,8 @@ export default function ArticlesScreen() {
               <MaterialIcons name="add" size={20} color="#fff" />
               <Text style={styles.createButtonText}>Створити статтю</Text>
             </TouchableOpacity>
-          )}
-        </View>
+          </View>
+        )}
 
         {/* Search */}
         <View style={styles.searchContainer}>
@@ -250,10 +265,14 @@ const styles = StyleSheet.create({
     padding: Spacing.md,
   },
   contentDesktop: {
-    maxWidth: 1200,
+    maxWidth: 1440,
     width: '100%',
     marginHorizontal: 'auto' as any,
-    paddingHorizontal: Spacing.xl,
+    paddingHorizontal: 32,
+  },
+  mobileCreateButtonContainer: {
+    marginBottom: Spacing.md,
+    alignItems: 'flex-start',
   },
   loadingContainer: {
     flex: 1,
@@ -273,8 +292,9 @@ const styles = StyleSheet.create({
     marginBottom: Spacing.lg,
   },
   title: {
-    ...Typography.h1,
+    ...Typography.h2,
     color: Colors.textPrimary,
+    marginTop: Spacing.md,
   },
   createButton: {
     flexDirection: 'row',
@@ -293,8 +313,11 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     gap: Spacing.sm,
     marginBottom: Spacing.md,
+    flexWrap: 'wrap',
   },
   searchInputContainer: {
+    flex: 1,
+    minWidth: 200,
     flexDirection: 'row',
     alignItems: 'center',
     backgroundColor: Colors.cardBackground,
@@ -303,8 +326,11 @@ const styles = StyleSheet.create({
     gap: Spacing.sm,
     borderWidth: 2,
     borderColor: Colors.primary,
-    maxWidth: 500,
-    width: '100%',
+    ...Platform.select({
+      web: {
+        maxWidth: 500,
+      },
+    }),
   },
   searchInput: {
     flex: 1,

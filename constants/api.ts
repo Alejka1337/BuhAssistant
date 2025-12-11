@@ -21,9 +21,8 @@ const API_URL_FROM_CONFIG = Constants.expoConfig?.extra?.apiUrl;
 console.log('📋 Constants.expoConfig?.extra?.apiUrl:', Constants.expoConfig?.extra?.apiUrl);
 console.log('📋 API_URL_FROM_CONFIG:', API_URL_FROM_CONFIG);
 
-// export const API_URL = API_URL_FROM_CONFIG || 'https://api.eglavbuh.com.ua';
-// export const API_URL = API_URL_FROM_CONFIG || 'https://90a8375ea3d8.ngrok-free.app'; // Локальный ngrok для тестирования
-export const API_URL = API_URL_FROM_CONFIG || 'http://localhost:8000'; // Для тестирования без ngrok
+// Production API URL
+export const API_URL = API_URL_FROM_CONFIG || 'https://api.eglavbuh.com.ua';
 console.log('🔗 API_URL (final):', API_URL); // Для отладки
 
 // Базовые заголовки для всех запросов (включая обход ngrok warning)
@@ -75,6 +74,13 @@ export const API_ENDPOINTS = {
     DELETE: (userId: number) => `${API_URL}/api/blocks/${userId}`,
     LIST: `${API_URL}/api/blocks`,
     IDS: `${API_URL}/api/blocks/ids`,
+  },
+  TAX_REQUISITES: {
+    BASE: `${API_URL}/api/tax-requisites`,
+    UPLOAD_ESV: `${API_URL}/api/tax-requisites/upload-esv`,
+    UPLOAD_TAX: `${API_URL}/api/tax-requisites/upload-tax`,
+    DISTRICTS: `${API_URL}/api/tax-requisites/districts`,
+    REGIONS_WITH_DISTRICTS: `${API_URL}/api/tax-requisites/regions-with-districts`,
   },
 };
 
