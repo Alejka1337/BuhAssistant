@@ -10,6 +10,7 @@ from app.models.report import ContentReport, UserBlock
 from app.models.push_token import AnonymousPushToken
 from app.models.moderation import ModerationLog
 from app.models.article import Article
+from app.models.tax_requisite import TaxRequisite, TaxRequisiteType
 
 __all__ = [
     "User",
@@ -25,5 +26,7 @@ __all__ = [
     "AnonymousPushToken",
     "ModerationLog",
     "Article",
+    "TaxRequisite",
+    "TaxRequisiteType",
 ]
 

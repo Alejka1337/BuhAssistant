@@ -6,7 +6,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from pathlib import Path
 from app.core.config import settings
-from app.api import health, search, news, calendar, auth, consultation, profile, push, forum, reports, blocks, articles, uploads, media
+from app.api import health, search, news, calendar, auth, consultation, profile, push, forum, reports, blocks, articles, uploads, media, tax_requisites
 
 # Создаем приложение FastAPI
 app = FastAPI(
@@ -42,6 +42,7 @@ app.include_router(blocks.router, tags=["blocks"])
 app.include_router(articles.router, tags=["articles"])
 app.include_router(uploads.router, prefix="/api", tags=["uploads"])
 app.include_router(media.router, prefix="/api", tags=["media"])
+app.include_router(tax_requisites.router, tags=["tax-requisites"])
 
 # Настройка статических файлов для обслуживания загруженных медиа
 import os
