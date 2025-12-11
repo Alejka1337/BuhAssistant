@@ -1,6 +1,0 @@
-<resources>
-  <string name="CFBundleDisplayName">"eGlavBuh"</string>
-  <string name="NSCameraUsageDescription">"eGlavBuh потребує доступ до камери для зйомки фото"</string>
-  <string name="NSMicrophoneUsageDescription">"eGlavBuh потребує доступ до мікрофона для запису аудіо консультацій"</string>
-  <string name="NSPhotoLibraryUsageDescription">"eGlavBuh потребує доступ до фото для завантаження зображень"</string>
-</resources>

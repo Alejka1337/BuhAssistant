@@ -51,3 +51,8 @@ backend/templates/
 
 __pycache__/
 doc-files/backend/.env.backup
+
+# Backend temporary files
+backend/celerybeat-schedule
+backend/**/*_backup.py
+backend/**/__pycache__/

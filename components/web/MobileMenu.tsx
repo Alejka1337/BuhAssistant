@@ -21,6 +21,7 @@ const NAVIGATION_ITEMS = [
   { name: 'search', label: 'Пошук', icon: 'search', path: '/(tabs)/search' },
   { name: 'forum', label: 'Форум', icon: 'forum', path: '/(tabs)/forum' },
   { name: 'articles', label: 'Статті', icon: 'library-books', path: '/articles' },
+  { name: 'tax-requisites', label: 'Реквізити', icon: 'account-balance', path: '/tax-requisites' },
   { name: 'news', label: 'Всі новини', icon: 'article', path: '/news' },
   { name: 'profile', label: 'Профіль', icon: 'person', path: '/(tabs)/profile' },
 ];
@@ -36,6 +37,8 @@ const getPageTitle = (pathname: string): string => {
   if (pathname.includes('/forum/create')) return 'Створити тему';
   if (pathname.includes('/forum/thread/')) return 'Форум';
   if (pathname.includes('/forum')) return 'Форум';
+  if (pathname.includes('/tax-requisites')) return 'Реквізити';
+  if (pathname.includes('/articles')) return 'Статті';
   if (pathname.includes('/news')) return 'Всі новини';
   if (pathname.includes('/profile')) return 'Профіль';
   if (pathname.includes('/login')) return 'Вхід';
