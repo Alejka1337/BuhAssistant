@@ -14,8 +14,11 @@ import SickLeaveCalculatorModal from '../../components/SickLeaveCalculatorModal'
 import MaternityLeaveCalculatorModal from '../../components/MaternityLeaveCalculatorModal';
 import TotalTaxLoadModal from '../../components/TotalTaxLoadModal';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { Colors, Typography, Spacing, BorderRadius } from '@/constants/Theme';
+import { Typography, Spacing, BorderRadius } from '@/constants/Theme';
+import { useTheme } from '@/contexts/ThemeContext';
 import { useResponsive } from '../../utils/responsive';
+import { useSEO } from '../../hooks/useSEO';
+import { PAGE_METAS } from '../../utils/seo';
 
 interface Tool {
   name: string;
@@ -37,8 +40,11 @@ const tools: Tool[] = [
 ];
 
 export default function ToolsScreen() {
+  useSEO(PAGE_METAS.tools);
+  
   const insets = useSafeAreaInsets();
   const { isDesktop } = useResponsive();
+  const { colors } = useTheme();
   const [esvModalVisible, setEsvModalVisible] = useState(false);
   const [singleTaxG1ModalVisible, setSingleTaxG1ModalVisible] = useState(false);
   const [singleTaxG2ModalVisible, setSingleTaxG2ModalVisible] = useState(false);
@@ -94,13 +100,13 @@ export default function ToolsScreen() {
   const renderIcon = (tool: Tool) => {
     const iconSize = isDesktop ? 40 : 48;
     if (tool.iconFamily === 'MaterialCommunityIcons') {
-      return <MaterialCommunityIcons name={tool.icon as any} size={iconSize} color={Colors.primary} />;
+      return <MaterialCommunityIcons name={tool.icon as any} size={iconSize} color={colors.primary} />;
     }
-    return <MaterialIcons name={tool.icon as any} size={iconSize} color={Colors.primary} />;
+    return <MaterialIcons name={tool.icon as any} size={iconSize} color={colors.primary} />;
   };
 
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, { backgroundColor: colors.background }]}>
       <ScrollView contentContainerStyle={[
         styles.scrollContent,
         { paddingBottom: insets.bottom + 16 },
@@ -109,18 +115,18 @@ export default function ToolsScreen() {
         <View style={[styles.content, isDesktop && styles.desktopContent]}>
           {/* Заголовок для Desktop */}
           {isDesktop && (
-            <Text style={styles.pageTitle}>Інструменти</Text>
+            <Text style={[styles.pageTitle, { color: colors.textPrimary }]}>Інструменти</Text>
           )}
 
           <View style={[styles.tilesContainer, isDesktop && styles.tilesContainerDesktop]}>
             {tools.map((tool, index) => (
               <TouchableOpacity 
                 key={index} 
-                style={[styles.tile, isDesktop && styles.tileDesktop]}
+                style={[styles.tile, { backgroundColor: colors.cardBackground }, isDesktop && styles.tileDesktop]}
                 onPress={() => handleTilePress(tool)}
               >
                 {renderIcon(tool)}
-                <Text style={[styles.tileText, isDesktop && styles.tileTextDesktop]}>{tool.name}</Text>
+                <Text style={[styles.tileText, { color: colors.textPrimary }, isDesktop && styles.tileTextDesktop]}>{tool.name}</Text>
               </TouchableOpacity>
             ))}
           </View>
@@ -188,7 +194,6 @@ export default function ToolsScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: Colors.background,
   },
   scrollContent: {
     flexGrow: 1,
@@ -204,7 +209,6 @@ const styles = StyleSheet.create({
   },
   pageTitle: {
     ...Typography.h2,
-    color: Colors.textPrimary,
     marginBottom: Spacing.lg,
     marginTop: Spacing.md,
   },
@@ -220,7 +224,6 @@ const styles = StyleSheet.create({
     justifyContent: 'flex-start',
   },
   tile: {
-    backgroundColor: Colors.cardBackground,
     width: '48%',
     aspectRatio: 1,
     borderRadius: 12,
@@ -236,7 +239,6 @@ const styles = StyleSheet.create({
     padding: 20,
   },
   tileText: {
-    color: Colors.textPrimary,
     fontSize: 17,
     fontWeight: '500',
     textAlign: 'center',

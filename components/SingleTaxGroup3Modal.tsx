@@ -9,30 +9,35 @@ interface SingleTaxGroup3ModalProps {
 }
 
 export default function SingleTaxGroup3Modal({ visible, onClose }: SingleTaxGroup3ModalProps) {
-  const [annualIncome, setAnnualIncome] = useState('');
-  const [isVatPayer, setIsVatPayer] = useState(false);
+  const [income, setIncome] = useState('');
+  const [vatOption, setVatOption] = useState<'with' | 'without' | null>(null);
   const [result, setResult] = useState<string | null>(null);
 
   const calculateTax = () => {
-    const income = parseFloat(annualIncome);
-    if (isNaN(income) || income < 0) {
+    const incomeValue = parseFloat(income);
+    if (isNaN(incomeValue) || incomeValue < 0) {
       alert('Будь ласка, введіть коректну суму доходу.');
       setResult(null);
       return;
     }
 
-    const taxRate = isVatPayer ? 0.03 : 0.05;
-    const monthlyIncome = income / 12;
-    const monthlyTax = monthlyIncome * taxRate;
+    if (!vatOption) {
+      alert('Будь ласка, оберіть один з варіантів ПДВ.');
+      setResult(null);
+      return;
+    }
 
-    const message = `Ставка: ${isVatPayer ? '3%' : '5%'}\nЄдиний податок (на місяць): ${monthlyTax.toFixed(2)} грн.`;
+    const taxRate = vatOption === 'with' ? 0.03 : 0.05;
+    const tax = incomeValue * taxRate;
+
+    const message = `Ставка: ${vatOption === 'with' ? '3%' : '5%'}\nЄдиний податок: ${tax.toFixed(2)} грн.`;
     setResult(message);
   };
   
   const handleClose = () => {
     setResult(null);
-    setAnnualIncome('');
-    setIsVatPayer(false);
+    setIncome('');
+    setVatOption(null);
     onClose();
   };
 
@@ -52,25 +57,39 @@ export default function SingleTaxGroup3Modal({ visible, onClose }: SingleTaxGrou
           <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
             <View style={styles.formContainer}>
               <Text style={styles.label}>
-                Дохід за рік <Text style={styles.required}>*</Text>
+                Дохід <Text style={styles.required}>*</Text>
               </Text>
               <TextInput
                 style={styles.input}
-                value={annualIncome}
-                onChangeText={setAnnualIncome}
+                value={income}
+                onChangeText={setIncome}
                 keyboardType="decimal-pad"
                 placeholder="Наприклад: 2400000"
                 placeholderTextColor={Colors.textMuted}
               />
 
+              <Text style={[styles.label, { marginTop: Spacing.xl }]}>
+                Оберіть варіант <Text style={styles.required}>*</Text>
+              </Text>
+
               <TouchableOpacity
                 style={styles.checkboxContainer}
-                onPress={() => setIsVatPayer(!isVatPayer)}
+                onPress={() => setVatOption('with')}
               >
-                <View style={[styles.checkbox, isVatPayer && styles.checkboxChecked]}>
-                  {isVatPayer && <MaterialIcons name="check" size={18} color="#FFFFFF" />}
+                <View style={[styles.checkbox, vatOption === 'with' && styles.checkboxChecked]}>
+                  {vatOption === 'with' && <MaterialIcons name="check" size={18} color="#FFFFFF" />}
                 </View>
                 <Text style={styles.checkboxLabel}>Платник ПДВ (ставка 3%)</Text>
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                style={styles.checkboxContainer}
+                onPress={() => setVatOption('without')}
+              >
+                <View style={[styles.checkbox, vatOption === 'without' && styles.checkboxChecked]}>
+                  {vatOption === 'without' && <MaterialIcons name="check" size={18} color="#FFFFFF" />}
+                </View>
+                <Text style={styles.checkboxLabel}>Без ПДВ (ставка 5%)</Text>
               </TouchableOpacity>
               
               <TouchableOpacity style={styles.calculateButton} onPress={calculateTax}>

@@ -5,7 +5,8 @@ import { useRouter } from 'expo-router';
 import { useAuth } from '../../contexts/AuthContext';
 import { User, UserType, FOPGroup, updateUserProfile } from '../../utils/authService';
 import MobileSelect from '../../components/web/MobileSelect';
-import { Colors, Typography, Spacing, BorderRadius } from '../../constants/Theme';
+import { Typography, Spacing, BorderRadius } from '../../constants/Theme';
+import { useTheme } from '../../contexts/ThemeContext';
 
 // Опции для выпадающих списков
 const USER_TYPE_OPTIONS = [
@@ -28,6 +29,7 @@ const TAX_SYSTEM_OPTIONS = [
 ];
 
 export default function ProfileScreenWeb() {
+  const { colors } = useTheme();
   const { user, isLoading, isAuthenticated, logout, refreshUser } = useAuth();
   const router = useRouter();
 
@@ -108,7 +110,7 @@ export default function ProfileScreenWeb() {
   if (isLoading) {
     return (
       <View style={[styles.container, styles.centerContent]}>
-        <ActivityIndicator size="large" color={Colors.primary} />
+        <ActivityIndicator size="large" color={colors.primary} />
       </View>
     );
   }
@@ -116,53 +118,53 @@ export default function ProfileScreenWeb() {
   // Неавторизований користувач
   if (!isAuthenticated || !user) {
     return (
-      <View style={styles.container}>
+      <View style={[styles.container, { backgroundColor: colors.background }]}>
           <ScrollView 
             style={styles.content}
             contentContainerStyle={styles.scrollContent}
           >
-            <View style={styles.guestSection}>
-              <View style={styles.avatarContainer}>
-                <MaterialIcons name="person-outline" size={60} color="#7f8c8d" />
+            <View style={[styles.guestSection, { backgroundColor: colors.cardBackground }]}>
+              <View style={[styles.avatarContainer, { backgroundColor: colors.background }]}>
+                <MaterialIcons name="person-outline" size={60} color={colors.textMuted} />
               </View>
-              <Text style={styles.guestTitle}>Вітаємо!</Text>
-              <Text style={styles.guestSubtitle}>
+              <Text style={[styles.guestTitle, { color: colors.textPrimary }]}>Вітаємо!</Text>
+              <Text style={[styles.guestSubtitle, { color: colors.textSecondary }]}>
                 Увійдіть або зареєструйтесь, щоб отримати доступ до всіх функцій
               </Text>
 
               <TouchableOpacity
-                style={styles.primaryButton}
+                style={[styles.primaryButton, { backgroundColor: colors.primary }]}
                 onPress={() => router.push('/login')}
               >
                 <Text style={styles.primaryButtonText}>Увійти</Text>
               </TouchableOpacity>
 
               <TouchableOpacity
-                style={styles.secondaryButton}
+                style={[styles.secondaryButton, { borderColor: colors.primary }]}
                 onPress={() => router.push('/register')}
               >
-                <Text style={styles.secondaryButtonText}>Зареєструватися</Text>
+                <Text style={[styles.secondaryButtonText, { color: colors.primary }]}>Зареєструватися</Text>
               </TouchableOpacity>
             </View>
 
             <View style={styles.section}>
-              <Text style={styles.sectionTitle}>Чому варто зареєструватися?</Text>
+              <Text style={[styles.sectionTitle, { color: colors.textPrimary }]}>Чому варто зареєструватися?</Text>
               
-              <View style={styles.featureItem}>
-                <MaterialIcons name="bookmark" size={24} color={Colors.primary} />
+              <View style={[styles.featureItem, { backgroundColor: colors.cardBackground }]}>
+                <MaterialIcons name="bookmark" size={24} color={colors.primary} />
                 <View style={styles.featureText}>
-                  <Text style={styles.featureTitle}>Збереження налаштувань</Text>
-                  <Text style={styles.featureDescription}>
+                  <Text style={[styles.featureTitle, { color: colors.textPrimary }]}>Збереження налаштувань</Text>
+                  <Text style={[styles.featureDescription, { color: colors.textSecondary }]}>
                     Персональні фільтри та улюблені розділи
                   </Text>
                 </View>
               </View>
 
-              <View style={styles.featureItem}>
-                <MaterialIcons name="forum" size={24} color={Colors.primary} />
+              <View style={[styles.featureItem, { backgroundColor: colors.cardBackground }]}>
+                <MaterialIcons name="forum" size={24} color={colors.primary} />
                 <View style={styles.featureText}>
-                  <Text style={styles.featureTitle}>Участь у форумі</Text>
-                  <Text style={styles.featureDescription}>
+                  <Text style={[styles.featureTitle, { color: colors.textPrimary }]}>Участь у форумі</Text>
+                  <Text style={[styles.featureDescription, { color: colors.textSecondary }]}>
                     Спілкування з іншими користувачами
                   </Text>
                 </View>
@@ -175,35 +177,35 @@ export default function ProfileScreenWeb() {
 
   // Авторизований користувач
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, { backgroundColor: colors.background }]}>
         <ScrollView 
           style={styles.content}
           contentContainerStyle={styles.scrollContent}
         >
-          <View style={styles.profileSection}>
-            <View style={styles.avatarContainer}>
-              <MaterialIcons name="person" size={60} color={Colors.primary} />
+          <View style={[styles.profileSection, { backgroundColor: colors.cardBackground }]}>
+            <View style={[styles.avatarContainer, { backgroundColor: colors.background }]}>
+              <MaterialIcons name="person" size={60} color={colors.primary} />
             </View>
             {isEditing ? (
               <TextInput
-                style={styles.userNameEdit}
+                style={[styles.userNameEdit, { color: colors.textPrimary, borderBottomColor: colors.primary }]}
                 value={fullName}
                 onChangeText={setFullName}
                 placeholder="Ваше повне ім'я"
-                placeholderTextColor="#7f8c8d"
+                placeholderTextColor={colors.textMuted}
               />
             ) : (
-              <Text style={styles.userName}>{user.full_name || 'Користувач'}</Text>
+              <Text style={[styles.userName, { color: colors.textPrimary }]}>{user.full_name || 'Користувач'}</Text>
             )}
-            <Text style={styles.userEmail}>{user.email}</Text>
+            <Text style={[styles.userEmail, { color: colors.textSecondary }]}>{user.email}</Text>
             
             {user.user_type && !isEditing && (
-              <View style={styles.badge}>
+              <View style={[styles.badge, { backgroundColor: colors.primary }]}>
                 <Text style={styles.badgeText}>{USER_TYPE_OPTIONS.find(opt => opt.value === user.user_type)?.label || user.user_type}</Text>
               </View>
             )}
             {!user.user_type && !isEditing && (
-              <TouchableOpacity onPress={() => setIsEditing(true)} style={styles.setupProfileButton}>
+              <TouchableOpacity onPress={() => setIsEditing(true)} style={[styles.setupProfileButton, { backgroundColor: colors.primary }]}>
                 <Text style={styles.setupProfileButtonText}>Налаштувати профіль</Text>
               </TouchableOpacity>
             )}
@@ -211,43 +213,43 @@ export default function ProfileScreenWeb() {
 
           {/* Error and Success Messages */}
           {error ? (
-            <View style={styles.errorContainer}>
-              <MaterialIcons name="error-outline" size={20} color={Colors.error} />
-              <Text style={styles.errorText}>{error}</Text>
+            <View style={[styles.errorContainer, { backgroundColor: colors.cardBackground, borderLeftColor: colors.error }]}>
+              <MaterialIcons name="error-outline" size={20} color={colors.error} />
+              <Text style={[styles.errorText, { color: colors.error }]}>{error}</Text>
             </View>
           ) : null}
           
           {success ? (
-            <View style={styles.successContainer}>
-              <MaterialIcons name="check-circle" size={20} color={Colors.primary} />
-              <Text style={styles.successText}>{success}</Text>
+            <View style={[styles.successContainer, { backgroundColor: colors.cardBackground, borderLeftColor: colors.primary }]}>
+              <MaterialIcons name="check-circle" size={20} color={colors.primary} />
+              <Text style={[styles.successText, { color: colors.primary }]}>{success}</Text>
             </View>
           ) : null}
 
           <View style={styles.section}>
-            <Text style={styles.sectionTitle}>Інформація про обліковий запис</Text>
+            <Text style={[styles.sectionTitle, { color: colors.textPrimary }]}>Інформація про обліковий запис</Text>
             
-            <View style={styles.infoCard}>
-              <View style={styles.infoRow}>
-                <MaterialIcons name="verified-user" size={20} color="#7f8c8d" />
-                <Text style={styles.infoLabel}>Статус:</Text>
-                <Text style={[styles.infoValue, user.is_active && { color: Colors.primary }]}>
+            <View style={[styles.infoCard, { backgroundColor: colors.cardBackground }]}>
+              <View style={[styles.infoRow, { borderBottomColor: colors.borderLight }]}>
+                <MaterialIcons name="verified-user" size={20} color={colors.textMuted} />
+                <Text style={[styles.infoLabel, { color: colors.textSecondary }]}>Статус:</Text>
+                <Text style={[styles.infoValue, { color: colors.textPrimary }, user.is_active && { color: colors.primary }]}>
                   {user.is_active ? 'Активний' : 'Неактивний'}
                 </Text>
               </View>
 
-              <View style={styles.infoRow}>
-                <MaterialIcons name="check-circle" size={20} color={Colors.textMuted} />
-                <Text style={styles.infoLabel}>Верифікація:</Text>
-                <Text style={[styles.infoValue, user.is_verified && { color: Colors.primary }]}>
+              <View style={[styles.infoRow, { borderBottomColor: colors.borderLight }]}>
+                <MaterialIcons name="check-circle" size={20} color={colors.textMuted} />
+                <Text style={[styles.infoLabel, { color: colors.textSecondary }]}>Верифікація:</Text>
+                <Text style={[styles.infoValue, { color: colors.textPrimary }, user.is_verified && { color: colors.primary }]}>
                   {user.is_verified ? 'Підтверджено' : 'Не підтверджено'}
                 </Text>
               </View>
 
-              <View style={styles.infoRow}>
-                <MaterialIcons name="calendar-today" size={20} color={Colors.textMuted} />
-                <Text style={styles.infoLabel}>Дата реєстрації:</Text>
-                <Text style={[styles.infoValue, { color: Colors.primary }]}>
+              <View style={[styles.infoRow, { borderBottomColor: colors.borderLight }]}>
+                <MaterialIcons name="calendar-today" size={20} color={colors.textMuted} />
+                <Text style={[styles.infoLabel, { color: colors.textSecondary }]}>Дата реєстрації:</Text>
+                <Text style={[styles.infoValue, { color: colors.primary }]}>
                   {new Date(user.created_at).toLocaleDateString('uk-UA')}
                 </Text>
               </View>
@@ -255,21 +257,21 @@ export default function ProfileScreenWeb() {
           </View>
 
           <View style={styles.section}>
-            <Text style={styles.sectionTitle}>Налаштування</Text>
+            <Text style={[styles.sectionTitle, { color: colors.textPrimary }]}>Налаштування</Text>
             
             {isEditing ? (
               <>
-                <Text style={styles.label}>Повне ім'я:</Text>
+                <Text style={[styles.label, { color: colors.textPrimary }]}>Повне ім'я:</Text>
                 <TextInput
-                  style={styles.inputField}
+                  style={[styles.inputField, { backgroundColor: colors.cardBackground, color: colors.textPrimary }]}
                   value={fullName}
                   onChangeText={setFullName}
                   placeholder="Ваше повне ім'я"
-                  placeholderTextColor="#7f8c8d"
+                  placeholderTextColor={colors.textMuted}
                 />
 
                 <View style={styles.pickerBlock}>
-                  <Text style={styles.label}>Тип користувача:</Text>
+                  <Text style={[styles.label, { color: colors.textPrimary }]}>Тип користувача:</Text>
                   {isMobile ? (
                     <MobileSelect
                       value={userType}
@@ -284,7 +286,7 @@ export default function ProfileScreenWeb() {
                     <select
                       value={userType || ''}
                       onChange={(e) => setUserType(e.target.value as UserType || null)}
-                      style={htmlSelectStyles as any}
+                      style={getHtmlSelectStyles(colors) as any}
                     >
                       <option value="">Оберіть тип</option>
                       {USER_TYPE_OPTIONS.map(opt => (
@@ -296,7 +298,7 @@ export default function ProfileScreenWeb() {
 
                 {userType === UserType.FOP && (
                   <View style={styles.pickerBlock}>
-                    <Text style={styles.label}>Група ФОП:</Text>
+                    <Text style={[styles.label, { color: colors.textPrimary }]}>Група ФОП:</Text>
                     {isMobile ? (
                       <MobileSelect
                         value={fopGroup}
@@ -311,7 +313,7 @@ export default function ProfileScreenWeb() {
                       <select
                         value={fopGroup || ''}
                         onChange={(e) => setFopGroup(e.target.value as FOPGroup || null)}
-                        style={htmlSelectStyles as any}
+                        style={getHtmlSelectStyles(colors) as any}
                       >
                         <option value="">Оберіть групу</option>
                         {FOP_GROUP_OPTIONS.map(opt => (
@@ -324,7 +326,7 @@ export default function ProfileScreenWeb() {
 
                 {userType === UserType.LEGAL_ENTITY && (
                   <View style={styles.pickerBlock}>
-                    <Text style={styles.label}>Система оподаткування:</Text>
+                    <Text style={[styles.label, { color: colors.textPrimary }]}>Система оподаткування:</Text>
                     {isMobile ? (
                       <MobileSelect
                         value={taxSystem}
@@ -339,7 +341,7 @@ export default function ProfileScreenWeb() {
                       <select
                         value={taxSystem || ''}
                         onChange={(e) => setTaxSystem(e.target.value || null)}
-                        style={htmlSelectStyles as any}
+                        style={getHtmlSelectStyles(colors) as any}
                       >
                         <option value="">Оберіть систему</option>
                         {TAX_SYSTEM_OPTIONS.map(opt => (
@@ -351,7 +353,7 @@ export default function ProfileScreenWeb() {
                 )}
 
                 <TouchableOpacity 
-                  style={[styles.primaryButton, styles.saveButton, isSaving && styles.saveButtonDisabled]}
+                  style={[styles.primaryButton, { backgroundColor: colors.primary }, styles.saveButton, isSaving && styles.saveButtonDisabled]}
                   onPress={handleSaveProfile}
                   disabled={isSaving}
                 >
@@ -363,89 +365,89 @@ export default function ProfileScreenWeb() {
                 </TouchableOpacity>
 
                 <TouchableOpacity 
-                  style={[styles.secondaryButton, styles.cancelButton]}
+                  style={[styles.secondaryButton, { borderColor: colors.primary }, styles.cancelButton]}
                   onPress={() => setIsEditing(false)}
                   disabled={isSaving}
                 >
-                  <Text style={styles.secondaryButtonText}>Скасувати</Text>
+                  <Text style={[styles.secondaryButtonText, { color: colors.primary }]}>Скасувати</Text>
                 </TouchableOpacity>
               </>
             ) : (
               <>
                 {user.user_type && (
-                  <View style={styles.menuItem}>
-                    <MaterialIcons name="business" size={24} color={Colors.primary} />
-                    <Text style={styles.menuItemText}>Тип користувача: {USER_TYPE_OPTIONS.find(opt => opt.value === user.user_type)?.label || user.user_type}</Text>
+                  <View style={[styles.menuItem, { backgroundColor: colors.cardBackground }]}>
+                    <MaterialIcons name="business" size={24} color={colors.primary} />
+                    <Text style={[styles.menuItemText, { color: colors.textPrimary }]}>Тип користувача: {USER_TYPE_OPTIONS.find(opt => opt.value === user.user_type)?.label || user.user_type}</Text>
                   </View>
                 )}
                 {user.user_type === UserType.FOP && user.fop_group && (
-                  <View style={styles.menuItem}>
-                    <MaterialIcons name="group" size={24} color={Colors.primary} />
-                    <Text style={styles.menuItemText}>Група ФОП: {FOP_GROUP_OPTIONS.find(opt => opt.value === user.fop_group)?.label || user.fop_group}</Text>
+                  <View style={[styles.menuItem, { backgroundColor: colors.cardBackground }]}>
+                    <MaterialIcons name="group" size={24} color={colors.primary} />
+                    <Text style={[styles.menuItemText, { color: colors.textPrimary }]}>Група ФОП: {FOP_GROUP_OPTIONS.find(opt => opt.value === user.fop_group)?.label || user.fop_group}</Text>
                   </View>
                 )}
                 {user.user_type === UserType.LEGAL_ENTITY && user.tax_system && (
-                  <View style={styles.menuItem}>
-                    <MaterialIcons name="balance" size={24} color={Colors.primary} />
-                    <Text style={styles.menuItemText}>Система оподаткування: {TAX_SYSTEM_OPTIONS.find(opt => opt.value === user.tax_system)?.label || user.tax_system}</Text>
+                  <View style={[styles.menuItem, { backgroundColor: colors.cardBackground }]}>
+                    <MaterialIcons name="balance" size={24} color={colors.primary} />
+                    <Text style={[styles.menuItemText, { color: colors.textPrimary }]}>Система оподаткування: {TAX_SYSTEM_OPTIONS.find(opt => opt.value === user.tax_system)?.label || user.tax_system}</Text>
                   </View>
                 )}
-                <TouchableOpacity style={styles.menuItem} onPress={() => setIsEditing(true)}>
-                  <MaterialIcons name="edit" size={24} color={Colors.primary} />
-                  <Text style={styles.menuItemText}>Редагувати профіль</Text>
-                  <MaterialIcons name="chevron-right" size={24} color={Colors.textMuted} />
+                <TouchableOpacity style={[styles.menuItem, { backgroundColor: colors.cardBackground }]} onPress={() => setIsEditing(true)}>
+                  <MaterialIcons name="edit" size={24} color={colors.primary} />
+                  <Text style={[styles.menuItemText, { color: colors.textPrimary }]}>Редагувати профіль</Text>
+                  <MaterialIcons name="chevron-right" size={24} color={colors.textMuted} />
                 </TouchableOpacity>
                 
                 {/* Блок "Про додаток" с раскрытием */}
                 <View>
                   <TouchableOpacity 
-                    style={styles.menuItem} 
+                    style={[styles.menuItem, { backgroundColor: colors.cardBackground }]} 
                     onPress={() => setIsAboutExpanded(!isAboutExpanded)}
                   >
-                    <MaterialIcons name="info" size={24} color={Colors.primary} />
-                    <Text style={styles.menuItemText}>Про додаток</Text>
+                    <MaterialIcons name="info" size={24} color={colors.primary} />
+                    <Text style={[styles.menuItemText, { color: colors.textPrimary }]}>Про додаток</Text>
                     <MaterialIcons 
                       name={isAboutExpanded ? "expand-more" : "chevron-right"} 
                       size={24} 
-                      color={Colors.textMuted} 
+                      color={colors.textMuted} 
                     />
                   </TouchableOpacity>
                   
                   {isAboutExpanded && (
-                    <View style={styles.aboutContent}>
-                      <Text style={styles.aboutTitle}>
+                    <View style={[styles.aboutContent, { backgroundColor: colors.background }]}>
+                      <Text style={[styles.aboutTitle, { color: colors.textPrimary }]}>
                         eGlavBuh – надійний помічник у бухгалтерії
                       </Text>
                       
                       <View style={styles.aboutFeatures}>
                         <View style={styles.aboutFeatureItem}>
-                          <MaterialIcons name="check-circle" size={20} color={Colors.primary} />
-                          <Text style={styles.aboutFeatureText}>Нагадаємо про важливі дедлайни</Text>
+                          <MaterialIcons name="check-circle" size={20} color={colors.primary} />
+                          <Text style={[styles.aboutFeatureText, { color: colors.textPrimary }]}>Нагадаємо про важливі дедлайни</Text>
                         </View>
                         
                         <View style={styles.aboutFeatureItem}>
-                          <MaterialIcons name="check-circle" size={20} color={Colors.primary} />
-                          <Text style={styles.aboutFeatureText}>Тільки актуальні новини законодавства</Text>
+                          <MaterialIcons name="check-circle" size={20} color={colors.primary} />
+                          <Text style={[styles.aboutFeatureText, { color: colors.textPrimary }]}>Тільки актуальні новини законодавства</Text>
                         </View>
                         
                         <View style={styles.aboutFeatureItem}>
-                          <MaterialIcons name="check-circle" size={20} color={Colors.primary} />
-                          <Text style={styles.aboutFeatureText}>Персоналізований пошук</Text>
+                          <MaterialIcons name="check-circle" size={20} color={colors.primary} />
+                          <Text style={[styles.aboutFeatureText, { color: colors.textPrimary }]}>Персоналізований пошук</Text>
                         </View>
                         
                         <View style={styles.aboutFeatureItem}>
-                          <MaterialIcons name="check-circle" size={20} color={Colors.primary} />
-                          <Text style={styles.aboutFeatureText}>Калькулятори та інструменти</Text>
+                          <MaterialIcons name="check-circle" size={20} color={colors.primary} />
+                          <Text style={[styles.aboutFeatureText, { color: colors.textPrimary }]}>Калькулятори та інструменти</Text>
                         </View>
                         
                         <View style={styles.aboutFeatureItem}>
-                          <MaterialIcons name="check-circle" size={20} color={Colors.primary} />
-                          <Text style={styles.aboutFeatureText}>Спілкування та обговорення</Text>
+                          <MaterialIcons name="check-circle" size={20} color={colors.primary} />
+                          <Text style={[styles.aboutFeatureText, { color: colors.textPrimary }]}>Спілкування та обговорення</Text>
                         </View>
                         
                         <View style={styles.aboutFeatureItem}>
-                          <MaterialIcons name="check-circle" size={20} color={Colors.primary} />
-                          <Text style={styles.aboutFeatureText}>Бухгалтерська консультація</Text>
+                          <MaterialIcons name="check-circle" size={20} color={colors.primary} />
+                          <Text style={[styles.aboutFeatureText, { color: colors.textPrimary }]}>Бухгалтерська консультація</Text>
                         </View>
                       </View>
                     </View>
@@ -455,9 +457,9 @@ export default function ProfileScreenWeb() {
             )}
           </View>
 
-          <TouchableOpacity style={styles.logoutButton} onPress={handleLogout}>
-            <MaterialIcons name="exit-to-app" size={20} color={Colors.error} />
-            <Text style={styles.logoutButtonText}>Вийти з облікового запису</Text>
+          <TouchableOpacity style={[styles.logoutButton, { backgroundColor: colors.cardBackground, borderColor: colors.error }]} onPress={handleLogout}>
+            <MaterialIcons name="exit-to-app" size={20} color={colors.error} />
+            <Text style={[styles.logoutButtonText, { color: colors.error }]}>Вийти з облікового запису</Text>
           </TouchableOpacity>
         </ScrollView>
 
@@ -469,25 +471,25 @@ export default function ProfileScreenWeb() {
           onRequestClose={() => setShowLogoutConfirm(false)}
         >
           <View style={styles.modalOverlay}>
-            <View style={styles.logoutModalContent}>
+            <View style={[styles.logoutModalContent, { backgroundColor: colors.cardBackground }]}>
               <View style={styles.logoutModalHeader}>
-                <MaterialIcons name="exit-to-app" size={48} color={Colors.error} />
-                <Text style={styles.logoutModalTitle}>Вихід з облікового запису</Text>
-                <Text style={styles.logoutModalMessage}>
+                <MaterialIcons name="exit-to-app" size={48} color={colors.error} />
+                <Text style={[styles.logoutModalTitle, { color: colors.textPrimary }]}>Вихід з облікового запису</Text>
+                <Text style={[styles.logoutModalMessage, { color: colors.textSecondary }]}>
                   Ви впевнені, що хочете вийти?
                 </Text>
               </View>
 
               <View style={styles.logoutModalButtons}>
                 <TouchableOpacity
-                  style={[styles.logoutModalButton, styles.cancelLogoutButton]}
+                  style={[styles.logoutModalButton, styles.cancelLogoutButton, { borderColor: colors.textMuted }]}
                   onPress={() => setShowLogoutConfirm(false)}
                 >
-                  <Text style={styles.cancelLogoutButtonText}>Скасувати</Text>
+                  <Text style={[styles.cancelLogoutButtonText, { color: colors.textPrimary }]}>Скасувати</Text>
                 </TouchableOpacity>
 
                 <TouchableOpacity
-                  style={[styles.logoutModalButton, styles.confirmLogoutButton]}
+                  style={[styles.logoutModalButton, styles.confirmLogoutButton, { backgroundColor: colors.error }]}
                   onPress={confirmLogout}
                 >
                   <Text style={styles.confirmLogoutButtonText}>Вийти</Text>
@@ -500,10 +502,10 @@ export default function ProfileScreenWeb() {
   );
 }
 
-// Стили для HTML select (только для Desktop версии)
-const htmlSelectStyles = {
-  backgroundColor: Colors.cardBackground,
-  color: Colors.textPrimary,
+// Стили для HTML select (только для Desktop версии) - будут применены динамически
+const getHtmlSelectStyles = (colors: any) => ({
+  backgroundColor: colors.cardBackground,
+  color: colors.textPrimary,
   borderRadius: BorderRadius.md,
   paddingTop: Spacing.md,
   paddingBottom: Spacing.md,
@@ -526,12 +528,12 @@ const htmlSelectStyles = {
   backgroundRepeat: 'no-repeat',
   backgroundPosition: 'right 12px center',
   backgroundSize: '20px',
-};
+});
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: Colors.background,
+    // backgroundColor: dynamic,
   },
   centerContent: {
     justifyContent: 'center',
@@ -550,14 +552,14 @@ const styles = StyleSheet.create({
   guestSection: {
     alignItems: 'center',
     padding: 30,
-    backgroundColor: Colors.cardBackground,
+    // backgroundColor: dynamic,
     marginBottom: Spacing.lg,
     borderRadius: BorderRadius.lg,
   },
   profileSection: {
     alignItems: 'center',
     padding: 30,
-    backgroundColor: Colors.cardBackground,
+    // backgroundColor: dynamic,
     marginBottom: Spacing.lg,
     borderRadius: BorderRadius.lg,
   },
@@ -565,35 +567,35 @@ const styles = StyleSheet.create({
     width: 100,
     height: 100,
     borderRadius: 50,
-    backgroundColor: Colors.background,
+    // backgroundColor: dynamic,
     alignItems: 'center',
     justifyContent: 'center',
     marginBottom: 15,
   },
   guestTitle: {
     ...Typography.h2,
-    color: Colors.textPrimary,
+    // color: dynamic,
     marginTop: 10,
     marginBottom: 10,
   },
   guestSubtitle: {
     ...Typography.body,
-    color: Colors.textMuted,
+    // color: dynamic,
     textAlign: 'center',
     marginBottom: 24,
     paddingHorizontal: Spacing.lg,
   },
   userName: {
     ...Typography.h3,
-    color: Colors.textPrimary,
+    // color: dynamic,
     marginBottom: 5,
   },
   userNameEdit: {
     ...Typography.h3,
-    color: Colors.textPrimary,
+    // color: dynamic,
     marginBottom: 5,
     borderBottomWidth: 1,
-    borderBottomColor: Colors.primary,
+    // borderBottomColor: dynamic,
     paddingHorizontal: 10,
     paddingVertical: 2,
     width: '80%',
@@ -602,11 +604,11 @@ const styles = StyleSheet.create({
   },
   userEmail: {
     ...Typography.caption,
-    color: Colors.textMuted,
+    // color: dynamic,
     marginBottom: 10,
   },
   badge: {
-    backgroundColor: Colors.primary,
+    // backgroundColor: dynamic,
     paddingHorizontal: Spacing.sm,
     paddingVertical: 4,
     borderRadius: BorderRadius.lg,
@@ -614,11 +616,11 @@ const styles = StyleSheet.create({
   },
   badgeText: {
     ...Typography.caption,
-    color: Colors.white,
+    color: '#ffffff',
     fontWeight: '600',
   },
   setupProfileButton: {
-    backgroundColor: Colors.primary,
+    // backgroundColor: dynamic,
     paddingVertical: 10,
     paddingHorizontal: Spacing.lg,
     borderRadius: BorderRadius.md,
@@ -626,15 +628,15 @@ const styles = StyleSheet.create({
   },
   setupProfileButtonText: {
     ...Typography.caption,
-    color: Colors.white,
+    color: '#ffffff',
     fontWeight: '600',
   },
   errorContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: Colors.cardBackground,
+    // backgroundColor: dynamic,
     borderLeftWidth: 4,
-    borderLeftColor: Colors.error,
+    // borderLeftColor: dynamic,
     padding: Spacing.md,
     borderRadius: BorderRadius.md,
     marginBottom: Spacing.md,
@@ -642,15 +644,15 @@ const styles = StyleSheet.create({
   },
   errorText: {
     ...Typography.body,
-    color: Colors.error,
+    // color: dynamic,
     flex: 1,
   },
   successContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: Colors.cardBackground,
+    // backgroundColor: dynamic,
     borderLeftWidth: 4,
-    borderLeftColor: Colors.primary,
+    // borderLeftColor: dynamic,
     padding: Spacing.md,
     borderRadius: BorderRadius.md,
     marginBottom: Spacing.md,
@@ -658,11 +660,11 @@ const styles = StyleSheet.create({
   },
   successText: {
     ...Typography.body,
-    color: Colors.primary,
+    // color: dynamic,
     flex: 1,
   },
   primaryButton: {
-    backgroundColor: Colors.primary,
+    // backgroundColor: dynamic,
     paddingVertical: Spacing.sm,
     paddingHorizontal: 32,
     borderRadius: BorderRadius.md,
@@ -672,13 +674,13 @@ const styles = StyleSheet.create({
   },
   primaryButtonText: {
     ...Typography.body,
-    color: Colors.white,
+    color: '#ffffff',
     fontWeight: '600',
   },
   secondaryButton: {
     backgroundColor: 'transparent',
     borderWidth: 1,
-    borderColor: Colors.primary,
+    // borderColor: dynamic,
     paddingVertical: Spacing.sm,
     paddingHorizontal: 32,
     borderRadius: BorderRadius.md,
@@ -688,7 +690,7 @@ const styles = StyleSheet.create({
   },
   secondaryButtonText: {
     ...Typography.body,
-    color: Colors.primary,
+    // color: dynamic,
     fontWeight: '600',
   },
   section: {
@@ -696,11 +698,11 @@ const styles = StyleSheet.create({
   },
   sectionTitle: {
     ...Typography.h4,
-    color: Colors.textPrimary,
+    // color: dynamic,
     marginBottom: Spacing.md,
   },
   infoCard: {
-    backgroundColor: Colors.cardBackground,
+    // backgroundColor: dynamic,
     borderRadius: BorderRadius.md,
     padding: Spacing.md,
   },
@@ -709,22 +711,22 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingVertical: 10,
     borderBottomWidth: 1,
-    borderBottomColor: Colors.background,
+    // borderBottomColor: dynamic,
   },
   infoLabel: {
     flex: 1,
     ...Typography.body,
-    color: Colors.textPrimary,
+    // color: dynamic,
     marginLeft: Spacing.sm,
   },
   infoValue: {
     ...Typography.body,
-    color: Colors.textMuted,
+    // color: dynamic,
     fontWeight: '500',
   },
   featureItem: {
     flexDirection: 'row',
-    backgroundColor: Colors.cardBackground,
+    // backgroundColor: dynamic,
     padding: Spacing.md,
     borderRadius: BorderRadius.md,
     marginBottom: Spacing.sm,
@@ -735,18 +737,17 @@ const styles = StyleSheet.create({
   },
   featureTitle: {
     ...Typography.body,
-    color: Colors.textPrimary,
+    // color: dynamic,
     fontWeight: '600',
     marginBottom: 4,
   },
   featureDescription: {
     ...Typography.caption,
-    color: Colors.textMuted,
+    // color: dynamic,
   },
   menuItem: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: Colors.cardBackground,
     padding: Spacing.md,
     borderRadius: BorderRadius.md,
     marginBottom: Spacing.sm,
@@ -754,36 +755,32 @@ const styles = StyleSheet.create({
   menuItemText: {
     flex: 1,
     ...Typography.body,
-    color: Colors.textPrimary,
     marginLeft: Spacing.md,
   },
   logoutButton: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: Colors.cardBackground,
     padding: Spacing.md,
     borderRadius: BorderRadius.md,
     marginTop: Spacing.sm,
     marginBottom: Spacing.lg,
     borderWidth: 1,
-    borderColor: Colors.error,
   },
   logoutButtonText: {
     ...Typography.body,
-    color: Colors.error,
     fontWeight: '600',
     marginLeft: 8,
   },
   label: {
     ...Typography.body,
-    color: Colors.textPrimary,
+    // color: dynamic,
     marginBottom: Spacing.sm,
     marginTop: Spacing.sm,
   },
   inputField: {
-    backgroundColor: Colors.cardBackground,
-    color: Colors.textPrimary,
+    // backgroundColor: dynamic,
+    // color: dynamic,
     borderRadius: BorderRadius.md,
     paddingTop: Spacing.md,
     paddingBottom: Spacing.md,
@@ -812,7 +809,7 @@ const styles = StyleSheet.create({
   },
   // Стили для блока "Про додаток"
   aboutContent: {
-    backgroundColor: Colors.background,
+    // backgroundColor: dynamic,
     borderRadius: BorderRadius.md,
     padding: Spacing.md,
     marginTop: Spacing.xs,
@@ -821,7 +818,7 @@ const styles = StyleSheet.create({
   },
   aboutTitle: {
     ...Typography.h4,
-    color: Colors.textPrimary,
+    // color: dynamic,
     marginBottom: Spacing.md,
     textAlign: 'left',
   },
@@ -835,7 +832,7 @@ const styles = StyleSheet.create({
   },
   aboutFeatureText: {
     ...Typography.body,
-    color: Colors.textPrimary,
+    // color: dynamic,
     flex: 1,
   },
   // Стили модального окна подтверждения выхода
@@ -847,7 +844,7 @@ const styles = StyleSheet.create({
     padding: Spacing.lg,
   },
   logoutModalContent: {
-    backgroundColor: Colors.cardBackground,
+    // backgroundColor: dynamic,
     borderRadius: BorderRadius.xl,
     padding: Spacing.xl,
     maxWidth: 400,
@@ -864,14 +861,14 @@ const styles = StyleSheet.create({
   },
   logoutModalTitle: {
     ...Typography.h3,
-    color: Colors.textPrimary,
+    // color: dynamic,
     marginTop: Spacing.md,
     marginBottom: Spacing.sm,
     textAlign: 'center',
   },
   logoutModalMessage: {
     ...Typography.body,
-    color: Colors.textMuted,
+    // color: dynamic,
     textAlign: 'center',
   },
   logoutModalButtons: {
@@ -887,19 +884,19 @@ const styles = StyleSheet.create({
   cancelLogoutButton: {
     backgroundColor: 'transparent',
     borderWidth: 1,
-    borderColor: Colors.textMuted,
+    // borderColor: dynamic,
   },
   cancelLogoutButtonText: {
     ...Typography.body,
-    color: Colors.textPrimary,
+    // color: dynamic,
     fontWeight: '600',
   },
   confirmLogoutButton: {
-    backgroundColor: Colors.error,
+    // backgroundColor: dynamic,
   },
   confirmLogoutButtonText: {
     ...Typography.body,
-    color: Colors.white,
+    color: '#ffffff',
     fontWeight: '600',
   },
 });

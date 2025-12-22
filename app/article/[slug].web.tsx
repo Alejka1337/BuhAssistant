@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import {
   View,
   Text,
@@ -13,20 +13,25 @@ import {
 } from 'react-native';
 import { Stack, useLocalSearchParams, useRouter } from 'expo-router';
 import { MaterialIcons } from '@expo/vector-icons';
-import { Colors, Typography, Spacing, BorderRadius } from '@/constants/Theme';
+import { Typography, Spacing, BorderRadius } from '@/constants/Theme';
+import { useTheme } from '@/contexts/ThemeContext';
 import { useResponsive } from '@/utils/responsive';
 import PageWrapper from '@/components/web/PageWrapper';
 import MobileMenu, { MobileMenuWrapper } from '@/components/web/MobileMenu';
 import { getArticleBySlug, deleteArticle, Article } from '@/utils/articleService';
 import { useAuth } from '@/contexts/AuthContext';
 import ConfirmModal from '@/components/ConfirmModal';
+import { useSEO } from '@/hooks/useSEO';
+import ConsultationModal from '@/components/ConsultationModal.web';
 
 export default function ArticleDetailScreen() {
+  const { colors } = useTheme();
   const { slug } = useLocalSearchParams<{ slug: string }>();
   const router = useRouter();
   const { isMobile, isDesktop } = useResponsive();
   const { width } = useWindowDimensions();
   const { user } = useAuth();
+  const scrollViewRef = useRef<ScrollView>(null);
 
   const [article, setArticle] = useState<Article | null>(null);
   const [loading, setLoading] = useState(true);
@@ -34,6 +39,7 @@ export default function ArticleDetailScreen() {
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [deleting, setDeleting] = useState(false);
   const [showScrollTop, setShowScrollTop] = useState(false);
+  const [showConsultationModal, setShowConsultationModal] = useState(false);
 
   useEffect(() => {
     if (slug) {
@@ -42,6 +48,9 @@ export default function ArticleDetailScreen() {
   }, [slug]);
 
   // SEO: Обновление мета-тегов при загрузке статьи
+  
+
+  // Старый код для совместимости (можно удалить позже)
   useEffect(() => {
     if (Platform.OS === 'web' && article && typeof document !== 'undefined') {
       // Обновляем title
@@ -127,9 +136,24 @@ export default function ArticleDetailScreen() {
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
+  // Обработчик скролла для ScrollView (Mobile Web)
+  const handleScrollViewScroll = (event: any) => {
+    if (Platform.OS === 'web') {
+      const scrollPosition = event.nativeEvent.contentOffset.y;
+      setShowScrollTop(scrollPosition > 300);
+    }
+  };
+
   const scrollToTop = () => {
     if (Platform.OS === 'web') {
-      window.scrollTo({ top: 0, behavior: 'smooth' });
+      // Пробуем прокрутить через ScrollView ref
+      if (scrollViewRef.current) {
+        scrollViewRef.current.scrollTo({ y: 0, animated: true });
+      }
+      // Также пробуем через window (для случая, если используется обычный скролл)
+      if (typeof window !== 'undefined') {
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      }
     }
   };
 
@@ -145,12 +169,70 @@ export default function ArticleDetailScreen() {
     });
   };
 
+  // Обработка шорткодов в контенте статьи
+  const processShortcodes = (content: string): string => {
+    if (!content) return '';
+    
+    // Генерируем уникальный ID для каждой кнопки
+    const buttonId = `consultation-btn-${Date.now()}`;
+    
+    // Заменяем [[button]] на HTML кнопку
+    const processedContent = content.replace(
+      /\[\[button\]\]/gi,
+      `<div class="consultation-button-wrapper" style="text-align: center; margin: 2rem 0;">
+        <button 
+          id="${buttonId}" 
+          class="consultation-button"
+          style="
+            background-color: #282;
+            color: white;
+            padding: 16px 32px;
+            font-size: 16px;
+            font-weight: 600;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 12px rgba(76, 175, 80, 0.3);
+          "
+          onmouseover="this.style.backgroundColor='#388E3C'; this.style.transform='translateY(-2px)'; this.style.boxShadow='0 6px 16px rgba(76, 175, 80, 0.4)';"
+          onmouseout="this.style.backgroundColor='#282'; this.style.transform='translateY(0)'; this.style.boxShadow='0 4px 12px rgba(76, 175, 80, 0.3)';"
+        >
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="white">
+            <path d="M21 15.46l-5.27-.61-2.52 2.52c-2.83-1.44-5.15-3.75-6.59-6.59l2.53-2.53L8.54 3H3.03C2.45 13.18 10.82 21.55 21 20.97v-5.51z"/>
+          </svg>
+          Консультація експерта
+        </button>
+      </div>`
+    );
+    
+    return processedContent;
+  };
+
+  // Добавляем обработчик клика на кнопки после рендеринга
+  useEffect(() => {
+    if (Platform.OS === 'web' && article && typeof document !== 'undefined') {
+      // Небольшая задержка, чтобы DOM успел обновиться
+      setTimeout(() => {
+        const buttons = document.querySelectorAll('.consultation-button');
+        buttons.forEach((button) => {
+          button.addEventListener('click', () => {
+            setShowConsultationModal(true);
+          });
+        });
+      }, 100);
+    }
+  }, [article]);
+
   const renderContent = () => {
     if (loading) {
       return (
         <View style={styles.loadingContainer}>
-          <ActivityIndicator size="large" color={Colors.primary} />
-          <Text style={styles.loadingText}>Завантаження статті...</Text>
+          <ActivityIndicator size="large" color={colors.primary} />
+          <Text style={[styles.loadingText, { color: colors.textMuted }]}>Завантаження статті...</Text>
         </View>
       );
     }
@@ -158,15 +240,15 @@ export default function ArticleDetailScreen() {
     if (error || !article) {
       return (
         <View style={styles.errorContainer}>
-          <MaterialIcons name="error-outline" size={64} color={Colors.error} />
-          <Text style={styles.errorTitle}>Помилка</Text>
-          <Text style={styles.errorText}>{error || 'Статтю не знайдено'}</Text>
+          <MaterialIcons name="error-outline" size={64} color={colors.error} />
+          <Text style={[styles.errorTitle, { color: colors.textPrimary }]}>Помилка</Text>
+          <Text style={[styles.errorText, { color: colors.textMuted }]}>{error || 'Статтю не знайдено'}</Text>
         </View>
       );
     }
 
     return (
-      <View style={[styles.articleContainer, isDesktop && styles.articleContainerDesktop]}>
+      <View style={[styles.articleContainer, { backgroundColor: colors.cardBackground }, isDesktop && styles.articleContainerDesktop]}>
         {/* Cover Image */}
         {article.cover_image && (
           Platform.OS === 'web' ? (
@@ -193,13 +275,13 @@ export default function ArticleDetailScreen() {
         )}
 
         {/* Article Header */}
-        <View style={styles.articleHeader}>
+        <View style={[styles.articleHeader, { borderBottomColor: colors.borderColor }]}>
           <View style={styles.titleRow}>
             {Platform.OS === 'web' ? (
               <h1 style={{
                 fontSize: 32,
                 fontWeight: 'bold',
-                color: Colors.primary,
+                color: colors.primary,
                 marginBottom: Spacing.md,
                 lineHeight: 1.3,
                 margin: 0,
@@ -207,7 +289,7 @@ export default function ArticleDetailScreen() {
                 {article.title}
               </h1>
             ) : (
-              <Text style={styles.articleTitle}>{article.title}</Text>
+              <Text style={[styles.articleTitle, { color: colors.primary }]}>{article.title}</Text>
             )}
             
             {/* Edit/Delete buttons for moderators/admins */}
@@ -215,20 +297,20 @@ export default function ArticleDetailScreen() {
               <View style={styles.actionButtons}>
                 {canEdit() && (
                   <TouchableOpacity
-                    style={styles.editButton}
+                    style={[styles.editButton, { borderColor: colors.primary }]}
                     onPress={() => router.push(`/admin/articles/new?slug=${article.slug}` as any)}
                   >
-                    <MaterialIcons name="edit" size={20} color={Colors.primary} />
-                    <Text style={styles.editButtonText}>Редагувати</Text>
+                    <MaterialIcons name="edit" size={20} color={colors.primary} />
+                    <Text style={[styles.editButtonText, { color: colors.primary }]}>Редагувати</Text>
                   </TouchableOpacity>
                 )}
                 {canDelete() && (
                   <TouchableOpacity
-                    style={styles.deleteButton}
+                    style={[styles.deleteButton, { borderColor: colors.error }]}
                     onPress={() => setShowDeleteConfirm(true)}
                   >
-                    <MaterialIcons name="delete" size={20} color={Colors.error} />
-                    <Text style={styles.deleteButtonText}>Видалити</Text>
+                    <MaterialIcons name="delete" size={20} color={colors.error} />
+                    <Text style={[styles.deleteButtonText, { color: colors.error }]}>Видалити</Text>
                   </TouchableOpacity>
                 )}
               </View>
@@ -238,16 +320,16 @@ export default function ArticleDetailScreen() {
           {/* Meta info */}
           <View style={styles.metaContainer}>
             <View style={styles.authorInfo}>
-              <MaterialIcons name="person" size={20} color={Colors.textSecondary} />
-              <Text style={styles.authorName}>{article.author.full_name}</Text>
+              <MaterialIcons name="person" size={20} color={colors.textSecondary} />
+              <Text style={[styles.authorName, { color: colors.textPrimary }]}>{article.author.full_name}</Text>
             </View>
             <View style={styles.metaRow}>
-              <MaterialIcons name="schedule" size={18} color={Colors.textSecondary} />
-              <Text style={styles.metaText}>{formatDate(article.published_at)}</Text>
+              <MaterialIcons name="schedule" size={18} color={colors.textSecondary} />
+              <Text style={[styles.metaText, { color: colors.textMuted }]}>{formatDate(article.published_at)}</Text>
             </View>
             <View style={styles.metaRow}>
-              <MaterialIcons name="visibility" size={18} color={Colors.textSecondary} />
-              <Text style={styles.metaText}>{article.views} переглядів</Text>
+              <MaterialIcons name="visibility" size={18} color={colors.textSecondary} />
+              <Text style={[styles.metaText, { color: colors.textMuted }]}>{article.views} переглядів</Text>
             </View>
           </View>
         </View>
@@ -259,19 +341,19 @@ export default function ArticleDetailScreen() {
             <>
               <style>{`
                 .article-content {
-                  color: ${Colors.textPrimary};
+                  color: ${colors.textPrimary};
                   font-size: 16px;
                   line-height: 1.8;
                 }
                 .article-content a {
-                  color: ${Colors.textPrimary} !important;
+                  color: ${colors.textPrimary} !important;
                   text-decoration: underline !important;
                 }
                 .article-content a:hover {
-                  color: ${Colors.primary} !important;
+                  color: ${colors.primary} !important;
                 }
                 .article-content h2 {
-                  color: ${Colors.primary} !important;
+                  color: ${colors.primary} !important;
                   font-size: 24px;
                   font-weight: 600;
                   margin-top: 2rem;
@@ -287,7 +369,7 @@ export default function ArticleDetailScreen() {
               `}</style>
               <div
                 className="article-content"
-                dangerouslySetInnerHTML={{ __html: article.content }}
+                dangerouslySetInnerHTML={{ __html: processShortcodes(article.content) }}
               />
             </>
           )}
@@ -295,8 +377,8 @@ export default function ArticleDetailScreen() {
 
         {/* Footer */}
         <View style={styles.footer}>
-          <View style={styles.divider} />
-          <Text style={styles.footerText}>
+          <View style={[styles.divider, { backgroundColor: colors.borderColor }]} />
+          <Text style={[styles.footerText, { color: colors.textMuted }]}>
             Останнє оновлення: {formatDate(article.updated_at || article.created_at)}
           </Text>
         </View>
@@ -318,7 +400,12 @@ export default function ArticleDetailScreen() {
           title={article?.title || 'Стаття'} 
         />
         <MobileMenuWrapper>
-          <ScrollView style={styles.container}>
+          <ScrollView 
+            ref={scrollViewRef}
+            style={[styles.container, { backgroundColor: colors.background }]}
+            onScroll={handleScrollViewScroll}
+            scrollEventThrottle={16}
+          >
             {renderContent()}
           </ScrollView>
         </MobileMenuWrapper>
@@ -340,13 +427,19 @@ export default function ArticleDetailScreen() {
         {/* Scroll to Top Button */}
         {showScrollTop && Platform.OS === 'web' && (
           <TouchableOpacity
-            style={styles.scrollToTopButton}
+            style={[styles.scrollToTopButton, { backgroundColor: colors.primary }]}
             onPress={scrollToTop}
             activeOpacity={0.8}
           >
             <MaterialIcons name="keyboard-arrow-up" size={28} color="#FFFFFF" />
           </TouchableOpacity>
         )}
+
+        {/* Consultation Modal */}
+        <ConsultationModal
+          visible={showConsultationModal}
+          onClose={() => setShowConsultationModal(false)}
+        />
       </View>
     );
   }
@@ -360,7 +453,12 @@ export default function ArticleDetailScreen() {
           title: article ? (article.meta_title || article.title) : 'Стаття',
         }} 
       />
-      <ScrollView style={styles.container}>
+      <ScrollView 
+        ref={scrollViewRef}
+        style={[styles.container, { backgroundColor: colors.background }]}
+        onScroll={handleScrollViewScroll}
+        scrollEventThrottle={16}
+      >
         {renderContent()}
       </ScrollView>
       
@@ -381,13 +479,19 @@ export default function ArticleDetailScreen() {
       {/* Scroll to Top Button */}
       {showScrollTop && Platform.OS === 'web' && (
         <TouchableOpacity
-          style={styles.scrollToTopButton}
+          style={[styles.scrollToTopButton, { backgroundColor: colors.primary }]}
           onPress={scrollToTop}
           activeOpacity={0.8}
         >
           <MaterialIcons name="keyboard-arrow-up" size={28} color="#FFFFFF" />
         </TouchableOpacity>
       )}
+
+      {/* Consultation Modal */}
+      <ConsultationModal
+        visible={showConsultationModal}
+        onClose={() => setShowConsultationModal(false)}
+      />
     </PageWrapper>
   );
 }
@@ -395,7 +499,6 @@ export default function ArticleDetailScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: Colors.background,
   },
   loadingContainer: {
     flex: 1,
@@ -405,7 +508,6 @@ const styles = StyleSheet.create({
   },
   loadingText: {
     ...Typography.body,
-    color: Colors.textSecondary,
     marginTop: Spacing.md,
   },
   errorContainer: {
@@ -417,17 +519,14 @@ const styles = StyleSheet.create({
   },
   errorTitle: {
     ...Typography.h2,
-    color: Colors.error,
     marginTop: Spacing.md,
     marginBottom: Spacing.sm,
   },
   errorText: {
     ...Typography.body,
-    color: Colors.textSecondary,
     textAlign: 'center',
   },
   articleContainer: {
-    backgroundColor: Colors.cardBackground,
     marginVertical: Spacing.md,
     marginHorizontal: Spacing.md,
     borderRadius: BorderRadius.lg,
@@ -445,14 +544,12 @@ const styles = StyleSheet.create({
   articleHeader: {
     padding: Spacing.lg,
     borderBottomWidth: 1,
-    borderBottomColor: Colors.borderColor,
   },
   titleRow: {
     marginBottom: Spacing.md,
   },
   articleTitle: {
     ...Typography.h1,
-    color: Colors.textPrimary,
     marginBottom: Spacing.md,
     lineHeight: 40,
   },
@@ -467,14 +564,11 @@ const styles = StyleSheet.create({
     gap: Spacing.xs,
     paddingVertical: Spacing.sm,
     paddingHorizontal: Spacing.md,
-    backgroundColor: Colors.primaryLight,
     borderRadius: BorderRadius.md,
     borderWidth: 1,
-    borderColor: Colors.primary,
   },
   editButtonText: {
     ...Typography.caption,
-    color: Colors.primary,
     fontWeight: '600',
   },
   deleteButton: {
@@ -483,14 +577,11 @@ const styles = StyleSheet.create({
     gap: Spacing.xs,
     paddingVertical: Spacing.sm,
     paddingHorizontal: Spacing.md,
-    backgroundColor: `${Colors.error}15`,
     borderRadius: BorderRadius.md,
     borderWidth: 1,
-    borderColor: Colors.error,
   },
   deleteButtonText: {
     ...Typography.caption,
-    color: Colors.error,
     fontWeight: '600',
   },
   scrollToTopButton: {
@@ -500,7 +591,6 @@ const styles = StyleSheet.create({
     width: 56,
     height: 56,
     borderRadius: 28,
-    backgroundColor: Colors.primary,
     justifyContent: 'center',
     alignItems: 'center',
     shadowColor: '#000',
@@ -521,7 +611,6 @@ const styles = StyleSheet.create({
   },
   authorName: {
     ...Typography.bodyBold,
-    color: Colors.primary,
   },
   metaRow: {
     flexDirection: 'row',
@@ -530,7 +619,6 @@ const styles = StyleSheet.create({
   },
   metaText: {
     ...Typography.caption,
-    color: Colors.textSecondary,
   },
   contentContainer: {
     padding: Spacing.lg,
@@ -541,12 +629,10 @@ const styles = StyleSheet.create({
   },
   divider: {
     height: 1,
-    backgroundColor: Colors.borderColor,
     marginBottom: Spacing.md,
   },
   footerText: {
     ...Typography.caption,
-    color: Colors.textMuted,
     textAlign: 'center',
   },
 });

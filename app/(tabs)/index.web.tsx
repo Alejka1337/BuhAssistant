@@ -7,9 +7,12 @@ import ConsultationModal from '../../components/ConsultationModal.web';
 import { API_ENDPOINTS, getHeaders } from '../../constants/api';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { fetchAllCalendarEvents, CalendarEvent } from '../../utils/calendarService';
-import { Colors, Typography, Spacing, BorderRadius, Shadows } from '../../constants/Theme';
+import { Typography, Spacing, BorderRadius, Shadows } from '../../constants/Theme';
+import { useTheme } from '../../contexts/ThemeContext';
 import { useResponsive } from '../../utils/responsive';
 import HoverCard from '../../components/web/HoverCard';
+import { useSEO } from '../../hooks/useSEO';
+import { PAGE_METAS } from '../../utils/seo';
 
 interface NewsItem {
   id: number;
@@ -32,12 +35,16 @@ interface Report {
 export default function CalendarScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
+  const { colors } = useTheme();
   const { isDesktop } = useResponsive();
   const [modalVisible, setModalVisible] = useState(false);
   const [news, setNews] = useState<NewsItem[]>([]);
   const [loadingNews, setLoadingNews] = useState(true);
   const [upcomingReports, setUpcomingReports] = useState<Report[]>([]);
   const [loadingReports, setLoadingReports] = useState(true);
+
+  // SEO мета-теги
+  useSEO(PAGE_METAS.home);
 
   useEffect(() => {
     fetchNews();
@@ -133,7 +140,7 @@ export default function CalendarScreen() {
 
   return (
     <ScrollView 
-      style={styles.container}
+      style={[styles.container, { backgroundColor: colors.background }]}
       contentContainerStyle={{ paddingBottom: insets.bottom + 16 }}
     >
       {/* Desktop Content Wrapper */}
@@ -149,23 +156,23 @@ export default function CalendarScreen() {
 
         {/* What you can do section */}
         <View style={styles.featuresSection}>
-        <Text style={styles.featuresTitle}>Що ви можете робити в eGlavBuh</Text>
+        <Text style={[styles.featuresTitle, { color: colors.textPrimary }]}>Що ви можете робити в eGlavBuh</Text>
         <View style={styles.featuresList}>
           <View style={styles.featureItem}>
-            <MaterialIcons name="check-circle" size={24} color={Colors.primary} style={styles.checkIcon} />
-            <Text style={styles.featureText}>подати звіти вчасно</Text>
+            <MaterialIcons name="check-circle" size={24} color={colors.primary} style={styles.checkIcon} />
+            <Text style={[styles.featureText, { color: colors.textPrimary }]}>подати звіти вчасно</Text>
           </View>
           <View style={styles.featureItem}>
-            <MaterialIcons name="check-circle" size={24} color={Colors.primary} style={styles.checkIcon} />
-            <Text style={styles.featureText}>читати актуальні новини</Text>
+            <MaterialIcons name="check-circle" size={24} color={colors.primary} style={styles.checkIcon} />
+            <Text style={[styles.featureText, { color: colors.textPrimary }]}>читати актуальні новини</Text>
           </View>
           <View style={styles.featureItem}>
-            <MaterialIcons name="check-circle" size={24} color={Colors.primary} style={styles.checkIcon} />
-            <Text style={styles.featureText}>користуватись калькуляторами</Text>
+            <MaterialIcons name="check-circle" size={24} color={colors.primary} style={styles.checkIcon} />
+            <Text style={[styles.featureText, { color: colors.textPrimary }]}>користуватись калькуляторами</Text>
           </View>
           <View style={styles.featureItem}>
-            <MaterialIcons name="check-circle" size={24} color={Colors.primary} style={styles.checkIcon} />
-            <Text style={styles.featureText}>знаходити відповіді на питання</Text>
+            <MaterialIcons name="check-circle" size={24} color={colors.primary} style={styles.checkIcon} />
+            <Text style={[styles.featureText, { color: colors.textPrimary }]}>знаходити відповіді на питання</Text>
           </View>
         </View>
       </View>
@@ -173,13 +180,13 @@ export default function CalendarScreen() {
       {/* Action Buttons */}
       <View style={[styles.buttonContainer, isDesktop && styles.buttonContainerDesktop]}>
         <TouchableOpacity 
-          style={[styles.consultationButton, isDesktop && styles.buttonDesktop]}
+          style={[styles.consultationButton, { backgroundColor: colors.primary }, isDesktop && styles.buttonDesktop]}
           onPress={() => setModalVisible(true)}
         >
           <Text style={styles.buttonText}>Консультація</Text>
         </TouchableOpacity>
         <TouchableOpacity 
-          style={[styles.searchButton, isDesktop && styles.buttonDesktop]}
+          style={[styles.searchButton, { backgroundColor: colors.error }, isDesktop && styles.buttonDesktop]}
           onPress={() => router.push('/(tabs)/search')}
         >
           <Text style={styles.buttonText}>Пошук</Text>
@@ -187,13 +194,13 @@ export default function CalendarScreen() {
       </View>
 
       <View style={styles.section}>
-        <View style={styles.reportsBlock}>
-          <Text style={styles.sectionTitle}>Найближчі звіти</Text>
+        <View style={[styles.reportsBlock, { backgroundColor: colors.cardBackground }]}>
+          <Text style={[styles.sectionTitle, { color: colors.textPrimary }]}>Найближчі звіти</Text>
 
           {loadingReports ? (
             <View style={styles.loadingContainer}>
-              <ActivityIndicator size="large" color="#282" />
-              <Text style={styles.loadingText}>Завантаження звітів...</Text>
+              <ActivityIndicator size="large" color={colors.primary} />
+              <Text style={[styles.loadingText, { color: colors.textMuted }]}>Завантаження звітів...</Text>
             </View>
           ) : upcomingReports.length > 0 ? (
             upcomingReports.map((report, index) => (
@@ -201,62 +208,62 @@ export default function CalendarScreen() {
                 key={index}
                 style={[
                   styles.reportItem,
-                  index < upcomingReports.length - 1 && styles.reportItemBorder
+                  index < upcomingReports.length - 1 && { ...styles.reportItemBorder, borderBottomColor: colors.background }
                 ]}
               >
-                <Text style={styles.title}>{report.title}</Text>
+                <Text style={[styles.title, { color: colors.textPrimary }]}>{report.title}</Text>
                 <View style={styles.cardFooter}>
                   <Text style={styles.date}>До {formatDate(report.date)}</Text>
-                  <Text style={styles.reportType}>{report.type}</Text>
+                  <Text style={[styles.reportType, { color: colors.primary, backgroundColor: colors.background }]}>{report.type}</Text>
                 </View>
               </View>
             ))
           ) : (
             <View style={styles.emptyContainer}>
-              <Text style={styles.emptyText}>Немає найближчих звітів</Text>
+              <Text style={[styles.emptyText, { color: colors.textMuted }]}>Немає найближчих звітів</Text>
             </View>
           )}
         </View>
       </View>
 
       <View style={styles.section}>
-        <Text style={styles.sectionTitle}>Актуальні новини</Text>
+        <Text style={[styles.sectionTitle, { color: colors.textPrimary }]}>Актуальні новини</Text>
 
         {loadingNews ? (
           <View style={styles.loadingContainer}>
-            <ActivityIndicator size="large" color="#00bfa5" />
-            <Text style={styles.loadingText}>Завантаження новин...</Text>
+            <ActivityIndicator size="large" color={colors.primary} />
+            <Text style={[styles.loadingText, { color: colors.textMuted }]}>Завантаження новин...</Text>
           </View>
         ) : news.length > 0 ? (
           <View style={isDesktop ? styles.newsGridDesktop : undefined}>
             {news.map((item) => (
               <HoverCard
                 key={item.id} 
-                style={[styles.newsCard, ...(isDesktop ? [styles.newsCardDesktop] : [])]}
+                style={[styles.newsCard, { backgroundColor: colors.cardBackground }, ...(isDesktop ? [styles.newsCardDesktop] : [])]}
                 hoverStyle={styles.newsCardHover}
                 onPress={() => handleNewsPress(item)}
               >
                 <View style={styles.newsHeader}>
-                  <Text style={styles.newsSource}>{item.source}</Text>
+                  <Text style={[styles.newsSource, { color: colors.primary }]}>{item.source}</Text>
                   {item.categories && item.categories.length > 0 && (
-                    <View style={styles.categoryBadge}>
-                      <Text style={styles.categoryText}>{item.categories[0]}</Text>
+                    <View style={[styles.categoryBadge, { backgroundColor: colors.background }]}>
+                      <Text style={[styles.categoryText, { color: colors.textPrimary }]}>{item.categories[0]}</Text>
                     </View>
                   )}
                 </View>
-                <Text style={styles.newsTitle}>{truncateTitle(item.title, 60)}</Text>
+                <Text style={[styles.newsTitle, { color: colors.textPrimary }]}>{truncateTitle(item.title, 60)}</Text>
               </HoverCard>
             ))}
           </View>
         ) : (
           <View style={styles.emptyContainer}>
-            <Text style={styles.emptyText}>Новин поки немає</Text>
+            <Text style={[styles.emptyText, { color: colors.textMuted }]}>Новин поки немає</Text>
           </View>
         )}
 
         {!loadingNews && news.length > 0 && (
           <TouchableOpacity 
-            style={styles.allNewsButton}
+            style={[styles.allNewsButton, { backgroundColor: colors.primary }]}
             onPress={() => router.push('/news')}
           >
             <Text style={styles.allNewsButtonText}>Дивитись всі новини</Text>
@@ -277,8 +284,7 @@ export default function CalendarScreen() {
 
 const styles = StyleSheet.create({
   container: { 
-    flex: 1, 
-    backgroundColor: Colors.background 
+    flex: 1,
   },
   desktopContentWrapper: {
     maxWidth: 1200,
@@ -304,7 +310,6 @@ const styles = StyleSheet.create({
   },
   featuresTitle: {
     ...Typography.h3,
-    color: Colors.textPrimary,
     marginBottom: Spacing.md,
     textAlign: 'left',
   },
@@ -321,7 +326,6 @@ const styles = StyleSheet.create({
   },
   featureText: {
     ...Typography.body,
-    color: Colors.white,
     flex: 1,
     fontSize: 16,
     lineHeight: 24,
@@ -341,7 +345,6 @@ const styles = StyleSheet.create({
     alignSelf: 'auto',
   },
   consultationButton: {
-    backgroundColor: Colors.primary,
     paddingVertical: 14,
     borderRadius: BorderRadius.lg,
     alignItems: 'center',
@@ -349,7 +352,6 @@ const styles = StyleSheet.create({
     alignSelf: 'center',
   },
   searchButton: {
-    backgroundColor: Colors.error,
     paddingVertical: 14,
     borderRadius: BorderRadius.lg,
     alignItems: 'center',
@@ -358,7 +360,7 @@ const styles = StyleSheet.create({
   },
   buttonText: {
     ...Typography.body,
-    color: Colors.white,
+    color: '#ffffff',
     fontWeight: '700',
     fontSize: 17,
   },
@@ -368,10 +370,8 @@ const styles = StyleSheet.create({
   sectionTitle: { 
     ...Typography.h4,
     marginBottom: Spacing.md,
-    color: Colors.textPrimary,
   },
   reportsBlock: {
-    backgroundColor: Colors.cardBackground,
     borderRadius: BorderRadius.lg,
     padding: Spacing.md,
     paddingTop: Spacing.md,
@@ -381,10 +381,8 @@ const styles = StyleSheet.create({
   },
   reportItemBorder: {
     borderBottomWidth: 1,
-    borderBottomColor: Colors.background,
   },
   card: {
-    backgroundColor: Colors.cardBackground,
     borderRadius: BorderRadius.md,
     padding: Spacing.md,
     marginBottom: Spacing.sm,
@@ -392,7 +390,6 @@ const styles = StyleSheet.create({
   title: { 
     ...Typography.body,
     fontWeight: '500',
-    color: Colors.textPrimary,
     marginBottom: Spacing.sm,
   },
   cardFooter: {
@@ -406,15 +403,12 @@ const styles = StyleSheet.create({
   },
   reportType: {
     ...Typography.caption,
-    color: Colors.primary,
     fontWeight: '600',
-    backgroundColor: Colors.background,
     paddingHorizontal: Spacing.sm,
     paddingVertical: 4,
     borderRadius: BorderRadius.sm,
   },
   newsCard: {
-    backgroundColor: Colors.cardBackground,
     borderRadius: BorderRadius.md,
     padding: Spacing.md,
     marginBottom: Spacing.sm,
@@ -435,24 +429,20 @@ const styles = StyleSheet.create({
   },
   newsSource: {
     ...Typography.caption,
-    color: Colors.primary,
     fontWeight: '600',
   },
   categoryBadge: {
-    backgroundColor: Colors.background,
     paddingHorizontal: Spacing.sm,
     paddingVertical: 4,
     borderRadius: BorderRadius.lg,
   },
   categoryText: {
     ...Typography.caption,
-    color: Colors.textPrimary,
     fontWeight: '500',
     fontSize: 11,
   },
   newsTitle: {
     ...Typography.body,
-    color: Colors.textPrimary,
     lineHeight: 22,
     fontSize: 15,
   },
@@ -463,7 +453,6 @@ const styles = StyleSheet.create({
   },
   loadingText: {
     ...Typography.caption,
-    color: Colors.textMuted,
     marginTop: Spacing.sm,
   },
   emptyContainer: {
@@ -473,10 +462,8 @@ const styles = StyleSheet.create({
   },
   emptyText: {
     ...Typography.caption,
-    color: Colors.textMuted,
   },
   allNewsButton: {
-    backgroundColor: Colors.primary,
     paddingVertical: Spacing.md,
     paddingHorizontal: Spacing.lg,
     borderRadius: BorderRadius.md,
@@ -485,7 +472,7 @@ const styles = StyleSheet.create({
   },
   allNewsButtonText: {
     ...Typography.body,
-    color: Colors.white,
+    color: '#ffffff',
     fontWeight: '600',
   },
   // Web Desktop стили

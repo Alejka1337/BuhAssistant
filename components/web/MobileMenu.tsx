@@ -2,7 +2,8 @@ import React, { useState, ReactNode, useRef, useEffect } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, Modal, Animated } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
 import { useRouter, usePathname } from 'expo-router';
-import { Colors, Typography, Spacing, BorderRadius } from '../../constants/Theme';
+import { Typography, Spacing, BorderRadius, } from '../../constants/Theme';
+import { useTheme } from '@/contexts/ThemeContext';
 import ConsultationModal from './../../components/ConsultationModal.web';
 
 // Компонент-обертка для контента с отступом под header
@@ -54,6 +55,7 @@ interface MobileMenuProps {
 }
 
 export default function MobileMenu({ title }: MobileMenuProps) {
+  const { theme, colors, toggleTheme } = useTheme();
   const [isOpen, setIsOpen] = useState(false);
   const [modalVisible, setModalVisible] = useState(false);
   const [slideAnim] = useState(new Animated.Value(-1000)); // Начальная позиция за экраном (для full width)
@@ -120,15 +122,15 @@ export default function MobileMenu({ title }: MobileMenuProps) {
   return (
     <>
       {/* Fixed Header with Title and Burger Button */}
-      <View style={styles.fixedHeader}>
-        <Text style={styles.pageTitle}>{pageTitle}</Text>
+      <View style={[styles.fixedHeader, { backgroundColor: colors.cardBackground, borderBottomColor: colors.primary }]}>
+        <Text style={[styles.pageTitle, { color: colors.textPrimary }]}>{pageTitle}</Text>
         <TouchableOpacity 
           style={styles.burgerButton} 
           onPress={openMenu}
         >
-          <View style={styles.burgerLine} />
-          <View style={styles.burgerLine} />
-          <View style={styles.burgerLine} />
+          <View style={[styles.burgerLine, { backgroundColor: colors.primary }]} />
+          <View style={[styles.burgerLine, { backgroundColor: colors.primary }]} />
+          <View style={[styles.burgerLine, { backgroundColor: colors.primary }]} />
         </TouchableOpacity>
       </View>
 
@@ -149,16 +151,32 @@ export default function MobileMenu({ title }: MobileMenuProps) {
               styles.menuContainer,
               {
                 transform: [{ translateX: slideAnim }],
+                backgroundColor: colors.cardBackground,
               },
             ]}
             onStartShouldSetResponder={() => true}
           >
             {/* Header */}
-            <View style={styles.menuHeader}>
-              <Text style={styles.logoText}>eGlavBuh</Text>
-              <TouchableOpacity onPress={closeMenu}>
-                <MaterialIcons name="close" size={28} color={Colors.textPrimary} />
-              </TouchableOpacity>
+            <View style={[styles.menuHeader, { borderBottomColor: colors.borderColor }]}>
+              <Text style={[styles.logoText, { color: colors.primary }]}>eGlavBuh</Text>
+              <View style={styles.headerActions}>
+                {/* Кнопка переключения темы - только иконка */}
+                <TouchableOpacity
+                  style={[styles.themeToggleIcon, { backgroundColor: colors.background }]}
+                  onPress={() => {
+                    toggleTheme();
+                  }}
+                >
+                  <MaterialIcons 
+                    name={theme === 'dark' ? 'light-mode' : 'dark-mode'} 
+                    size={24} 
+                    color={colors.primary} 
+                  />
+                </TouchableOpacity>
+                <TouchableOpacity style={styles.closeButton} onPress={closeMenu}>
+                  <MaterialIcons name="close" size={28} color={colors.textPrimary} />
+                </TouchableOpacity>
+              </View>
             </View>
 
             {/* Navigation Items */}
@@ -168,15 +186,22 @@ export default function MobileMenu({ title }: MobileMenuProps) {
                 return (
                   <TouchableOpacity
                     key={item.name}
-                    style={[styles.navItem, isActive && styles.navItemActive]}
+                    style={[
+                      styles.navItem, 
+                      isActive && { ...styles.navItemActive, backgroundColor: `${colors.primary}15` }
+                    ]}
                     onPress={() => handleNavigate(item.path)}
                   >
                     <MaterialIcons 
                       name={item.icon as any} 
                       size={24} 
-                      color={isActive ? Colors.primary : Colors.textMuted} 
+                      color={isActive ? colors.primary : colors.textMuted} 
                     />
-                    <Text style={[styles.navLabel, isActive && styles.navLabelActive]}>
+                    <Text style={[
+                      styles.navLabel, 
+                      { color: colors.textPrimary },
+                      isActive && { ...styles.navLabelActive, color: colors.primary }
+                    ]}>
                       {item.label}
                     </Text>
                   </TouchableOpacity>
@@ -188,10 +213,10 @@ export default function MobileMenu({ title }: MobileMenuProps) {
             <View style={styles.consultationContainer}>
               <Animated.View style={{ transform: [{ scale: pulseAnim }] }}>
                 <TouchableOpacity
-                  style={styles.consultationButton}
+                  style={[styles.consultationButton, { backgroundColor: colors.primary }]}
                   onPress={handleConsultationPress}
                 >
-                  <MaterialIcons name="headset-mic" size={24} color={Colors.white} />
+                  <MaterialIcons name="headset-mic" size={24} color="#FFFFFF" />
                   <Text style={styles.consultationButtonText}>Консультація</Text>
                 </TouchableOpacity>
               </Animated.View>
@@ -216,9 +241,7 @@ const styles = StyleSheet.create({
     left: 0,
     right: 0,
     height: 60,
-    backgroundColor: Colors.cardBackground,
     borderBottomWidth: 2,
-    borderBottomColor: Colors.primary,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
@@ -227,7 +250,6 @@ const styles = StyleSheet.create({
   },
   pageTitle: {
     ...Typography.h3,
-    color: Colors.textPrimary,
     flex: 1,
   },
   burgerButton: {
@@ -235,23 +257,20 @@ const styles = StyleSheet.create({
     height: 44,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: Colors.background,
     borderRadius: BorderRadius.md,
     gap: 6,
   },
   burgerLine: {
     width: 24,
     height: 3,
-    backgroundColor: Colors.primary,
     borderRadius: 2,
   },
   overlay: {
     flex: 1,
-    backgroundColor: Colors.overlay,
+    backgroundColor: 'rgba(0, 0, 0, 0.7)',
     justifyContent: 'flex-start',
   },
   menuContainer: {
-    backgroundColor: Colors.background,
     width: '100%',
     height: '100%',
     paddingTop: 16,
@@ -268,12 +287,28 @@ const styles = StyleSheet.create({
     paddingHorizontal: Spacing.lg,
     paddingBottom: Spacing.lg,
     borderBottomWidth: 2,
-    borderBottomColor: Colors.primary,
     marginBottom: Spacing.md,
   },
   logoText: {
     ...Typography.h2,
-    color: Colors.primary,
+  },
+  headerActions: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: Spacing.sm,
+  },
+  themeToggleIcon: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  closeButton: {
+    width: 44,
+    height: 44,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   navigation: {
     gap: Spacing.xs,
@@ -288,33 +323,30 @@ const styles = StyleSheet.create({
     gap: Spacing.md,
   },
   navItemActive: {
-    backgroundColor: Colors.cardBackground,
+    // Dynamic styles applied inline
   },
   navLabel: {
     ...Typography.body,
-    color: Colors.textMuted,
   },
   navLabelActive: {
-    color: Colors.primary,
     fontWeight: '600',
   },
   consultationContainer: {
     paddingHorizontal: Spacing.md,
     paddingBottom: Spacing.lg,
     borderTopWidth: 1,
-    borderTopColor: Colors.borderColor,
+    borderTopColor: '#34495e',
     paddingTop: Spacing.lg,
   },
   consultationButton: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: Colors.primary,
     paddingVertical: Spacing.md,
     paddingHorizontal: Spacing.lg,
     borderRadius: BorderRadius.lg,
     gap: Spacing.sm,
-    shadowColor: Colors.primary,
+    shadowColor: '#282',
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.3,
     shadowRadius: 8,
@@ -322,7 +354,7 @@ const styles = StyleSheet.create({
   },
   consultationButtonText: {
     ...Typography.body,
-    color: Colors.white,
+    color: '#ffffff',
     fontWeight: '700',
   },
   contentWrapper: {

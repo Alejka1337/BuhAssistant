@@ -3,6 +3,8 @@ import { View, Text, ScrollView, TouchableOpacity, StyleSheet, Dimensions, Platf
 import { MaterialIcons } from '@expo/vector-icons';
 import { Stack } from 'expo-router';
 import { Colors, Fonts, Spacing, BorderRadius } from '../constants/Theme';
+import { useSEO } from '../hooks/useSEO';
+import { PAGE_METAS } from '../utils/seo';
 
 // Тип для секций политики
 interface PolicySection {
@@ -42,6 +44,8 @@ const policySections: PolicySection[] = [
 ];
 
 export default function PrivacyPolicy() {
+  useSEO(PAGE_METAS.privacyPolicy);
+  
   const [isMobile, setIsMobile] = useState(false);
   const [activeSection, setActiveSection] = useState('intro');
 
@@ -107,11 +111,11 @@ export default function PrivacyPolicy() {
 
     return (
       <View style={styles.sidebar}>
-        <ScrollView style={styles.sidebarScroll} showsVerticalScrollIndicator={false}>
-          {policySections.map(section => renderSidebarItem(section))}
-        </ScrollView>
-      </View>
-    );
+      <ScrollView style={styles.sidebarScroll} showsVerticalScrollIndicator={false}>
+        {policySections.map(section => renderSidebarItem(section))}
+      </ScrollView>
+    </View>
+  );
   };
 
   const renderContent = () => (

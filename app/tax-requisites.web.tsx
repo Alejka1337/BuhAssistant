@@ -14,12 +14,17 @@ import {
 import { MaterialIcons } from '@expo/vector-icons';
 import * as Clipboard from 'expo-clipboard';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { Colors, Typography, Spacing, BorderRadius } from '@/constants/Theme';
+import { Typography, Spacing, BorderRadius } from '@/constants/Theme';
+import { useTheme } from '@/contexts/ThemeContext';
 import { useResponsive } from '@/utils/responsive';
+import { useSEO } from '@/hooks/useSEO';
+import { PAGE_METAS } from '@/utils/seo';
 
 export default function TaxRequisitesWebScreen() {
+  useSEO(PAGE_METAS.taxRequisites);
   const insets = useSafeAreaInsets();
   const { isDesktop, isMobile } = useResponsive();
+  const { colors } = useTheme();
   const [regionsWithDistricts, setRegionsWithDistricts] = useState<Record<string, string[]>>({});
   const [selectedRegion, setSelectedRegion] = useState<string>('');
   const [selectedDistrict, setSelectedDistrict] = useState<string>('');
@@ -28,7 +33,7 @@ export default function TaxRequisitesWebScreen() {
   const [loading, setLoading] = useState(false);
   const [total, setTotal] = useState(0);
   const [currentPage, setCurrentPage] = useState(1);
-  const [copiedIban, setCopiedIban] = useState<string | null>(null);
+  const [copiedField, setCopiedField] = useState<string | null>(null);
   
   const ITEMS_PER_PAGE = 10;
 
@@ -94,33 +99,91 @@ export default function TaxRequisitesWebScreen() {
     }
   };
 
-  const copyIban = async (iban: string) => {
+  const copyToClipboard = async (text: string, fieldId: string) => {
     try {
-      await Clipboard.setStringAsync(iban);
-      setCopiedIban(iban);
-      setTimeout(() => setCopiedIban(null), 2000);
+      await Clipboard.setStringAsync(text);
+      setCopiedField(fieldId);
+      setTimeout(() => setCopiedField(null), 2000);
     } catch (error) {
-      console.error('Error copying IBAN:', error);
+      console.error('Error copying to clipboard:', error);
     }
   };
+
+  // Dynamic table styles based on theme
+  const getTableStyles = () => ({
+    table: {
+      width: '100%',
+      borderCollapse: 'collapse' as const,
+    },
+    headerRow: {
+      backgroundColor: colors.background,
+      borderBottom: `2px solid ${colors.primary}`,
+    },
+    headerCell: {
+      padding: '16px',
+      textAlign: 'left' as const,
+      fontSize: '14px',
+      fontWeight: '600' as const,
+      color: colors.textPrimary,
+    },
+    row: {
+      borderBottom: `1px solid ${colors.borderColor}`,
+      transition: 'background-color 0.2s',
+    },
+    cell: {
+      padding: '16px',
+      verticalAlign: 'top' as const,
+    },
+    typeText: {
+      fontSize: 14,
+      color: colors.primary,
+      fontWeight: '600' as const,
+    },
+    recipientText: {
+      fontSize: 14,
+      color: colors.textPrimary,
+      marginBottom: 4,
+    },
+    districtText: {
+      fontSize: 12,
+      color: colors.textMuted,
+    },
+    codeText: {
+      fontSize: 14,
+      color: colors.textPrimary,
+      fontFamily: 'monospace',
+    },
+    bankText: {
+      fontSize: 14,
+      color: colors.textSecondary,
+    },
+    ibanText: {
+      fontSize: 14,
+      color: colors.textPrimary,
+      fontFamily: 'monospace',
+      fontWeight: '500' as const,
+    },
+  });
+
+  const dynamicTableStyles = getTableStyles();
 
   const renderContent = () => (
     <View style={[styles.content, isDesktop && styles.desktopContent]}>
       {/* Заголовок только для десктопа */}
       {isDesktop && (
         <>
-          <Text style={styles.pageTitle}>Реквізити для сплати податків</Text>
-          <Text style={styles.subtitle}>
+          <Text style={[styles.pageTitle, { color: colors.textPrimary }]}>Реквізити для сплати податків</Text>
+          <Text style={[styles.subtitle, { color: colors.textSecondary }]}>
             Знайдіть реквізити для сплати податків та зборів по вашому регіону
           </Text>
         </>
       )}
 
       {/* Фільтри */}
-      <View style={styles.filters}>
+      <View style={[styles.filters, { backgroundColor: colors.cardBackground }]}>
         <View style={styles.filterRow}>
           <View style={styles.filterItem}>
-            <Text style={styles.filterLabel}>Область *</Text>
+            <Text style={[styles.filterLabel, { color: colors.textPrimary }]}>Область *</Text>
             <Select
               value={selectedRegion}
               items={regionItems}
@@ -130,7 +193,7 @@ export default function TaxRequisitesWebScreen() {
           </View>
 
           <View style={styles.filterItem}>
-            <Text style={styles.filterLabel}>Територіальна Громада *</Text>
+            <Text style={[styles.filterLabel, { color: colors.textPrimary }]}>Територіальна Громада *</Text>
             <Select
               value={selectedDistrict}
               items={districtItems}
@@ -140,7 +203,7 @@ export default function TaxRequisitesWebScreen() {
           </View>
 
           <View style={styles.filterItem}>
-            <Text style={styles.filterLabel}>Тип податку/збору</Text>
+            <Text style={[styles.filterLabel, { color: colors.textPrimary }]}>Тип податку/збору</Text>
             <Select
               value={selectedType}
               items={typeItems}
@@ -150,12 +213,12 @@ export default function TaxRequisitesWebScreen() {
           </View>
 
           <TouchableOpacity 
-            style={styles.searchButton}
+            style={[styles.searchButton, { backgroundColor: colors.primary }]}
             onPress={handleSearch}
             disabled={loading || !selectedRegion || !selectedDistrict}
           >
             <MaterialIcons name="search" size={20} color="#fff" />
-            <Text style={styles.searchButtonText}>Знайти</Text>
+            <Text style={[styles.searchButtonText, { color: colors.white }]}>Знайти</Text>
           </TouchableOpacity>
         </View>
       </View>
@@ -163,67 +226,123 @@ export default function TaxRequisitesWebScreen() {
       {/* Результати */}
       {loading ? (
         <View style={styles.loadingContainer}>
-          <ActivityIndicator size="large" color={Colors.primary} />
-          <Text style={styles.loadingText}>Завантаження...</Text>
+          <ActivityIndicator size="large" color={colors.primary} />
+          <Text style={[styles.loadingText, { color: colors.textMuted }]}>Завантаження...</Text>
         </View>
       ) : requisites.length > 0 ? (
         <>
           <View style={styles.resultsHeader}>
-            <Text style={styles.resultsCount}>
+            <Text style={[styles.resultsCount, { color: colors.textSecondary }]}>
               Знайдено: {total} {total === 1 ? 'реквізит' : total < 5 ? 'реквізити' : 'реквізитів'}
             </Text>
           </View>
 
-          <View style={styles.tableContainer}>
-            <table style={tableStyles.table}>
+          <View style={[styles.tableContainer, { backgroundColor: colors.cardBackground }]}>
+            <table style={dynamicTableStyles.table}>
               <thead>
-                <tr style={tableStyles.headerRow}>
-                  <th style={tableStyles.headerCell}>Тип</th>
-                  <th style={tableStyles.headerCell}>Отримувач</th>
-                  <th style={tableStyles.headerCell}>Код ЄДРПОУ</th>
-                  <th style={tableStyles.headerCell}>Банк</th>
-                  <th style={tableStyles.headerCell}>IBAN</th>
+                <tr style={dynamicTableStyles.headerRow}>
+                  <th style={dynamicTableStyles.headerCell}>Тип</th>
+                  <th style={dynamicTableStyles.headerCell}>Отримувач</th>
+                  <th style={dynamicTableStyles.headerCell}>Код ЄДРПОУ</th>
+                  <th style={dynamicTableStyles.headerCell}>Банк</th>
+                  <th style={dynamicTableStyles.headerCell}>IBAN</th>
                 </tr>
               </thead>
               <tbody>
-                {requisites.map((req) => (
-                  <tr key={req.id} style={tableStyles.row}>
-                    <td style={tableStyles.cell}>
-                      <Text style={tableStyles.typeText}>
-                        {getTaxTypeName(req.type)}
-                      </Text>
-                    </td>
-                    <td style={tableStyles.cell}>
-                      <Text style={tableStyles.recipientText}>
-                        {req.recipient_name}
-                      </Text>
-                    </td>
-                    <td style={tableStyles.cell}>
-                      <Text style={tableStyles.codeText}>{req.recipient_code}</Text>
-                    </td>
-                    <td style={tableStyles.cell}>
-                      <Text style={tableStyles.bankText}>{req.bank_name}</Text>
-                    </td>
-                    <td style={tableStyles.cell}>
-                      <View style={styles.ibanContainer}>
-                        <Text style={tableStyles.ibanText}>{req.iban}</Text>
-                        <TouchableOpacity
-                          style={[
-                            styles.copyButton,
-                            copiedIban === req.iban && styles.copyButtonSuccess
-                          ]}
-                          onPress={() => copyIban(req.iban)}
-                        >
-                          <MaterialIcons 
-                            name={copiedIban === req.iban ? "check" : "content-copy"} 
-                            size={16} 
-                            color={copiedIban === req.iban ? "#228822" : "#666"} 
-                          />
-                        </TouchableOpacity>
-                      </View>
-                    </td>
-                  </tr>
-                ))}
+                {requisites.map((req) => {
+                  const recipientId = `recipient-${req.id}`;
+                  const codeId = `code-${req.id}`;
+                  const bankId = `bank-${req.id}`;
+                  const ibanId = `iban-${req.id}`;
+                  
+                  return (
+                    <tr key={req.id} style={dynamicTableStyles.row}>
+                      <td style={dynamicTableStyles.cell}>
+                        <Text style={dynamicTableStyles.typeText}>
+                          {getTaxTypeName(req.type)}
+                        </Text>
+                      </td>
+                      <td style={dynamicTableStyles.cell}>
+                        <View style={styles.fieldWithCopy}>
+                          <Text style={dynamicTableStyles.recipientText}>
+                            {req.recipient_name}
+                          </Text>
+                          <TouchableOpacity
+                            style={[
+                              styles.copyButton,
+                              { backgroundColor: colors.background },
+                              copiedField === recipientId && styles.copyButtonSuccess
+                            ]}
+                            onPress={() => copyToClipboard(req.recipient_name, recipientId)}
+                          >
+                            <MaterialIcons 
+                              name={copiedField === recipientId ? "check" : "content-copy"} 
+                              size={16} 
+                              color={copiedField === recipientId ? colors.primary : colors.textMuted} 
+                            />
+                          </TouchableOpacity>
+                        </View>
+                      </td>
+                      <td style={dynamicTableStyles.cell}>
+                        <View style={styles.fieldWithCopy}>
+                          <Text style={dynamicTableStyles.codeText}>{req.recipient_code}</Text>
+                          <TouchableOpacity
+                            style={[
+                              styles.copyButton,
+                              { backgroundColor: colors.background },
+                              copiedField === codeId && styles.copyButtonSuccess
+                            ]}
+                            onPress={() => copyToClipboard(req.recipient_code, codeId)}
+                          >
+                            <MaterialIcons 
+                              name={copiedField === codeId ? "check" : "content-copy"} 
+                              size={16} 
+                              color={copiedField === codeId ? colors.primary : colors.textMuted} 
+                            />
+                          </TouchableOpacity>
+                        </View>
+                      </td>
+                      <td style={dynamicTableStyles.cell}>
+                        <View style={styles.fieldWithCopy}>
+                          <Text style={dynamicTableStyles.bankText}>{req.bank_name}</Text>
+                          <TouchableOpacity
+                            style={[
+                              styles.copyButton,
+                              { backgroundColor: colors.background },
+                              copiedField === bankId && styles.copyButtonSuccess
+                            ]}
+                            onPress={() => copyToClipboard(req.bank_name, bankId)}
+                          >
+                            <MaterialIcons 
+                              name={copiedField === bankId ? "check" : "content-copy"} 
+                              size={16} 
+                              color={copiedField === bankId ? colors.primary : colors.textMuted} 
+                            />
+                          </TouchableOpacity>
+                        </View>
+                      </td>
+                      <td style={dynamicTableStyles.cell}>
+                        <View style={styles.fieldWithCopy}>
+                          <Text style={dynamicTableStyles.ibanText}>{req.iban}</Text>
+                          <TouchableOpacity
+                            style={[
+                              styles.copyButton,
+                              { backgroundColor: colors.background },
+                              copiedField === ibanId && styles.copyButtonSuccess
+                            ]}
+                            onPress={() => copyToClipboard(req.iban, ibanId)}
+                          >
+                            <MaterialIcons 
+                              name={copiedField === ibanId ? "check" : "content-copy"} 
+                              size={16} 
+                              color={copiedField === ibanId ? colors.primary : colors.textMuted} 
+                            />
+                          </TouchableOpacity>
+                        </View>
+                      </td>
+                    </tr>
+                  );
+                })}
               </tbody>
             </table>
           </View>
@@ -232,38 +351,38 @@ export default function TaxRequisitesWebScreen() {
           {totalPages > 1 && (
             <View style={styles.pagination}>
               <TouchableOpacity
-                style={[styles.paginationButton, currentPage === 1 && styles.paginationButtonDisabled]}
+                style={[styles.paginationButton, { backgroundColor: colors.cardBackground, borderColor: colors.primary }, currentPage === 1 && styles.paginationButtonDisabled]}
                 onPress={() => loadPage(currentPage - 1)}
                 disabled={currentPage === 1}
               >
-                <MaterialIcons name="chevron-left" size={24} color={currentPage === 1 ? Colors.textMuted : Colors.primary} />
+                <MaterialIcons name="chevron-left" size={24} color={currentPage === 1 ? colors.textMuted : colors.primary} />
               </TouchableOpacity>
 
-              <Text style={styles.paginationText}>
+              <Text style={[styles.paginationText, { color: colors.textPrimary }]}>
                 Сторінка {currentPage} з {totalPages}
               </Text>
 
               <TouchableOpacity
-                style={[styles.paginationButton, currentPage === totalPages && styles.paginationButtonDisabled]}
+                style={[styles.paginationButton, { backgroundColor: colors.cardBackground, borderColor: colors.primary }, currentPage === totalPages && styles.paginationButtonDisabled]}
                 onPress={() => loadPage(currentPage + 1)}
                 disabled={currentPage === totalPages}
               >
-                <MaterialIcons name="chevron-right" size={24} color={currentPage === totalPages ? Colors.textMuted : Colors.primary} />
+                <MaterialIcons name="chevron-right" size={24} color={currentPage === totalPages ? colors.textMuted : colors.primary} />
               </TouchableOpacity>
             </View>
           )}
         </>
       ) : selectedRegion && selectedDistrict ? (
         <View style={styles.emptyState}>
-          <MaterialIcons name="search-off" size={64} color={Colors.textMuted} />
-          <Text style={styles.emptyStateText}>
+          <MaterialIcons name="search-off" size={64} color={colors.textMuted} />
+          <Text style={[styles.emptyStateText, { color: colors.textMuted }]}>
             Не знайдено реквізитів для обраної територіальної громади та типу
           </Text>
         </View>
       ) : (
         <View style={styles.emptyState}>
-          <MaterialIcons name="location-on" size={64} color={Colors.primary} />
-          <Text style={styles.emptyStateText}>
+          <MaterialIcons name="location-on" size={64} color={colors.primary} />
+          <Text style={[styles.emptyStateText, { color: colors.textMuted }]}>
             Оберіть область та територіальну громаду для пошуку реквізитів
           </Text>
         </View>
@@ -294,7 +413,7 @@ export default function TaxRequisitesWebScreen() {
         <Stack.Screen options={{ headerShown: false }} />
         <MobileMenu title="Реквізити для сплати податків" />
         <MobileMenuWrapper>
-          <View style={styles.container}>
+          <View style={[styles.container, { backgroundColor: colors.background }]}>
             <ScrollView contentContainerStyle={{ paddingBottom: insets.bottom + 32 }}>
               {renderContent()}
             </ScrollView>
@@ -314,7 +433,7 @@ export default function TaxRequisitesWebScreen() {
         }} 
       />
       
-      <View style={styles.container}>
+      <View style={[styles.container, { backgroundColor: colors.background }]}>
         <ScrollView contentContainerStyle={{ paddingBottom: insets.bottom + 32 }}>
           {renderContent()}
         </ScrollView>
@@ -326,7 +445,6 @@ export default function TaxRequisitesWebScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: Colors.background,
   },
   content: {
     padding: Spacing.md,
@@ -339,17 +457,14 @@ const styles = StyleSheet.create({
   },
   pageTitle: {
     ...Typography.h2,
-    color: Colors.textPrimary,
     marginBottom: Spacing.sm,
     marginTop: Spacing.md,
   },
   subtitle: {
     ...Typography.body,
-    color: Colors.textSecondary,
     marginBottom: Spacing.lg,
   },
   filters: {
-    backgroundColor: Colors.cardBackground,
     borderRadius: BorderRadius.md,
     padding: Spacing.lg,
     marginBottom: Spacing.lg,
@@ -367,11 +482,9 @@ const styles = StyleSheet.create({
   filterLabel: {
     ...Typography.caption,
     fontWeight: '600',
-    color: Colors.textPrimary,
     marginBottom: Spacing.xs,
   },
   searchButton: {
-    backgroundColor: Colors.primary,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
@@ -383,7 +496,6 @@ const styles = StyleSheet.create({
   },
   searchButtonText: {
     ...Typography.body,
-    color: Colors.white,
     fontWeight: '600',
   },
   loadingContainer: {
@@ -393,7 +505,6 @@ const styles = StyleSheet.create({
   },
   loadingText: {
     ...Typography.body,
-    color: Colors.textMuted,
     marginTop: Spacing.sm,
   },
   resultsHeader: {
@@ -401,11 +512,9 @@ const styles = StyleSheet.create({
   },
   resultsCount: {
     ...Typography.body,
-    color: Colors.textSecondary,
     fontWeight: '500',
   },
   tableContainer: {
-    backgroundColor: Colors.cardBackground,
     borderRadius: BorderRadius.md,
     overflow: 'hidden',
     marginBottom: Spacing.md,
@@ -415,10 +524,14 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: Spacing.xs,
   },
+  fieldWithCopy: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: Spacing.xs,
+  },
   copyButton: {
     padding: 6,
     borderRadius: BorderRadius.sm,
-    backgroundColor: Colors.background,
   },
   copyButtonSuccess: {
     backgroundColor: '#2d5a2d',
@@ -434,19 +547,15 @@ const styles = StyleSheet.create({
     width: 40,
     height: 40,
     borderRadius: 20,
-    backgroundColor: Colors.cardBackground,
     alignItems: 'center',
     justifyContent: 'center',
     borderWidth: 2,
-    borderColor: Colors.primary,
   },
   paginationButtonDisabled: {
-    borderColor: Colors.textMuted,
     opacity: 0.5,
   },
   paginationText: {
     ...Typography.body,
-    color: Colors.textPrimary,
     fontWeight: '600',
   },
   emptyState: {
@@ -456,64 +565,8 @@ const styles = StyleSheet.create({
   },
   emptyStateText: {
     ...Typography.body,
-    color: Colors.textMuted,
     marginTop: Spacing.md,
     textAlign: 'center',
   },
 });
-
-const tableStyles = {
-  table: {
-    width: '100%',
-    borderCollapse: 'collapse' as const,
-  },
-  headerRow: {
-    backgroundColor: Colors.background,
-    borderBottom: `2px solid ${Colors.primary}`,
-  },
-  headerCell: {
-    padding: '16px',
-    textAlign: 'left' as const,
-    fontSize: '14px',
-    fontWeight: '600' as const,
-    color: Colors.textPrimary,
-  },
-  row: {
-    borderBottom: '1px solid #3a3d41',
-    transition: 'background-color 0.2s',
-  },
-  cell: {
-    padding: '16px',
-    verticalAlign: 'top' as const,
-  },
-  typeText: {
-    fontSize: 14,
-    color: Colors.primary,
-    fontWeight: '600' as const,
-  },
-  recipientText: {
-    fontSize: 14,
-    color: Colors.textPrimary,
-    marginBottom: 4,
-  },
-  districtText: {
-    fontSize: 12,
-    color: Colors.textMuted,
-  },
-  codeText: {
-    fontSize: 14,
-    color: Colors.textPrimary,
-    fontFamily: 'monospace',
-  },
-  bankText: {
-    fontSize: 14,
-    color: Colors.textSecondary,
-  },
-  ibanText: {
-    fontSize: 14,
-    color: Colors.textPrimary,
-    fontFamily: 'monospace',
-    fontWeight: '500' as const,
-  },
-};
 

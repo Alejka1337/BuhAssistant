@@ -5,27 +5,15 @@ import { Calendar, LocaleConfig } from 'react-native-calendars';
 import { MaterialIcons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { fetchAllCalendarEvents, CalendarEvent } from '../../utils/calendarService';
-import { Colors, Typography, Spacing, BorderRadius, Shadows } from '../../constants/Theme';
+import { Typography, Spacing, BorderRadius, Shadows } from '../../constants/Theme';
+import { useTheme } from '../../contexts/ThemeContext';
 import { useResponsive } from '../../utils/responsive';
 import Select from '../../components/web/Select';
 import HoverCard from '../../components/web/HoverCard';
+import { useSEO } from '../../hooks/useSEO';
+import { PAGE_METAS } from '../../utils/seo';
 
-// Inject CSS for web - only on client side
-if (Platform.OS === 'web' && typeof document !== 'undefined') {
-  const style = document.createElement('style');
-  style.innerHTML = `
-    .react-native-calendars .day-names {
-      border-bottom: 2px solid ${Colors.primary} !important;
-      padding-bottom: 8px !important;
-      margin-bottom: 4px !important;
-    }
-    .hover-card-container:hover .report-title-text {
-      color: ${Colors.primary} !important;
-      transition: color 0.2s ease;
-    }
-  `;
-  document.head.appendChild(style);
-}
+// CSS injection will be done inside component with dynamic colors
 
 // Настройка украинской локали для календаря
 LocaleConfig.locales['uk'] = {
@@ -101,7 +89,9 @@ const formatDisplayDate = (date: Date): string => {
 };
 
 export default function CalendarScreen() {
+  useSEO(PAGE_METAS.calendar);
   const insets = useSafeAreaInsets();
+  const { theme, colors } = useTheme();
   const { isDesktop } = useResponsive();
   const [reports, setReports] = useState<Report[]>([]);
   const [loading, setLoading] = useState(true);
@@ -110,6 +100,7 @@ export default function CalendarScreen() {
   const [currentMonth, setCurrentMonth] = useState<string>('');
   const [filterType, setFilterType] = useState('Всі');
   const [filterWho, setFilterWho] = useState('Всі');
+  const [isMounted, setIsMounted] = useState(false); // Add mounted state for Calendar
 
   useEffect(() => {
     const loadCalendarData = async () => {
@@ -145,6 +136,13 @@ export default function CalendarScreen() {
     };
 
     loadCalendarData();
+  }, []);
+
+  // CSS styling removed - using inline styles instead to avoid CSSStyleDeclaration errors
+
+  // Mount calendar only on client side to avoid SSR/hydration issues
+  useEffect(() => {
+    setIsMounted(true);
   }, []);
 
   if (loading) {
@@ -194,13 +192,13 @@ export default function CalendarScreen() {
     const reportsOnDate = reportsByDate[date];
     const uniqueTypes = Array.from(new Set(reportsOnDate.map(r => r.type)));
     const dots = uniqueTypes.map(type => ({
-      color: TYPE_COLORS[type] || Colors.primary
+      color: TYPE_COLORS[type] || colors.primary
     }));
 
     markedDates[date] = {
       dots: dots,
       selected: date === selectedDate,
-      selectedColor: Colors.primary,
+      selectedColor: colors.primary,
     };
   });
 
@@ -208,7 +206,7 @@ export default function CalendarScreen() {
   if (selectedDate && !markedDates[selectedDate]) {
     markedDates[selectedDate] = {
       selected: true,
-      selectedColor: Colors.primary,
+      selectedColor: colors.primary,
     };
   }
 
@@ -230,7 +228,7 @@ export default function CalendarScreen() {
 
   return (
     <ScrollView 
-      style={styles.container}
+      style={[styles.container, { backgroundColor: colors.background }]}
       contentContainerStyle={[
         styles.contentContainer,
         { paddingBottom: insets.bottom + 16 }
@@ -238,74 +236,81 @@ export default function CalendarScreen() {
     >
       {/* Заголовок для Desktop */}
       {isDesktop && (
-        <Text style={[styles.pageTitle, styles.pageTitleDesktop]}>Календар</Text>
+        <Text style={[styles.pageTitle, styles.pageTitleDesktop, { color: colors.textPrimary }]}>Календар</Text>
       )}
 
       {/* Фильтры */}
       <View style={[styles.filtersContainer, isDesktop && styles.filtersContainerDesktop]}>
         <View style={styles.pickerWrapper}>
-          <Text style={styles.pickerLabel}>Тип:</Text>
+          <Text style={[styles.pickerLabel, { color: colors.textSecondary }]}>Тип:</Text>
           <Select
             value={filterType}
             onValueChange={(value: string | null) => setFilterType(value || 'Всі')}
             items={reportTypes.map(type => ({ label: type, value: type }))}
-            style={styles.selectStyle}
+            style={[styles.selectStyle, { borderColor: colors.primary, backgroundColor: colors.cardBackground }]}
           />
         </View>
         <View style={styles.pickerWrapper}>
-          <Text style={styles.pickerLabel}>Хто подає:</Text>
+          <Text style={[styles.pickerLabel, { color: colors.textSecondary }]}>Хто подає:</Text>
           <Select
             value={filterWho}
             onValueChange={(value: string | null) => setFilterWho(value || 'Всі')}
             items={reportWhos.map(who => ({ label: who, value: who }))}
-            style={styles.selectStyle}
+            style={[styles.selectStyle, { borderColor: colors.primary, backgroundColor: colors.cardBackground }]}
           />
         </View>
       </View>
 
       {/* Календарь */}
       <View style={[styles.calendarContainer, isDesktop && styles.calendarContainerDesktop]}>
-        <Calendar
-          current={currentMonth}
-          onDayPress={onDayPress}
-          onMonthChange={onMonthChange}
-          markingType={'multi-dot'}
-          markedDates={markedDates}
-          hideExtraDays={true}
-          firstDay={1}
-          theme={{
-            calendarBackground: Colors.cardBackground,
-            textSectionTitleColor: Colors.textSecondary,
-            selectedDayBackgroundColor: Colors.primary,
-            selectedDayTextColor: Colors.white,
-            todayTextColor: Colors.primaryDark,
-            todayBackgroundColor: Colors.background,
-            dayTextColor: Colors.textPrimary,
-            textDisabledColor: Colors.disabled,
-            monthTextColor: Colors.textPrimary,
-            arrowColor: Colors.primary,
-            textDayFontFamily: 'Inter',
-            textMonthFontFamily: 'Unbounded',
-            textDayHeaderFontFamily: 'Inter',
-            textDayFontSize: 15,
-            textMonthFontSize: 17,
-            textDayHeaderFontSize: 13,
-          }}
-          style={styles.calendar}
-          renderArrow={(direction) => (
-            <MaterialIcons 
-              name={direction === 'left' ? 'chevron-left' : 'chevron-right'} 
-              size={28} 
-              color={Colors.primary} 
-            />
-          )}
-        />
+        {isMounted && Platform.OS === 'web' ? (
+          <Calendar
+            key={`calendar-${theme}`}
+            current={currentMonth}
+            onDayPress={onDayPress}
+            onMonthChange={onMonthChange}
+            markingType={'multi-dot'}
+            markedDates={markedDates}
+            hideExtraDays={true}
+            firstDay={1}
+            theme={{
+              calendarBackground: colors.cardBackground,
+              textSectionTitleColor: colors.textSecondary,
+              selectedDayBackgroundColor: colors.primary,
+              selectedDayTextColor: '#ffffff',
+              todayTextColor: colors.primaryDark,
+              todayBackgroundColor: colors.background,
+              dayTextColor: colors.textPrimary,
+              textDisabledColor: colors.disabled,
+              monthTextColor: colors.textPrimary,
+              arrowColor: colors.primary,
+              textDayFontFamily: 'Inter',
+              textMonthFontFamily: 'Unbounded',
+              textDayHeaderFontFamily: 'Inter',
+              textDayFontSize: 15,
+              textMonthFontSize: 17,
+              textDayHeaderFontSize: 13,
+            }}
+            style={styles.calendar}
+            renderArrow={(direction) => (
+              <MaterialIcons 
+                name={direction === 'left' ? 'chevron-left' : 'chevron-right'} 
+                size={28} 
+                color={colors.primary} 
+              />
+            )}
+          />
+        ) : (
+          <View style={styles.calendarPlaceholder}>
+            <Text style={[styles.loadingText, { color: colors.textMuted }]}>Завантаження календаря...</Text>
+          </View>
+        )}
       </View>
 
       {/* Список отчетностей выбранного дня */}
       {selectedDate && (
         <View style={[styles.selectedDayContainer, isDesktop && styles.selectedDayContainerDesktop]}>
-          <Text style={styles.selectedDayTitle}>
+          <Text style={[styles.selectedDayTitle, { color: colors.textPrimary }]}>
             {selectedDayReports.length > 0 
               ? `Звітність на ${formatDisplayDate(new Date(selectedDate))}`
               : `Немає звітності на ${formatDisplayDate(new Date(selectedDate))}`
@@ -315,30 +320,30 @@ export default function CalendarScreen() {
           {selectedDayReports.map((report, index) => (
             <HoverCard
               key={index}
-              style={[styles.reportCard, ...(isDesktop ? [styles.reportCardDesktop] : [])]}
-              hoverStyle={styles.reportCardHover}
+              style={[styles.reportCard, { backgroundColor: colors.cardBackground }, isDesktop && styles.reportCardDesktop]}
+              hoverStyle={{ backgroundColor: theme === 'dark' ? '#1e2126' : '#e9ecef' }}
             >
               <Text 
-                style={styles.reportTitle}
+                style={[styles.reportTitle, { color: colors.textPrimary }]}
                 // @ts-ignore - className работает только на веб
                 className="report-title-text"
               >
                 {report.title}
               </Text>
               <View style={styles.reportDetailRow}>
-                <Text style={styles.reportDetailLabel}>Тип:</Text>
-                <View style={styles.typeTag}>
-                  <Text style={[styles.typeTagText, { color: TYPE_COLORS[report.type] || Colors.primary }]}>
+                <Text style={[styles.reportDetailLabel, { color: colors.textSecondary }]}>Тип:</Text>
+                <View style={[styles.typeTag, { backgroundColor: colors.background, borderColor: colors.borderLight }]}>
+                  <Text style={[styles.typeTagText, { color: TYPE_COLORS[report.type] || colors.primary }]}>
                     {report.type}
                   </Text>
                 </View>
               </View>
               <View style={styles.reportDetailRow}>
-                <Text style={styles.reportDetailLabel}>Хто подає:</Text>
+                <Text style={[styles.reportDetailLabel, { color: colors.textSecondary }]}>Хто подає:</Text>
                 <View style={styles.whoTagsContainer}>
                   {report.who.map((who, idx) => (
-                    <View key={idx} style={styles.whoTag}>
-                      <Text style={styles.whoTagText}>{who}</Text>
+                    <View key={idx} style={[styles.whoTag, { backgroundColor: colors.background, borderColor: colors.borderLight }]}>
+                      <Text style={[styles.whoTagText, { color: colors.textPrimary }]}>{who}</Text>
                     </View>
                   ))}
                 </View>
@@ -354,14 +359,12 @@ export default function CalendarScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: Colors.background,
   },
   contentContainer: {
     padding: Spacing.md,
   },
   pageTitle: {
     ...Typography.h2,
-    color: Colors.textPrimary,
     marginBottom: Spacing.xl,
     marginTop: Spacing.md,
   },
@@ -376,7 +379,12 @@ const styles = StyleSheet.create({
   },
   loadingText: {
     ...Typography.body,
-    color: Colors.textPrimary,
+  },
+  calendarPlaceholder: {
+    padding: 40,
+    alignItems: 'center',
+    justifyContent: 'center',
+    minHeight: 300,
   },
   errorContainer: {
     flex: 1,
@@ -386,7 +394,6 @@ const styles = StyleSheet.create({
   },
   errorText: {
     ...Typography.body,
-    color: Colors.error,
     textAlign: 'center',
   },
   filtersContainer: {
@@ -403,16 +410,13 @@ const styles = StyleSheet.create({
   },
   pickerLabel: {
     ...Typography.caption,
-    color: Colors.textSecondary,
     marginBottom: 5,
     marginLeft: 5,
     fontWeight: '600',
   },
   selectStyle: {
     borderWidth: 2,
-    borderColor: Colors.primary,
     borderRadius: BorderRadius.md,
-    backgroundColor: Colors.cardBackground,
     paddingHorizontal: 12,
     paddingVertical: 12,
     minHeight: 50,
@@ -440,12 +444,10 @@ const styles = StyleSheet.create({
   },
   selectedDayTitle: {
     ...Typography.h4,
-    color: Colors.textPrimary,
     marginBottom: Spacing.md,
     textAlign: 'center',
   },
   reportCard: {
-    backgroundColor: Colors.cardBackground,
     borderRadius: BorderRadius.md,
     padding: Spacing.md,
     marginBottom: Spacing.sm,
@@ -456,12 +458,8 @@ const styles = StyleSheet.create({
     maxWidth: 700,
     alignSelf: 'center' as any,
   },
-  reportCardHover: {
-    backgroundColor: '#1e2126',
-  },
   reportTitle: {
     ...Typography.bodyBold,
-    color: Colors.textPrimary,
     marginBottom: Spacing.sm,
   },
   reportDetailRow: {
@@ -471,11 +469,9 @@ const styles = StyleSheet.create({
   },
   reportDetailLabel: {
     ...Typography.caption,
-    color: Colors.textSecondary,
   },
   reportDetailValue: {
     ...Typography.caption,
-    color: Colors.textPrimary,
     fontWeight: '500',
     flexShrink: 1,
     textAlign: 'right',
@@ -487,13 +483,11 @@ const styles = StyleSheet.create({
     textAlign: 'right',
   },
   typeTag: {
-    backgroundColor: Colors.background,
     borderRadius: BorderRadius.md,
     paddingHorizontal: 10,
     paddingVertical: 4,
     borderWidth: 1,
-    borderColor: Colors.borderLight,
-    shadowColor: Colors.black,
+    shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.15,
     shadowRadius: 3,
@@ -514,13 +508,11 @@ const styles = StyleSheet.create({
     marginLeft: 8,
   },
   whoTag: {
-    backgroundColor: Colors.background,
     borderRadius: BorderRadius.md,
     paddingHorizontal: 10,
     paddingVertical: 4,
     borderWidth: 1,
-    borderColor: Colors.borderLight,
-    shadowColor: Colors.black,
+    shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.15,
     shadowRadius: 3,
@@ -528,7 +520,6 @@ const styles = StyleSheet.create({
   },
   whoTagText: {
     ...Typography.caption,
-    color: Colors.textPrimary,
     fontSize: 12,
     fontWeight: '500',
   },

@@ -22,7 +22,7 @@ console.log('📋 Constants.expoConfig?.extra?.apiUrl:', Constants.expoConfig?.e
 console.log('📋 API_URL_FROM_CONFIG:', API_URL_FROM_CONFIG);
 
 // Production API URL
-export const API_URL = API_URL_FROM_CONFIG || 'https://api.eglavbuh.com.ua';
+export const API_URL = API_URL_FROM_CONFIG || 'https://eglavbuh.com.ua';
 console.log('🔗 API_URL (final):', API_URL); // Для отладки
 
 // Базовые заголовки для всех запросов (включая обход ngrok warning)

@@ -12,11 +12,12 @@ type Step = 'input' | 'result';
 
 const PDFO_RATE = 0.18; // 18%
 const MILITARY_TAX_RATE = 0.05; // 5%
+const ESV_RATE = 0.22; // 22%
 
 export default function NetSalaryModal({ visible, onClose }: NetSalaryModalProps) {
   const [step, setStep] = useState<Step>('input');
   const [grossSalary, setGrossSalary] = useState('');
-  const [result, setResult] = useState<{ pdfo: number; militaryTax: number; netSalary: number } | null>(null);
+  const [result, setResult] = useState<{ pdfo: number; militaryTax: number; netSalary: number; esv: number } | null>(null);
 
   const calculateNetSalary = () => {
     const salary = parseFloat(grossSalary);
@@ -28,8 +29,9 @@ export default function NetSalaryModal({ visible, onClose }: NetSalaryModalProps
     const pdfo = salary * PDFO_RATE;
     const militaryTax = salary * MILITARY_TAX_RATE;
     const netSalary = salary - (pdfo + militaryTax);
+    const esv = salary * ESV_RATE;
 
-    setResult({ pdfo, militaryTax, netSalary });
+    setResult({ pdfo, militaryTax, netSalary, esv });
     setStep('result');
   };
   
@@ -94,6 +96,11 @@ export default function NetSalaryModal({ visible, onClose }: NetSalaryModalProps
             <Text style={[styles.resultValue, styles.resultValueMain]}>
               {result.netSalary.toFixed(2)} грн
             </Text>
+          </View>
+
+          <View style={styles.resultCard}>
+            <Text style={styles.resultLabel}>Сплата ЄСВ за рахунок роботодавця (22% від нарахованої заробітньої плати):</Text>
+            <Text style={styles.resultValue}>{result.esv.toFixed(2)} грн</Text>
           </View>
 
           <Text style={styles.resultNote}>

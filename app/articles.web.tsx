@@ -12,14 +12,19 @@ import {
 } from 'react-native';
 import { Stack, useRouter } from 'expo-router';
 import { MaterialIcons } from '@expo/vector-icons';
-import { Colors, Typography, Spacing, BorderRadius } from '@/constants/Theme';
+import { Typography, Spacing, BorderRadius } from '@/constants/Theme';
+import { useTheme } from '@/contexts/ThemeContext';
 import { useResponsive } from '@/utils/responsive';
 import PageWrapper from '@/components/web/PageWrapper';
 import MobileMenu, { MobileMenuWrapper } from '@/components/web/MobileMenu';
 import { getArticles, ArticleListItem, ArticleListResponse } from '@/utils/articleService';
 import { useAuth } from '@/contexts/AuthContext';
+import { useSEO } from '@/hooks/useSEO';
+import { PAGE_METAS } from '@/utils/seo';
 
 export default function ArticlesScreen() {
+  useSEO(PAGE_METAS.articles);
+  const { colors } = useTheme();
   const router = useRouter();
   const { isMobile, isDesktop } = useResponsive();
   const { user } = useAuth();
@@ -74,7 +79,7 @@ export default function ArticlesScreen() {
   const renderArticleCard = (article: ArticleListItem) => (
     <TouchableOpacity
       key={article.id}
-      style={styles.card}
+      style={[styles.card, { backgroundColor: colors.cardBackground }]}
       onPress={() => router.push(`/article/${article.slug}` as any)}
       activeOpacity={0.7}
     >
@@ -86,24 +91,24 @@ export default function ArticlesScreen() {
         />
       )}
       <View style={styles.cardContent}>
-        <Text style={styles.cardTitle} numberOfLines={2}>
+        <Text style={[styles.cardTitle, { color: colors.primary }]} numberOfLines={2}>
           {article.title}
         </Text>
         {article.excerpt && (
-          <Text style={styles.cardExcerpt} numberOfLines={3}>
+          <Text style={[styles.cardExcerpt, { color: colors.textSecondary }]} numberOfLines={3}>
             {article.excerpt}
           </Text>
         )}
         <View style={styles.cardMeta}>
           <View style={styles.authorInfo}>
-            <MaterialIcons name="person" size={16} color={Colors.textSecondary} />
-            <Text style={styles.authorName}>{article.author.full_name}</Text>
+            <MaterialIcons name="person" size={16} color={colors.textSecondary} />
+            <Text style={[styles.authorName, { color: colors.textSecondary }]}>{article.author.full_name}</Text>
           </View>
           <View style={styles.metaRow}>
-            <MaterialIcons name="visibility" size={16} color={Colors.textSecondary} />
-            <Text style={styles.metaText}>{article.views}</Text>
-            <Text style={styles.metaDivider}>•</Text>
-            <Text style={styles.metaText}>{formatDate(article.published_at)}</Text>
+            <MaterialIcons name="visibility" size={16} color={colors.textSecondary} />
+            <Text style={[styles.metaText, { color: colors.textMuted }]}>{article.views}</Text>
+            <Text style={[styles.metaDivider, { color: colors.textMuted }]}>•</Text>
+            <Text style={[styles.metaText, { color: colors.textMuted }]}>{formatDate(article.published_at)}</Text>
           </View>
         </View>
       </View>
@@ -114,8 +119,8 @@ export default function ArticlesScreen() {
     if (loading && page === 1) {
       return (
         <View style={styles.loadingContainer}>
-          <ActivityIndicator size="large" color={Colors.primary} />
-          <Text style={styles.loadingText}>Завантаження статей...</Text>
+          <ActivityIndicator size="large" color={colors.primary} />
+          <Text style={[styles.loadingText, { color: colors.textMuted }]}>Завантаження статей...</Text>
         </View>
       );
     }
@@ -124,15 +129,15 @@ export default function ArticlesScreen() {
       <View style={[styles.content, isDesktop && styles.contentDesktop]}>
         {/* Header - только для десктопа */}
         {isDesktop && (
-          <View style={styles.header}>
-            <Text style={styles.title}>Статті</Text>
+          <View style={[styles.header, { backgroundColor: colors.background }]}>
+            <Text style={[styles.title, { color: colors.textPrimary }]}>Статті</Text>
             {user && ((user as any).role?.toUpperCase() === 'MODERATOR' || (user as any).role?.toUpperCase() === 'ADMIN') && (
               <TouchableOpacity
-                style={styles.createButton}
+                style={[styles.createButton, { backgroundColor: colors.primary }]}
                 onPress={() => router.push('/admin/articles/new' as any)}
               >
                 <MaterialIcons name="add" size={20} color="#fff" />
-                <Text style={styles.createButtonText}>Створити статтю</Text>
+                <Text style={[styles.createButtonText, { color: colors.white }]}>Створити статтю</Text>
               </TouchableOpacity>
             )}
           </View>
@@ -142,51 +147,51 @@ export default function ArticlesScreen() {
         {isMobile && user && ((user as any).role?.toUpperCase() === 'MODERATOR' || (user as any).role?.toUpperCase() === 'ADMIN') && (
           <View style={styles.mobileCreateButtonContainer}>
             <TouchableOpacity
-              style={styles.createButton}
+              style={[styles.createButton, { backgroundColor: colors.primary }]}
               onPress={() => router.push('/admin/articles/new' as any)}
             >
               <MaterialIcons name="add" size={20} color="#fff" />
-              <Text style={styles.createButtonText}>Створити статтю</Text>
+              <Text style={[styles.createButtonText, { color: colors.white }]}>Створити статтю</Text>
             </TouchableOpacity>
           </View>
         )}
 
         {/* Search */}
-        <View style={styles.searchContainer}>
-          <View style={styles.searchInputContainer}>
-            <MaterialIcons name="search" size={20} color={Colors.textMuted} />
+        <View style={[styles.searchContainer, { backgroundColor: colors.background }]}>
+          <View style={[styles.searchInputContainer, { backgroundColor: colors.cardBackground, borderColor: colors.primary }]}>
+            <MaterialIcons name="search" size={20} color={colors.textMuted} />
             <TextInput
-              style={styles.searchInput}
+              style={[styles.searchInput, { color: colors.textPrimary }]}
               value={searchInput}
               onChangeText={setSearchInput}
               placeholder="Пошук статей..."
-              placeholderTextColor={Colors.textMuted}
+              placeholderTextColor={colors.textMuted}
               onSubmitEditing={handleSearch}
             />
             {searchInput.length > 0 && (
               <TouchableOpacity onPress={handleClearSearch}>
-                <MaterialIcons name="close" size={20} color={Colors.textMuted} />
+                <MaterialIcons name="close" size={20} color={colors.textMuted} />
               </TouchableOpacity>
             )}
           </View>
-          <TouchableOpacity style={styles.searchButton} onPress={handleSearch}>
-            <Text style={styles.searchButtonText}>Шукати</Text>
+          <TouchableOpacity style={[styles.searchButton, { backgroundColor: colors.primary }]} onPress={handleSearch}>
+            <Text style={[styles.searchButtonText, { color: colors.white }]}>Шукати</Text>
           </TouchableOpacity>
         </View>
 
         {/* Articles count */}
-        <Text style={styles.countText}>
+        <Text style={[styles.countText, { color: colors.textSecondary }]}>
           Знайдено статей: {total}
         </Text>
 
         {/* Articles grid */}
         {articles.length === 0 ? (
           <View style={styles.emptyContainer}>
-            <MaterialIcons name="article" size={64} color={Colors.textMuted} />
-            <Text style={styles.emptyText}>Статей не знайдено</Text>
+            <MaterialIcons name="article" size={64} color={colors.textMuted} />
+            <Text style={[styles.emptyText, { color: colors.textMuted }]}>Статей не знайдено</Text>
             {search && (
-              <TouchableOpacity style={styles.clearSearchButton} onPress={handleClearSearch}>
-                <Text style={styles.clearSearchText}>Скинути пошук</Text>
+              <TouchableOpacity style={[styles.clearSearchButton, { backgroundColor: colors.primary }]} onPress={handleClearSearch}>
+                <Text style={[styles.clearSearchText, { color: colors.white }]}>Скинути пошук</Text>
               </TouchableOpacity>
             )}
           </View>
@@ -207,10 +212,10 @@ export default function ArticlesScreen() {
               <MaterialIcons
                 name="chevron-left"
                 size={24}
-                color={page === 1 ? Colors.textMuted : Colors.primary}
+                color={page === 1 ? colors.textMuted : colors.primary}
               />
             </TouchableOpacity>
-            <Text style={styles.pageText}>
+            <Text style={[styles.pageText, { color: colors.textPrimary }]}>
               Сторінка {page} з {totalPages}
             </Text>
             <TouchableOpacity
@@ -221,7 +226,7 @@ export default function ArticlesScreen() {
               <MaterialIcons
                 name="chevron-right"
                 size={24}
-                color={page === totalPages ? Colors.textMuted : Colors.primary}
+                color={page === totalPages ? colors.textMuted : colors.primary}
               />
             </TouchableOpacity>
           </View>
@@ -237,7 +242,7 @@ export default function ArticlesScreen() {
         <Stack.Screen options={{ headerShown: false }} />
         <MobileMenu title="Статті" />
         <MobileMenuWrapper>
-          <ScrollView style={styles.container}>
+          <ScrollView style={[styles.container, { backgroundColor: colors.background }]}>
             {renderContent()}
           </ScrollView>
         </MobileMenuWrapper>
@@ -249,7 +254,7 @@ export default function ArticlesScreen() {
   return (
     <PageWrapper showMobileNav={false}>
       <Stack.Screen options={{ headerShown: false }} />
-      <ScrollView style={styles.container}>
+      <ScrollView style={[styles.container, { backgroundColor: colors.background }]}>
         {renderContent()}
       </ScrollView>
     </PageWrapper>
@@ -259,7 +264,7 @@ export default function ArticlesScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: Colors.background,
+    // backgroundColor: dynamic,
   },
   content: {
     padding: Spacing.md,
@@ -282,7 +287,7 @@ const styles = StyleSheet.create({
   },
   loadingText: {
     ...Typography.body,
-    color: Colors.textSecondary,
+    // color: dynamic,
     marginTop: Spacing.md,
   },
   header: {
@@ -293,13 +298,13 @@ const styles = StyleSheet.create({
   },
   title: {
     ...Typography.h2,
-    color: Colors.textPrimary,
+    // color: dynamic,
     marginTop: Spacing.md,
   },
   createButton: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: Colors.primary,
+    // backgroundColor: dynamic,
     paddingHorizontal: Spacing.md,
     paddingVertical: Spacing.sm,
     borderRadius: BorderRadius.md,
@@ -320,12 +325,12 @@ const styles = StyleSheet.create({
     minWidth: 200,
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: Colors.cardBackground,
+    // backgroundColor: dynamic,
     borderRadius: BorderRadius.md,
     paddingHorizontal: Spacing.md,
     gap: Spacing.sm,
     borderWidth: 2,
-    borderColor: Colors.primary,
+    // borderColor: dynamic,
     ...Platform.select({
       web: {
         maxWidth: 500,
@@ -335,12 +340,12 @@ const styles = StyleSheet.create({
   searchInput: {
     flex: 1,
     ...Typography.body,
-    color: Colors.textPrimary,
+    // color: dynamic,
     paddingVertical: Spacing.sm,
     outlineStyle: 'none' as any,
   },
   searchButton: {
-    backgroundColor: Colors.primary,
+    // backgroundColor: dynamic,
     paddingHorizontal: Spacing.lg,
     paddingVertical: Spacing.sm,
     borderRadius: BorderRadius.md,
@@ -352,7 +357,7 @@ const styles = StyleSheet.create({
   },
   countText: {
     ...Typography.caption,
-    color: Colors.textSecondary,
+    // color: dynamic,
     marginBottom: Spacing.md,
   },
   emptyContainer: {
@@ -361,14 +366,14 @@ const styles = StyleSheet.create({
   },
   emptyText: {
     ...Typography.h3,
-    color: Colors.textMuted,
+    // color: dynamic,
     marginTop: Spacing.md,
   },
   clearSearchButton: {
     marginTop: Spacing.md,
     paddingHorizontal: Spacing.lg,
     paddingVertical: Spacing.sm,
-    backgroundColor: Colors.primary,
+    // backgroundColor: dynamic,
     borderRadius: BorderRadius.md,
   },
   clearSearchText: {
@@ -383,7 +388,7 @@ const styles = StyleSheet.create({
     flexWrap: 'wrap',
   },
   card: {
-    backgroundColor: Colors.cardBackground,
+    // backgroundColor: dynamic,
     borderRadius: BorderRadius.lg,
     overflow: 'hidden',
     ...Platform.select({
@@ -403,12 +408,12 @@ const styles = StyleSheet.create({
   },
   cardTitle: {
     ...Typography.h3,
-    color: Colors.primary,
+    // color: dynamic,
     marginBottom: Spacing.sm,
   },
   cardExcerpt: {
     ...Typography.body,
-    color: Colors.textSecondary,
+    // color: dynamic,
     marginBottom: Spacing.md,
     lineHeight: 22,
   },
@@ -423,7 +428,7 @@ const styles = StyleSheet.create({
   },
   authorName: {
     ...Typography.caption,
-    color: Colors.textSecondary,
+    // color: dynamic,
     fontWeight: '600',
   },
   metaRow: {
@@ -433,11 +438,11 @@ const styles = StyleSheet.create({
   },
   metaText: {
     ...Typography.caption,
-    color: Colors.textMuted,
+    // color: dynamic,
   },
   metaDivider: {
     ...Typography.caption,
-    color: Colors.textMuted,
+    // color: dynamic,
   },
   pagination: {
     flexDirection: 'row',
@@ -455,7 +460,7 @@ const styles = StyleSheet.create({
   },
   pageText: {
     ...Typography.body,
-    color: Colors.textSecondary,
+    // color: dynamic,
   },
 });
 

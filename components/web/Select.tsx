@@ -1,15 +1,30 @@
 import React from 'react';
-import { Platform, View, StyleSheet } from 'react-native';
+import { Platform, View, StyleSheet, StyleProp, ViewStyle } from 'react-native';
 import { Picker } from '@react-native-picker/picker';
 import { Colors, Typography, Spacing, BorderRadius } from '@/constants/Theme';
+import { useTheme } from '@/contexts/ThemeContext';
 
 interface SelectProps {
   value: any;
   onValueChange: (value: any) => void;
   items: Array<{ label: string; value: any }>;
-  style?: any;
+  style?: StyleProp<ViewStyle>;
   placeholder?: string;
 }
+
+// Flatten React Native style array to a single object for web
+const flattenStyle = (style: StyleProp<ViewStyle>): React.CSSProperties => {
+  if (!style) return {};
+  if (Array.isArray(style)) {
+    return style.reduce<React.CSSProperties>((acc, s) => {
+      if (s && typeof s === 'object') {
+        return { ...acc, ...(s as React.CSSProperties) };
+      }
+      return acc;
+    }, {});
+  }
+  return style as React.CSSProperties;
+};
 
 /**
  * Универсальный компонент выбора
@@ -17,7 +32,33 @@ interface SelectProps {
  * - Native: использует @react-native-picker/picker
  */
 export default function Select({ value, onValueChange, items, style, placeholder }: SelectProps) {
+  const { colors } = useTheme();
+
   if (Platform.OS === 'web') {
+    // Flatten the style array to a single object
+    const flattenedStyle = flattenStyle(style);
+    
+    // Dynamic web styles based on theme
+    const webSelectStyles: React.CSSProperties = {
+      backgroundColor: colors.cardBackground,
+      color: colors.textPrimary,
+      border: `2px solid ${colors.primary}`,
+      borderRadius: BorderRadius.md,
+      padding: `${Spacing.sm}px ${Spacing.md}px`,
+      fontSize: 16,
+      fontFamily: Typography.body.fontFamily,
+      cursor: 'pointer',
+      outline: 'none',
+      width: '100%',
+      minHeight: 44,
+      appearance: 'none' as any,
+      backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24'%3E%3Cpath fill='%23282' d='M7 10l5 5 5-5z'/%3E%3C/svg%3E")`,
+      backgroundRepeat: 'no-repeat',
+      backgroundPosition: 'right 8px center',
+      backgroundSize: '24px',
+      paddingRight: '40px',
+    };
+    
     // Для Web используем нативный select
     return (
       <select
@@ -30,7 +71,7 @@ export default function Select({ value, onValueChange, items, style, placeholder
         }}
         style={{
           ...webSelectStyles,
-          ...(style || {}),
+          ...flattenedStyle,
         }}
       >
         {placeholder && <option value="">{placeholder}</option>}
@@ -45,12 +86,12 @@ export default function Select({ value, onValueChange, items, style, placeholder
 
   // Для Native используем Picker
   return (
-    <View style={[styles.pickerContainer, style]}>
+    <View style={[styles.pickerContainer, { backgroundColor: colors.cardBackground }, style]}>
       <Picker
         selectedValue={value}
         onValueChange={onValueChange}
-        style={styles.picker}
-        itemStyle={styles.pickerItem}
+        style={[styles.picker, { color: colors.textPrimary }]}
+        itemStyle={[styles.pickerItem, { color: colors.textPrimary, backgroundColor: colors.cardBackground }]}
       >
         {placeholder && <Picker.Item label={placeholder} value={null} />}
         {items.map((item) => (
@@ -61,42 +102,17 @@ export default function Select({ value, onValueChange, items, style, placeholder
   );
 }
 
-// Web стили для select
-const webSelectStyles = {
-  backgroundColor: Colors.cardBackground,
-  color: Colors.textPrimary,
-  border: `2px solid ${Colors.primary}`,
-  borderRadius: BorderRadius.md,
-  padding: `${Spacing.sm}px ${Spacing.md}px`,
-  fontSize: 16,
-  fontFamily: Typography.body.fontFamily,
-  cursor: 'pointer',
-  outline: 'none',
-  width: '100%',
-  minHeight: 44,
-  appearance: 'none' as any,
-  backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24'%3E%3Cpath fill='%23282' d='M7 10l5 5 5-5z'/%3E%3C/svg%3E")`,
-  backgroundRepeat: 'no-repeat',
-  backgroundPosition: 'right 8px center',
-  backgroundSize: '24px',
-  paddingRight: '40px',
-};
-
 // Native стили для Picker
 const styles = StyleSheet.create({
   pickerContainer: {
-    backgroundColor: Colors.cardBackground,
     borderRadius: BorderRadius.md,
     height: 150,
     justifyContent: 'center',
   },
   picker: {
-    color: Colors.textPrimary,
     height: 150,
   },
   pickerItem: {
-    color: Colors.textPrimary,
-    backgroundColor: Colors.cardBackground,
   },
 });
 

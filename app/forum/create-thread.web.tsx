@@ -11,7 +11,8 @@ import {
 } from 'react-native';
 import { Stack, useRouter } from 'expo-router';
 import { MaterialIcons } from '@expo/vector-icons';
-import { Colors, Typography, Spacing, BorderRadius } from '@/constants/Theme';
+import { Typography, Spacing, BorderRadius } from '@/constants/Theme';
+import { useTheme } from '@/contexts/ThemeContext';
 import { getCategories, createThread, ForumCategory } from '@/utils/forumService';
 import MobileMenu, { MobileMenuWrapper } from '@/components/web/MobileMenu';
 import PageWrapper from '@/components/web/PageWrapper';
@@ -20,6 +21,7 @@ import Select from '@/components/web/Select';
 import { ModerationErrorModal } from '@/components/ModerationErrorModal';
 
 export default function CreateThreadWebScreen() {
+  const { colors } = useTheme();
   const router = useRouter();
   const { isDesktop, isMobile } = useResponsive();
 
@@ -119,8 +121,8 @@ export default function CreateThreadWebScreen() {
     if (loadingCategories) {
       return (
         <View style={styles.loadingContainer}>
-          <ActivityIndicator size="large" color={Colors.primary} />
-          <Text style={styles.loadingText}>Завантаження...</Text>
+          <ActivityIndicator size="large" color={colors.primary} />
+          <Text style={[styles.loadingText, { color: colors.textMuted }]}>Завантаження...</Text>
         </View>
       );
     }
@@ -128,29 +130,29 @@ export default function CreateThreadWebScreen() {
     return (
       <View style={[styles.content, isDesktop && styles.desktopContent]}>
         {/* Заголовок только для Desktop */}
-        {isDesktop && <Text style={styles.pageTitle}>Створити нову тему</Text>}
+        {isDesktop && <Text style={[styles.pageTitle, { color: colors.textPrimary }]}>Створити нову тему</Text>}
 
         {error ? (
           <View style={styles.errorContainer}>
-            <MaterialIcons name="error-outline" size={20} color={Colors.error} />
-            <Text style={styles.errorText}>{error}</Text>
+            <MaterialIcons name="error-outline" size={20} color={colors.error} />
+            <Text style={[styles.errorText, { color: colors.error }]}>{error}</Text>
           </View>
         ) : null}
 
         {success ? (
           <View style={styles.successContainer}>
-            <MaterialIcons name="check-circle" size={20} color={Colors.primary} />
-            <Text style={styles.successText}>{success}</Text>
+            <MaterialIcons name="check-circle" size={20} color={colors.primary} />
+            <Text style={[styles.successText, { color: colors.primary }]}>{success}</Text>
           </View>
         ) : null}
 
         <View style={styles.form}>
           <View style={styles.inputGroup}>
-            <Text style={styles.label}>Заголовок теми *</Text>
+            <Text style={[styles.label, { color: colors.textPrimary }]}>Заголовок теми *</Text>
             <TextInput
-              style={styles.input}
+              style={[styles.input, { backgroundColor: colors.cardBackground, color: colors.textPrimary, borderColor: colors.primary }]}
               placeholder="Введіть заголовок теми"
-              placeholderTextColor={Colors.textMuted}
+              placeholderTextColor={colors.textMuted}
               value={title}
               onChangeText={setTitle}
               editable={!loading}
@@ -158,11 +160,11 @@ export default function CreateThreadWebScreen() {
           </View>
 
           <View style={styles.inputGroup}>
-            <Text style={styles.label}>Зміст теми *</Text>
+            <Text style={[styles.label, { color: colors.textPrimary }]}>Зміст теми *</Text>
             <TextInput
-              style={[styles.input, styles.textArea]}
+              style={[styles.input, styles.textArea, { backgroundColor: colors.cardBackground, color: colors.textPrimary, borderColor: colors.primary }]}
               placeholder="Опишіть вашу тему детально"
-              placeholderTextColor={Colors.textMuted}
+              placeholderTextColor={colors.textMuted}
               value={content}
               onChangeText={setContent}
               multiline
@@ -172,7 +174,7 @@ export default function CreateThreadWebScreen() {
           </View>
 
           <View style={styles.inputGroup}>
-            <Text style={styles.label}>Категорія *</Text>
+            <Text style={[styles.label, { color: colors.textPrimary }]}>Категорія *</Text>
             <Select
               value={selectedCategory}
               onValueChange={(itemValue: number | undefined) => setSelectedCategory(itemValue)}
@@ -182,15 +184,15 @@ export default function CreateThreadWebScreen() {
           </View>
 
           <TouchableOpacity
-            style={[styles.submitButton, loading && styles.submitButtonDisabled]}
+            style={[styles.submitButton, { backgroundColor: colors.primary }, loading && styles.submitButtonDisabled]}
             onPress={handleSubmit}
             disabled={loading}
           >
             {loading ? (
-              <ActivityIndicator color={Colors.white} />
+              <ActivityIndicator color="#ffffff" />
             ) : (
               <>
-                <MaterialIcons name="send" size={20} color={Colors.white} />
+                <MaterialIcons name="send" size={20} color="#ffffff" />
                 <Text style={styles.submitButtonText}>Створити тему</Text>
               </>
             )}
@@ -241,7 +243,7 @@ export default function CreateThreadWebScreen() {
         }}
       />
       <ScrollView 
-        style={styles.container}
+        style={[styles.container, { backgroundColor: colors.background }]}
         contentContainerStyle={styles.scrollContent}
       >
         {renderContent()}
@@ -263,7 +265,6 @@ export default function CreateThreadWebScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: Colors.background,
   },
   scrollContent: {
     paddingBottom: 32,
@@ -276,7 +277,6 @@ const styles = StyleSheet.create({
   },
   loadingText: {
     ...Typography.body,
-    color: Colors.textMuted,
     marginTop: Spacing.md,
   },
   content: {
@@ -290,7 +290,6 @@ const styles = StyleSheet.create({
   },
   pageTitle: {
     ...Typography.h2,
-    color: Colors.textPrimary,
     marginBottom: Spacing.xl,
   },
   errorContainer: {
@@ -304,7 +303,6 @@ const styles = StyleSheet.create({
   },
   errorText: {
     ...Typography.body,
-    color: Colors.error,
     flex: 1,
   },
   successContainer: {
@@ -318,7 +316,6 @@ const styles = StyleSheet.create({
   },
   successText: {
     ...Typography.body,
-    color: Colors.primary,
     flex: 1,
   },
   form: {
@@ -329,17 +326,13 @@ const styles = StyleSheet.create({
   },
   label: {
     ...Typography.body,
-    color: Colors.textPrimary,
     fontWeight: '600',
   },
   input: {
-    backgroundColor: Colors.cardBackground,
     borderRadius: BorderRadius.md,
     padding: Spacing.md,
     ...Typography.body,
-    color: Colors.textPrimary,
     borderWidth: 2,
-    borderColor: Colors.primary,
     outlineStyle: 'none' as any,
   },
   textArea: {
@@ -351,7 +344,6 @@ const styles = StyleSheet.create({
   },
   submitButton: {
     flexDirection: 'row',
-    backgroundColor: Colors.primary,
     borderRadius: BorderRadius.md,
     padding: Spacing.md,
     alignItems: 'center',
@@ -364,7 +356,7 @@ const styles = StyleSheet.create({
   },
   submitButtonText: {
     ...Typography.body,
-    color: Colors.white,
+    color: '#ffffff',
     fontWeight: '600',
   },
 });

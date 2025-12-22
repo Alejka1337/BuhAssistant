@@ -13,9 +13,12 @@ import {
 import { useRouter } from 'expo-router';
 import { MaterialIcons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { Colors, Typography, Spacing, BorderRadius } from '@/constants/Theme';
+import { Typography, Spacing, BorderRadius } from '@/constants/Theme';
+import { useTheme } from '@/contexts/ThemeContext';
 import { useAuth } from '@/contexts/AuthContext';
 import { useResponsive } from '@/utils/responsive';
+import { useSEO } from '@/hooks/useSEO';
+import { PAGE_METAS } from '@/utils/seo';
 import {
   getCategories,
   getThreads,
@@ -28,10 +31,13 @@ import ThreadCard from '@/components/forum/ThreadCard.web';
 type SortType = 'new' | 'hot' | 'unanswered';
 
 export default function ForumScreen() {
+  useSEO(PAGE_METAS.forum);
+  
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const { user } = useAuth();
   const { isDesktop } = useResponsive();
+  const { colors } = useTheme();
 
   const [categories, setCategories] = useState<ForumCategory[]>([]);
   const [threads, setThreads] = useState<ForumThreadListItem[]>([]);
@@ -155,19 +161,19 @@ export default function ForumScreen() {
     if (loading) {
       return (
         <View style={styles.emptyContainer}>
-          <ActivityIndicator size="large" color={Colors.primary} />
-          <Text style={styles.emptyText}>Завантаження...</Text>
+          <ActivityIndicator size="large" color={colors.primary} />
+          <Text style={[styles.emptyText, { color: colors.textMuted }]}>Завантаження...</Text>
         </View>
       );
     }
 
     return (
       <View style={styles.emptyContainer}>
-        <MaterialIcons name="forum" size={64} color={Colors.textMuted} />
-        <Text style={styles.emptyText}>Поки що немає топіків</Text>
+        <MaterialIcons name="forum" size={64} color={colors.textMuted} />
+        <Text style={[styles.emptyText, { color: colors.textMuted }]}>Поки що немає топіків</Text>
         {user && (
-          <TouchableOpacity style={styles.createButton} onPress={handleCreateThread}>
-            <Text style={styles.createButtonText}>Створити перший топік</Text>
+          <TouchableOpacity style={[styles.createButton, { backgroundColor: colors.primary }]} onPress={handleCreateThread}>
+            <Text style={[styles.createButtonText, { color: colors.white }]}>Створити перший топік</Text>
           </TouchableOpacity>
         )}
       </View>
@@ -175,7 +181,7 @@ export default function ForumScreen() {
   };
 
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, { backgroundColor: colors.background }]}>
       <ScrollView
         ref={scrollViewRef}
         contentContainerStyle={[
@@ -186,19 +192,19 @@ export default function ForumScreen() {
           <RefreshControl
             refreshing={refreshing}
             onRefresh={onRefresh}
-            tintColor={Colors.primary}
+            tintColor={colors.primary}
           />
         }
       >
         <View style={[styles.content, isDesktop && styles.desktopContent]}>
           {/* Заголовок для Desktop */}
           {isDesktop && (
-            <Text style={styles.pageTitle}>Форум</Text>
+            <Text style={[styles.pageTitle, { color: colors.textPrimary }]}>Форум</Text>
           )}
 
           {/* Категории */}
           <View style={styles.section}>
-            <Text style={styles.sectionTitle}>Категорії</Text>
+            <Text style={[styles.sectionTitle, { color: colors.textPrimary }]}>Категорії</Text>
             <View style={isDesktop ? styles.gridContainer : undefined}>
               {categories.map((category) => (
                 <View key={category.id} style={isDesktop ? styles.gridItem : undefined}>
@@ -214,12 +220,12 @@ export default function ForumScreen() {
           {/* Кнопка создания топика */}
           {user && (
             <TouchableOpacity 
-              style={styles.createThreadButton} 
+              style={[styles.createThreadButton, { backgroundColor: colors.primary }]} 
               onPress={handleCreateThread}
               activeOpacity={0.8}
             >
-              <MaterialIcons name="add" size={20} color={Colors.white} />
-              <Text style={styles.createThreadButtonText}>Додати тему</Text>
+              <MaterialIcons name="add" size={20} color={colors.white} />
+              <Text style={[styles.createThreadButtonText, { color: colors.white }]}>Додати тему</Text>
             </TouchableOpacity>
           )}
 
@@ -230,7 +236,7 @@ export default function ForumScreen() {
               setTopicsHeaderY(e.nativeEvent.layout.y);
             }}
           >
-            <Text style={styles.sectionTitle}>Топіки</Text>
+            <Text style={[styles.sectionTitle, { color: colors.textPrimary }]}>Топіки</Text>
           </View>
           
           {threads.length === 0 ? (
@@ -248,16 +254,16 @@ export default function ForumScreen() {
           {/* Load More Button */}
           {!loading && hasMore && threads.length > 0 && (
             <TouchableOpacity
-              style={styles.loadMoreButton}
+              style={[styles.loadMoreButton, { backgroundColor: colors.primary }]}
               onPress={handleLoadMore}
               disabled={loadingMore}
             >
               {loadingMore ? (
-                <ActivityIndicator size="small" color={Colors.white} />
+                <ActivityIndicator size="small" color={colors.white} />
               ) : (
                 <>
-                  <Text style={styles.loadMoreText}>Завантажити ще</Text>
-                  <MaterialIcons name="expand-more" size={20} color={Colors.white} />
+                  <Text style={[styles.loadMoreText, { color: colors.white }]}>Завантажити ще</Text>
+                  <MaterialIcons name="expand-more" size={20} color={colors.white} />
                 </>
               )}
             </TouchableOpacity>
@@ -271,7 +277,6 @@ export default function ForumScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: Colors.background,
   },
   scrollContent: {
     flexGrow: 1,
@@ -288,7 +293,6 @@ const styles = StyleSheet.create({
   },
   pageTitle: {
     ...Typography.h2,
-    color: Colors.textPrimary,
     marginBottom: Spacing.lg,
     marginTop: Spacing.md,
   },
@@ -297,7 +301,6 @@ const styles = StyleSheet.create({
   },
   sectionTitle: {
     ...Typography.h4,
-    color: Colors.textPrimary,
     marginBottom: Spacing.sm,
   },
   gridContainer: {
@@ -312,7 +315,6 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: Colors.primary,
     paddingVertical: Spacing.sm + 2,
     paddingHorizontal: Spacing.lg,
     borderRadius: BorderRadius.md,
@@ -321,7 +323,6 @@ const styles = StyleSheet.create({
   },
   createThreadButtonText: {
     ...Typography.bodyBold,
-    color: Colors.white,
   },
   emptyContainer: {
     flex: 1,
@@ -331,25 +332,21 @@ const styles = StyleSheet.create({
   },
   emptyText: {
     ...Typography.body,
-    color: Colors.textMuted,
     marginTop: Spacing.md,
     marginBottom: Spacing.lg,
   },
   createButton: {
-    backgroundColor: Colors.primary,
     paddingVertical: Spacing.sm,
     paddingHorizontal: Spacing.lg,
     borderRadius: BorderRadius.md,
   },
   createButtonText: {
     ...Typography.bodyBold,
-    color: Colors.white,
   },
   loadMoreButton: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: Colors.primary,
     paddingVertical: Spacing.sm,
     paddingHorizontal: Spacing.lg,
     borderRadius: BorderRadius.md,
@@ -359,7 +356,6 @@ const styles = StyleSheet.create({
   },
   loadMoreText: {
     ...Typography.bodyBold,
-    color: Colors.white,
   },
 });
 

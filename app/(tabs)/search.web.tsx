@@ -16,13 +16,19 @@ import { SOURCES } from '../../constants/sources';
 import { SearchResultCard } from '../../components/SearchResultCard.web';
 import { searchMultipleSources, SearchResult } from '../../utils/searchService';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { Colors, Typography, Spacing, BorderRadius } from '../../constants/Theme';
+import { Typography, Spacing, BorderRadius } from '../../constants/Theme';
+import { useTheme } from '../../contexts/ThemeContext';
 import { useResponsive } from '../../utils/responsive';
+import { useSEO } from '../../hooks/useSEO';
+import { PAGE_METAS } from '../../utils/seo';
 import HoverCard from '../../components/web/HoverCard';
 
 export default function SearchScreen() {
+  useSEO(PAGE_METAS.search);
+  
   const insets = useSafeAreaInsets();
   const { isDesktop } = useResponsive();
+  const { colors } = useTheme();
   const inputRef = useRef<TextInput>(null);
   const [query, setQuery] = useState('');
   const [selectedSources, setSelectedSources] = useState<string[]>(['all']);
@@ -103,7 +109,7 @@ export default function SearchScreen() {
   };
 
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, { backgroundColor: colors.background }]}>
       <ScrollView 
         contentContainerStyle={[
           styles.scrollContent,
@@ -116,25 +122,25 @@ export default function SearchScreen() {
         <View style={[styles.content, isDesktop && styles.desktopContent]}>
           {/* Заголовок для Desktop */}
           {isDesktop && (
-            <Text style={styles.pageTitle}>Пошук</Text>
+            <Text style={[styles.pageTitle, { color: colors.textPrimary }]}>Пошук</Text>
           )}
 
           <View style={styles.searchContainer}>
             {/* Desktop: Checkbox selection */}
             {isDesktop ? (
               <View style={styles.desktopSourcesContainer}>
-                <Text style={styles.sourcesLabel}>Джерела:</Text>
+                <Text style={[styles.sourcesLabel, { color: colors.textPrimary }]}>Джерела:</Text>
                 <View style={styles.checkboxGrid}>
                   <TouchableOpacity 
                     style={styles.desktopCheckboxItem}
                     onPress={() => toggleSource('all')}
                   >
-                    <View style={styles.checkbox}>
+                    <View style={[styles.checkbox, { borderColor: colors.primary }]}>
                       {selectedSources.includes('all') && (
-                        <MaterialIcons name="check" size={18} color={Colors.primary} />
+                        <MaterialIcons name="check" size={18} color={colors.primary} />
                       )}
                     </View>
-                    <Text style={styles.checkboxLabel}>Всі сайти</Text>
+                    <Text style={[styles.checkboxLabel, { color: colors.textPrimary }]}>Всі сайти</Text>
                   </TouchableOpacity>
                   
                   {SOURCES.filter(s => s.id !== 'all').map((source) => (
@@ -143,26 +149,26 @@ export default function SearchScreen() {
                       style={styles.desktopCheckboxItem}
                       onPress={() => toggleSource(source.id)}
                     >
-                      <View style={styles.checkbox}>
+                      <View style={[styles.checkbox, { borderColor: colors.primary }]}>
                         {selectedSources.includes(source.id) && (
-                          <MaterialIcons name="check" size={18} color={Colors.primary} />
+                          <MaterialIcons name="check" size={18} color={colors.primary} />
                         )}
                       </View>
-                      <Text style={styles.checkboxLabel}>{source.label}</Text>
+                      <Text style={[styles.checkboxLabel, { color: colors.textPrimary }]}>{source.label}</Text>
                     </TouchableOpacity>
                   ))}
                 </View>
               </View>
             ) : null}
 
-            <View style={styles.inputWrapper} pointerEvents="box-none">
+            <View style={[styles.inputWrapper, { backgroundColor: colors.cardBackground, borderColor: colors.primary }]} pointerEvents="box-none">
               <TextInput
                 ref={inputRef}
                 value={query}
                 onChangeText={setQuery}
                 placeholder="Введіть запит..."
-                placeholderTextColor="#7f8c8d"
-                style={styles.input}
+                placeholderTextColor={colors.textMuted}
+                style={[styles.input, { color: colors.textPrimary }]}
                 editable={true}
                 autoCapitalize="none"
                 autoCorrect={false}
@@ -174,18 +180,18 @@ export default function SearchScreen() {
               {/* Mobile: Source selector */}
               {!isDesktop && (
                 <TouchableOpacity 
-                  style={styles.sourceSelector}
+                  style={[styles.sourceSelector, { borderLeftColor: colors.background }]}
                   onPress={() => setShowSourceModal(true)}
                 >
-                  <Text style={styles.sourceSelectorText} numberOfLines={1}>
+                  <Text style={[styles.sourceSelectorText, { color: colors.primary }]} numberOfLines={1}>
                     {getSelectedSourcesLabel()}
                   </Text>
-                  <MaterialIcons name="arrow-drop-down" size={24} color={Colors.primary} />
+                  <MaterialIcons name="arrow-drop-down" size={24} color={colors.primary} />
                 </TouchableOpacity>
               )}
             </View>
 
-            <TouchableOpacity style={styles.searchButton} onPress={handleSearch}>
+            <TouchableOpacity style={[styles.searchButton, { backgroundColor: colors.primary }]} onPress={handleSearch}>
               <MaterialIcons name="search" size={24} color="#fff" />
             </TouchableOpacity>
           </View>
@@ -198,44 +204,44 @@ export default function SearchScreen() {
               animationType="slide"
               onRequestClose={() => setShowSourceModal(false)}
             >
-              <View style={styles.modalOverlay}>
+              <View style={[styles.modalOverlay, { backgroundColor: colors.overlay }]}>
                 <TouchableOpacity 
                   style={styles.modalBackdrop} 
                   activeOpacity={1}
                   onPress={() => setShowSourceModal(false)}
                 />
-                <View style={styles.modalContent}>
-                  <View style={styles.modalHeader}>
-                    <Text style={styles.modalTitle}>Оберіть джерела</Text>
+                <View style={[styles.modalContent, { backgroundColor: colors.cardBackground }]}>
+                  <View style={[styles.modalHeader, { borderBottomColor: colors.background }]}>
+                    <Text style={[styles.modalTitle, { color: colors.textPrimary }]}>Оберіть джерела</Text>
                     <TouchableOpacity onPress={() => setShowSourceModal(false)}>
-                      <Text style={styles.modalDoneButton}>Готово</Text>
+                      <Text style={[styles.modalDoneButton, { color: colors.primary }]}>Готово</Text>
                     </TouchableOpacity>
                   </View>
                   <ScrollView style={styles.sourcesList}>
                     <TouchableOpacity 
-                      style={styles.sourceItem}
+                      style={[styles.sourceItem, { borderBottomColor: colors.background }]}
                       onPress={() => toggleSource('all')}
                     >
-                      <View style={styles.checkbox}>
+                      <View style={[styles.checkbox, { borderColor: colors.primary }]}>
                         {selectedSources.includes('all') && (
-                          <MaterialIcons name="check" size={20} color={Colors.primary} />
+                          <MaterialIcons name="check" size={20} color={colors.primary} />
                         )}
                       </View>
-                      <Text style={styles.sourceItemText}>Всі сайти</Text>
+                      <Text style={[styles.sourceItemText, { color: colors.textPrimary }]}>Всі сайти</Text>
                     </TouchableOpacity>
                     
                     {SOURCES.filter(s => s.id !== 'all').map((source) => (
                       <TouchableOpacity 
                         key={source.id}
-                        style={styles.sourceItem}
+                        style={[styles.sourceItem, { borderBottomColor: colors.background }]}
                         onPress={() => toggleSource(source.id)}
                       >
-                        <View style={styles.checkbox}>
+                        <View style={[styles.checkbox, { borderColor: colors.primary }]}>
                           {selectedSources.includes(source.id) && (
-                            <MaterialIcons name="check" size={20} color={Colors.primary} />
+                            <MaterialIcons name="check" size={20} color={colors.primary} />
                           )}
                         </View>
-                        <Text style={styles.sourceItemText}>{source.label}</Text>
+                        <Text style={[styles.sourceItemText, { color: colors.textPrimary }]}>{source.label}</Text>
                       </TouchableOpacity>
                     ))}
                   </ScrollView>
@@ -247,26 +253,26 @@ export default function SearchScreen() {
           <View style={styles.results}>
             {loading && (
               <View style={styles.loadingContainer}>
-                <ActivityIndicator size="large" color={Colors.primary} />
-                <Text style={styles.loadingText}>Шукаємо результати...</Text>
-                <Text style={styles.loadingSubtext}>
+                <ActivityIndicator size="large" color={colors.primary} />
+                <Text style={[styles.loadingText, { color: colors.primary }]}>Шукаємо результати...</Text>
+                <Text style={[styles.loadingSubtext, { color: colors.textMuted }]}>
                   Пошук на {selectedSources.includes('all') ? 'всіх сайтах' : `${selectedSources.length} сайт${selectedSources.length > 1 ? 'ах' : 'і'}`}
                 </Text>
               </View>
             )}
-            {error && <Text style={styles.errorText}>{error}</Text>}
+            {error && <Text style={[styles.errorText, { color: colors.error, backgroundColor: colors.cardBackground }]}>{error}</Text>}
             {!loading && !error && results.length === 0 && (
               <View style={styles.placeholderContainer}>
-                <MaterialIcons name="search" size={64} color="#34495e" />
-                <Text style={styles.placeholder}>Введіть запит і натисніть "Знайти"</Text>
-                <Text style={styles.placeholderSubtext}>
+                <MaterialIcons name="search" size={64} color={colors.textMuted} />
+                <Text style={[styles.placeholder, { color: colors.textSecondary }]}>Введіть запит і натисніть "Знайти"</Text>
+                <Text style={[styles.placeholderSubtext, { color: colors.textMuted }]}>
                   Пошук у офіційних джерелах бухгалтерської інформації
                 </Text>
               </View>
             )}
             {!loading && !error && results.length > 0 && (
               <View>
-                  <Text style={styles.resultsCount}>
+                  <Text style={[styles.resultsCount, { color: colors.textPrimary }]}>
                     Знайдено результатів: {results.length}
                   </Text>
                   {results.map((result, i) => (
@@ -291,7 +297,6 @@ export default function SearchScreen() {
 const styles = StyleSheet.create({
   container: { 
     flex: 1, 
-    backgroundColor: Colors.background 
   },
   scrollContent: {
     flexGrow: 1,
@@ -307,7 +312,6 @@ const styles = StyleSheet.create({
   },
   pageTitle: {
     ...Typography.h2,
-    color: Colors.textPrimary,
     marginBottom: Spacing.lg,
     marginTop: Spacing.md,
   },
@@ -320,7 +324,6 @@ const styles = StyleSheet.create({
   },
   sourcesLabel: {
     ...Typography.h4,
-    color: Colors.textPrimary,
     marginBottom: Spacing.sm,
   },
   checkboxGrid: {
@@ -336,16 +339,13 @@ const styles = StyleSheet.create({
   },
   checkboxLabel: {
     ...Typography.body,
-    color: Colors.textPrimary,
     fontSize: 15,
   },
   inputWrapper: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: Colors.cardBackground,
     borderRadius: BorderRadius.lg,
     borderWidth: 2,
-    borderColor: Colors.primary,
     overflow: 'hidden',
   },
   input: {
@@ -354,7 +354,6 @@ const styles = StyleSheet.create({
     paddingVertical: 14,
     fontSize: Typography.body.fontSize,
     fontFamily: Typography.body.fontFamily,
-    color: Colors.textPrimary,
     minHeight: 48,
     outlineStyle: 'none' as any,
   },
@@ -364,19 +363,16 @@ const styles = StyleSheet.create({
     paddingHorizontal: Spacing.sm,
     paddingVertical: 8,
     borderLeftWidth: 1,
-    borderLeftColor: Colors.background,
     minWidth: 100,
     maxWidth: 140,
   },
   sourceSelectorText: {
-    color: Colors.primary,
     fontSize: 14,
     fontFamily: Typography.body.fontFamily,
     fontWeight: '600',
     flex: 1,
   },
   searchButton: {
-    backgroundColor: Colors.primary,
     padding: 14,
     borderRadius: BorderRadius.lg,
     alignItems: 'center',
@@ -385,13 +381,11 @@ const styles = StyleSheet.create({
   modalOverlay: {
     flex: 1,
     justifyContent: 'flex-end',
-    backgroundColor: Colors.overlay,
   },
   modalBackdrop: {
     flex: 1,
   },
   modalContent: {
-    backgroundColor: Colors.cardBackground,
     borderTopLeftRadius: BorderRadius.xl,
     borderTopRightRadius: BorderRadius.xl,
     maxHeight: '70%',
@@ -403,14 +397,11 @@ const styles = StyleSheet.create({
     paddingHorizontal: Spacing.md,
     paddingVertical: Spacing.md,
     borderBottomWidth: 1,
-    borderBottomColor: Colors.background,
   },
   modalTitle: {
     ...Typography.h4,
-    color: Colors.textPrimary,
   },
   modalDoneButton: {
-    color: Colors.primary,
     fontSize: 16,
     fontFamily: Typography.body.fontFamily,
     fontWeight: '600',
@@ -424,21 +415,18 @@ const styles = StyleSheet.create({
     paddingHorizontal: Spacing.lg,
     paddingVertical: 14,
     borderBottomWidth: 1,
-    borderBottomColor: Colors.background,
   },
   checkbox: {
     width: 22,
     height: 22,
     borderRadius: 6,
     borderWidth: 2,
-    borderColor: Colors.primary,
     marginRight: Spacing.sm,
     alignItems: 'center',
     justifyContent: 'center',
   },
   sourceItemText: {
     ...Typography.body,
-    color: Colors.textPrimary,
     flex: 1,
   },
   results: { 
@@ -451,14 +439,12 @@ const styles = StyleSheet.create({
   },
   loadingText: {
     ...Typography.body,
-    color: Colors.primary,
     textAlign: 'center',
     marginTop: Spacing.md,
     fontWeight: '600',
   },
   loadingSubtext: {
     ...Typography.caption,
-    color: Colors.textMuted,
     textAlign: 'center',
     marginTop: Spacing.sm,
   },
@@ -470,32 +456,27 @@ const styles = StyleSheet.create({
   },
   placeholder: { 
     ...Typography.body,
-    color: Colors.textSecondary, 
     textAlign: 'center', 
     marginTop: Spacing.lg, 
     fontWeight: '600',
   },
   placeholderSubtext: {
     ...Typography.caption,
-    color: Colors.textMuted,
     textAlign: 'center',
     marginTop: Spacing.sm,
     lineHeight: 20,
   },
   resultsCount: {
     ...Typography.h4,
-    color: Colors.textPrimary,
     marginBottom: Spacing.md,
     paddingHorizontal: 4,
     lineHeight: 22,
   },
   errorText: {
     ...Typography.body,
-    color: Colors.error,
     textAlign: 'center',
     marginTop: Spacing.lg,
     padding: Spacing.lg,
-    backgroundColor: Colors.cardBackground,
     borderRadius: BorderRadius.md,
     lineHeight: 22,
   },

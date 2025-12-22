@@ -10,14 +10,15 @@ from email.mime.base import MIMEBase
 from email import encoders
 from datetime import datetime
 
+from app.core.config import settings
+
 router = APIRouter(prefix="/api/consultation", tags=["consultation"])
 
-# Email настройки (те же что и для активации)
-SMTP_SERVER = "smtp.gmail.com"
-SMTP_PORT = 587
-EMAIL_ADDRESS = "dmitrjialekseev16@gmail.com"
-EMAIL_PASSWORD = "maxrgkgeggjxysek"
-ADMIN_EMAIL = "dmitrjialekseev16@gmail.com"  # Email администратора для получения заявок
+# Email администраторов для получения заявок на консультацию
+ADMIN_EMAILS = [
+    "dmitrjialekseev16@gmail.com",  # Email администратора для получения заявок
+    "o.vishnyakovaf@gmail.com"       # Дополнительный email для бухгалтера
+]
 
 
 @router.post("/submit")
@@ -38,8 +39,8 @@ async def submit_consultation(
     try:
         # Создаем email сообщение
         msg = MIMEMultipart()
-        msg['From'] = EMAIL_ADDRESS
-        msg['To'] = ADMIN_EMAIL
+        msg['From'] = settings.SMTP_EMAIL
+        msg['To'] = ', '.join(ADMIN_EMAILS)  # Отправляем на все email адреса
         msg['Subject'] = f'Нова заявка на консультацію від {name}'
         
         # Формируем текст письма
@@ -89,9 +90,12 @@ Email для зв'язку: {email}
                 # Продолжаем даже если не удалось прикрепить файл
         
         # Отправляем email
-        server = smtplib.SMTP(SMTP_SERVER, SMTP_PORT)
-        server.starttls()
-        server.login(EMAIL_ADDRESS, EMAIL_PASSWORD)
+        if settings.SMTP_PORT == 465:
+            server = smtplib.SMTP_SSL(settings.SMTP_SERVER, settings.SMTP_PORT)
+        else:
+            server = smtplib.SMTP(settings.SMTP_SERVER, settings.SMTP_PORT)
+            server.starttls()
+        server.login(settings.SMTP_EMAIL, settings.SMTP_PASSWORD)
         server.send_message(msg)
         server.quit()
         

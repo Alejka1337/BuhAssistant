@@ -3,22 +3,8 @@ import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Platform } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
 import { ForumThreadListItem } from '../../utils/forumService';
-import { Colors, Typography, Spacing, BorderRadius } from '@/constants/Theme';
-
-// Inject CSS for smooth transitions
-if (Platform.OS === 'web' && typeof document !== 'undefined') {
-  const style = document.createElement('style');
-  style.innerHTML = `
-    .forum-thread-card {
-      cursor: pointer;
-      transition: background-color 0.2s ease;
-    }
-  `;
-  if (!document.getElementById('forum-thread-card-styles')) {
-    style.id = 'forum-thread-card-styles';
-    document.head.appendChild(style);
-  }
-}
+import { Typography, Spacing, BorderRadius } from '@/constants/Theme';
+import { useTheme } from '@/contexts/ThemeContext';
 
 interface ThreadCardProps {
   thread: ForumThreadListItem;
@@ -42,37 +28,45 @@ function formatDate(dateString: string): string {
 }
 
 export default function ThreadCard({ thread, onPress }: ThreadCardProps) {
+  const { theme, colors } = useTheme();
+  
+  const hoverBgColor = theme === 'dark' ? '#1e2126' : '#e9ecef';
+
   return (
     <TouchableOpacity
-      style={[styles.card, thread.is_pinned && styles.pinnedCard]}
+      style={[
+        styles.card, 
+        { backgroundColor: colors.cardBackground },
+        thread.is_pinned && [styles.pinnedCard, { borderColor: colors.primary }]
+      ]}
       onPress={() => onPress(thread.id)}
       activeOpacity={0.7}
       // @ts-ignore - className для веб
       className="forum-thread-card"
       // @ts-ignore - для веб hover
       onMouseEnter={(e: any) => {
-        e.currentTarget.style.backgroundColor = '#1e2126';
+        e.currentTarget.style.backgroundColor = hoverBgColor;
       }}
       onMouseLeave={(e: any) => {
-        e.currentTarget.style.backgroundColor = Colors.cardBackground;
+        e.currentTarget.style.backgroundColor = colors.cardBackground;
       }}
     >
       {/* Header с аватаром и статистикой */}
       <View style={styles.header}>
         <View style={styles.leftSection}>
           {/* Аватар пользователя */}
-          <View style={styles.avatar}>
-            <MaterialIcons name="person" size={28} color={Colors.primary} />
+          <View style={[styles.avatar, { backgroundColor: colors.background }]}>
+            <MaterialIcons name="person" size={28} color={colors.primary} />
           </View>
           
           <View style={styles.headerInfo}>
             {/* Имя пользователя */}
-            <Text style={styles.authorName} numberOfLines={1}>
+            <Text style={[styles.authorName, { color: colors.textPrimary }]} numberOfLines={1}>
               {thread.author?.full_name || 'Аноним'}
             </Text>
             
             {/* Дата */}
-            <Text style={styles.date}>
+            <Text style={[styles.date, { color: colors.textMuted }]}>
               {formatDate(thread.last_post_at || thread.created_at)}
             </Text>
           </View>
@@ -81,35 +75,35 @@ export default function ThreadCard({ thread, onPress }: ThreadCardProps) {
         {/* Статистика */}
         <View style={styles.stats}>
           <View style={styles.stat}>
-            <MaterialIcons name="visibility" size={16} color={Colors.primary} />
-            <Text style={styles.statText}>{thread.views}</Text>
+            <MaterialIcons name="visibility" size={16} color={colors.primary} />
+            <Text style={[styles.statText, { color: colors.primary }]}>{thread.views}</Text>
           </View>
           
           <View style={styles.stat}>
-            <MaterialIcons name="comment" size={16} color={Colors.primary} />
-            <Text style={styles.statText}>{thread.posts_count}</Text>
+            <MaterialIcons name="comment" size={16} color={colors.primary} />
+            <Text style={[styles.statText, { color: colors.primary }]}>{thread.posts_count}</Text>
           </View>
         </View>
       </View>
 
       {/* Заголовок топика */}
-      <Text style={styles.title} numberOfLines={2}>
+      <Text style={[styles.title, { color: colors.textPrimary }]} numberOfLines={2}>
         {thread.title}
       </Text>
 
       {/* Badges */}
       <View style={styles.badges}>
         {thread.is_pinned && (
-          <View style={styles.pinnedBadge}>
-            <MaterialIcons name="push-pin" size={12} color={Colors.primary} />
-            <Text style={styles.pinnedText}>Закріплено</Text>
+          <View style={[styles.pinnedBadge, { backgroundColor: colors.background }]}>
+            <MaterialIcons name="push-pin" size={12} color={colors.primary} />
+            <Text style={[styles.pinnedText, { color: colors.primary }]}>Закріплено</Text>
           </View>
         )}
         
         {thread.is_closed && (
-          <View style={styles.closedBadge}>
-            <MaterialIcons name="lock" size={12} color={Colors.error} />
-            <Text style={styles.closedText}>Закрито</Text>
+          <View style={[styles.closedBadge, { backgroundColor: colors.background }]}>
+            <MaterialIcons name="lock" size={12} color={colors.error} />
+            <Text style={[styles.closedText, { color: colors.error }]}>Закрито</Text>
           </View>
         )}
       </View>
@@ -119,11 +113,10 @@ export default function ThreadCard({ thread, onPress }: ThreadCardProps) {
 
 const styles = StyleSheet.create({
   card: {
-    backgroundColor: Colors.cardBackground,
     borderRadius: BorderRadius.md,
     padding: Spacing.md,
     marginBottom: Spacing.sm,
-    shadowColor: Colors.black,
+    shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 4,
@@ -131,7 +124,6 @@ const styles = StyleSheet.create({
   },
   pinnedCard: {
     borderWidth: 1,
-    borderColor: Colors.primary,
   },
   header: {
     flexDirection: 'row',
@@ -148,7 +140,6 @@ const styles = StyleSheet.create({
     width: 48,
     height: 48,
     borderRadius: 24,
-    backgroundColor: Colors.background,
     alignItems: 'center',
     justifyContent: 'center',
     marginRight: Spacing.sm,
@@ -159,12 +150,10 @@ const styles = StyleSheet.create({
   },
   authorName: {
     ...Typography.bodyBold,
-    color: Colors.textPrimary,
     marginBottom: 2,
   },
   date: {
     ...Typography.caption,
-    color: Colors.textMuted,
     fontSize: 11,
   },
   stats: {
@@ -179,14 +168,12 @@ const styles = StyleSheet.create({
   },
   statText: {
     ...Typography.caption,
-    color: Colors.primary,
     fontWeight: '600',
     fontSize: 13,
   },
   title: {
     ...Typography.body,
     fontSize: 16,
-    color: Colors.textPrimary,
     fontWeight: '600',
     lineHeight: 22,
     marginBottom: Spacing.sm,
@@ -201,13 +188,11 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingHorizontal: Spacing.xs,
     paddingVertical: 4,
-    backgroundColor: Colors.background,
     borderRadius: BorderRadius.sm,
     gap: 4,
   },
   pinnedText: {
     ...Typography.caption,
-    color: Colors.primary,
     fontWeight: '600',
     fontSize: 11,
   },
@@ -216,13 +201,11 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingHorizontal: Spacing.xs,
     paddingVertical: 4,
-    backgroundColor: Colors.background,
     borderRadius: BorderRadius.sm,
     gap: 4,
   },
   closedText: {
     ...Typography.caption,
-    color: Colors.error,
     fontWeight: '600',
     fontSize: 11,
   },

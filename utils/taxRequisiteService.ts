@@ -1,6 +1,38 @@
 import { API_ENDPOINTS, getHeaders } from '@/constants/api';
 import { authenticatedFetch } from './authService';
 
+/**
+ * Список територіальних громад, які не повинні відображатися на фронтенді
+ * (зайві/дублюючі записи по кожній області)
+ */
+export const EXCLUDED_DISTRICTS = [
+  'IВАНО-ФРАНКIВСЬКА ОБЛАСТЬ/ОБЛАСНИЙ',
+  'ВОЛИНСЬКА ОБЛАСТЬ',
+  'ВIННИЦЬКА ОБЛАСТЬ',
+  'ДНIПРОПЕТРОВСЬКА ОБЛАСТЬ',
+  'ДОНЕЦЬКА ОБЛАСТЬ/М.ДОНЕЦЬК',
+  'ЖИТОМИРСЬКА ОБЛАСТЬ/М.ЖИТОМИР',
+  'Закарпатська область',
+  'ЗАПОРIЗЬКА ОБЛАСТЬ/М.ЗАПОРIЖЖЯ',
+  'М.КИЇВ',
+  'КИЇВСЬКА ОБЛАСТЬ',
+  'Обласний бюджет Кіровоградської області',
+  'ЛУГАНСЬКА ОБЛАСТЬ/М.ЛУГАНСЬК',
+  'ЛЬВIВСЬКА ОБЛАСТЬ/М.ЛЬВIВ',
+  'МИКОЛАЇВСЬКА ОБЛАСТЬ/М.МИКОЛАЇВ',
+  'Одеська область',
+  'ПОЛТАВСЬКА ОБЛАСТЬ/М.ПОЛТАВА',
+  'РIВНЕНСЬКА ОБЛАСТЬ/М.РIВНЕ',
+  'СУМСЬКА ОБЛАСТЬ/М.СУМИ',
+  'ТЕРНОПIЛЬСЬКА ОБЛАСТЬ/М.ТЕРНОПIЛЬ',
+  'ХАРКIВСЬКА ОБЛАСТЬ/М.ХАРКIВ',
+  'ХЕРСОНСЬКА ОБЛАСТЬ/М.ХЕРСОН',
+  'ХМЕЛЬНИЦЬКА ОБЛАСТЬ/М.ХМЕЛЬНИЦЬКИЙ',
+  'ЧЕРКАСЬКА ОБЛАСТЬ',
+  'ЧЕРНIГIВСЬКА ОБЛАСТЬ/М.ЧЕРНIГIВ'
+
+];
+
 export interface TaxRequisite {
   id: number;
   region: string;
@@ -57,7 +89,17 @@ export const getRegionsWithDistricts = async (): Promise<Record<string, string[]
       throw new Error(`HTTP error! status: ${response.status}`);
     }
 
-    return await response.json();
+    const data = await response.json();
+    
+    // Фільтруємо виключені ТГ з кожного регіону
+    const filtered: Record<string, string[]> = {};
+    for (const [region, districts] of Object.entries(data)) {
+      filtered[region] = (districts as string[]).filter(
+        district => !EXCLUDED_DISTRICTS.includes(district)
+      );
+    }
+    
+    return filtered;
   } catch (error) {
     console.error('Error fetching regions with districts:', error);
     throw error;

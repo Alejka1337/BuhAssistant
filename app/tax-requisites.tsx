@@ -12,7 +12,7 @@ export default function TaxRequisitesScreen() {
           options={{
             title: 'Реквізити податкових органів',
             headerStyle: { backgroundColor: Colors.background },
-            headerTintColor: Colors.text,
+            headerTintColor: Colors.textPrimary,
           }} 
         />
         <View style={styles.container}>
@@ -41,7 +41,7 @@ const styles = StyleSheet.create({
   },
   message: {
     fontSize: 18,
-    color: Colors.text,
+    color: Colors.textPrimary,
     textAlign: 'center',
     marginBottom: 10,
   },

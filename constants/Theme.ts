@@ -5,7 +5,8 @@
 
 // ==================== ЦВЕТА ====================
 
-export const Colors = {
+// Темная тема (по умолчанию)
+export const DarkColors = {
   // Основные цвета бренда
   primary: '#282',           // Темно-зелёный (акцентный)
   primaryDark: '#228822',    // То же самое (полная форма)
@@ -13,7 +14,7 @@ export const Colors = {
   
   // Фоны
   background: '#1a1d21',     // Основной темный фон
-  cardBackground: '#22262c', // Фон карточек (как в "Найближчі звіти")
+  cardBackground: '#22262c', // Фон карточек
   modalBackground: '#2c3e50', // Фон модальных окон
   
   // Текст
@@ -22,9 +23,9 @@ export const Colors = {
   textMuted: '#95a5a6',      // Приглушенный текст
   
   // Header
-  headerBackground: '#1a1d21', // Темный header
-  headerText: '#ecf0f1',       // Текст в header
-  headerTint: '#282',          // Иконки в header
+  headerBackground: '#1a1d21',
+  headerText: '#ecf0f1',
+  headerTint: '#282',
   
   // Borders
   borderColor: '#34495e',
@@ -48,6 +49,54 @@ export const Colors = {
   black: '#000000',
   orange: '#FF6900',
 };
+
+// Светлая тема
+export const LightColors = {
+  // Основные цвета бренда (зеленый остается)
+  primary: '#282',
+  primaryDark: '#228822',
+  primaryLight: '#33aa33',
+  
+  // Фоны
+  background: '#ffffff',        // Белый фон
+  cardBackground: '#f8f9fa',    // Светло-серый для карточек
+  modalBackground: '#ffffff',   // Белый для модалок
+  
+  // Текст
+  textPrimary: '#212529',       // Темный текст
+  textSecondary: '#495057',     // Серый текст
+  textMuted: '#6c757d',         // Приглушенный серый
+  
+  // Header
+  headerBackground: '#ffffff',
+  headerText: '#212529',
+  headerTint: '#282',
+  
+  // Borders
+  borderColor: '#dee2e6',
+  borderLight: '#e9ecef',
+  
+  // Status colors
+  success: '#282',
+  error: '#dc3545',
+  warning: '#ffc107',
+  info: '#0dcaf0',
+  
+  // Tab bar
+  tabBarBackground: '#ffffff',
+  tabBarActive: '#282',
+  tabBarInactive: '#6c757d',
+  
+  // Дополнительные цвета для UI
+  disabled: '#adb5bd',
+  overlay: 'rgba(0, 0, 0, 0.5)',
+  white: '#ffffff',
+  black: '#000000',
+  orange: '#FF6900',
+};
+
+// Экспорт по умолчанию (темная тема для обратной совместимости)
+export const Colors = DarkColors;
 
 // ==================== ТИПОГРАФИКА ====================
 

@@ -3,7 +3,7 @@ import { TouchableOpacity, Platform, ViewStyle } from 'react-native';
 
 interface HoverCardProps {
   children: React.ReactNode;
-  style?: ViewStyle | ViewStyle[];
+  style?: ViewStyle | (ViewStyle | false | undefined)[];
   hoverStyle?: ViewStyle;
   onPress?: () => void;
 }

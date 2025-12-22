@@ -1,5 +1,8 @@
 import { ScrollViewStyleReset } from 'expo-router/html';
 
+// Google Analytics Measurement ID
+const GA_MEASUREMENT_ID = 'G-CWCC5Q1SQ2';
+
 // This file is web-only and used to configure the root HTML for every
 // web page during static rendering.
 // The contents of this function only run in Node.js environments and
@@ -11,6 +14,22 @@ export default function Root({ children }: { children: React.ReactNode }) {
         <meta charSet="utf-8" />
         <meta httpEquiv="X-UA-Compatible" content="IE=edge" />
         <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no" />
+
+        {/* Google Analytics (gtag.js) */}
+        <script
+          async
+          src={`https://www.googletagmanager.com/gtag/js?id=${GA_MEASUREMENT_ID}`}
+        />
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `
+              window.dataLayer = window.dataLayer || [];
+              function gtag(){dataLayer.push(arguments);}
+              gtag('js', new Date());
+              gtag('config', '${GA_MEASUREMENT_ID}');
+            `,
+          }}
+        />
 
         {/* SEO Meta Tags */}
         <title>eGlavBuh - Бухгалтерський помічник для ФОП та бухгалтерів</title>

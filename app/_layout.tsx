@@ -1,7 +1,7 @@
 import FontAwesome from '@expo/vector-icons/FontAwesome';
 import { DarkTheme, DefaultTheme, ThemeProvider } from '@react-navigation/native';
 import { useFonts } from 'expo-font';
-import { Stack } from 'expo-router';
+import { Stack, usePathname } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
 import { useEffect } from 'react';
 import { Platform } from 'react-native';
@@ -9,8 +9,12 @@ import 'react-native-reanimated';
 
 import { useColorScheme } from '@/components/useColorScheme';
 import { AuthProvider } from '../contexts/AuthContext';
+import { ThemeProvider as CustomThemeProvider } from '../contexts/ThemeContext';
 import NotificationHandler from '../components/NotificationHandler';
 import { initializePushNotifications, setupNotificationHandlers } from '../utils/pushService';
+
+// Google Analytics Measurement ID
+const GA_MEASUREMENT_ID = 'G-CWCC5Q1SQ2';
 
 export {
   // Catch any errors thrown by the Layout component.
@@ -77,15 +81,27 @@ export default function RootLayout() {
   }
 
   return (
-    <AuthProvider>
-      <NotificationHandler />
-      <RootLayoutNav />
-    </AuthProvider>
+    <CustomThemeProvider>
+      <AuthProvider>
+        <NotificationHandler />
+        <RootLayoutNav />
+      </AuthProvider>
+    </CustomThemeProvider>
   );
 }
 
 function RootLayoutNav() {
   const colorScheme = useColorScheme();
+  const pathname = usePathname();
+
+  // Google Analytics - отслеживание переходов между страницами
+  useEffect(() => {
+    if (Platform.OS === 'web' && typeof window !== 'undefined' && (window as any).gtag) {
+      (window as any).gtag('config', GA_MEASUREMENT_ID, {
+        page_path: pathname,
+      });
+    }
+  }, [pathname]);
 
   return (
     <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>

@@ -3,6 +3,8 @@ import { View, Text, ScrollView, TouchableOpacity, StyleSheet, Dimensions, Platf
 import { MaterialIcons } from '@expo/vector-icons';
 import { Stack } from 'expo-router';
 import { Colors, Fonts, Spacing } from '../constants/Theme';
+import { useSEO } from '../hooks/useSEO';
+import { PAGE_METAS } from '../utils/seo';
 
 // Тип для секций
 interface Section {
@@ -33,6 +35,8 @@ const sections: Section[] = [
 ];
 
 export default function TermsOfService() {
+  useSEO(PAGE_METAS.termsOfService);
+  
   const [isMobile, setIsMobile] = useState(false);
   const [activeSection, setActiveSection] = useState('intro');
 

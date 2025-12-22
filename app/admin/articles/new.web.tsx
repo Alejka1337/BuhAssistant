@@ -13,7 +13,8 @@ import {
 } from 'react-native';
 import { Stack, useRouter, useLocalSearchParams } from 'expo-router';
 import { MaterialIcons } from '@expo/vector-icons';
-import { Colors, Typography, Spacing, BorderRadius } from '@/constants/Theme';
+import { Typography, Spacing, BorderRadius } from '@/constants/Theme';
+import { useTheme } from '@/contexts/ThemeContext';
 import { useResponsive } from '@/utils/responsive';
 import PageWrapper from '@/components/web/PageWrapper';
 import MobileMenu, { MobileMenuWrapper } from '@/components/web/MobileMenu';
@@ -30,6 +31,7 @@ import { SuccessModal } from '@/components/SuccessModal';
 import { ImageUpload } from '@/components/ImageUpload';
 
 export default function NewArticleScreen() {
+  const { colors } = useTheme();
   const router = useRouter();
   const { slug } = useLocalSearchParams<{ slug?: string }>();
   const { isMobile, isDesktop } = useResponsive();
@@ -227,7 +229,7 @@ export default function NewArticleScreen() {
           style={styles.backButton}
           onPress={() => router.back()}
         >
-          <MaterialIcons name="arrow-back" size={24} color={Colors.primary} />
+          <MaterialIcons name="arrow-back" size={24} color={colors.primary} />
         </TouchableOpacity>
         <Text style={styles.title}>
           {isEditMode ? 'Редагувати статтю' : 'Нова стаття'}
@@ -236,74 +238,74 @@ export default function NewArticleScreen() {
 
       {loadingArticle ? (
         <View style={styles.loadingContainer}>
-          <ActivityIndicator size="large" color={Colors.primary} />
+          <ActivityIndicator size="large" color={colors.primary} />
         </View>
       ) : (
         <>
           {/* Title */}
           <View style={styles.field}>
-            <Text style={styles.label}>Заголовок *</Text>
+            <Text style={[styles.label, { color: colors.textPrimary }]}>Заголовок *</Text>
             <TextInput
-              style={styles.input}
+              style={[styles.input, { backgroundColor: colors.cardBackground, color: colors.textPrimary, borderColor: colors.borderColor }]}
               value={title}
               onChangeText={setTitle}
               placeholder="Введіть заголовок статті..."
-              placeholderTextColor={Colors.textMuted}
+              placeholderTextColor={colors.textMuted}
               maxLength={255}
             />
-            <Text style={styles.hint}>{title.length}/255</Text>
+            <Text style={[styles.hint, { color: colors.textMuted }]}>{title.length}/255</Text>
           </View>
 
           {/* Excerpt */}
           <View style={styles.field}>
-            <Text style={styles.label}>Короткий опис (опціонально)</Text>
+            <Text style={[styles.label, { color: colors.textPrimary }]}>Короткий опис (опціонально)</Text>
             <TextInput
               style={[styles.input, styles.textArea]}
               value={excerpt}
               onChangeText={setExcerpt}
               placeholder="Короткий опис для списку статей..."
-              placeholderTextColor={Colors.textMuted}
+              placeholderTextColor={colors.textMuted}
               multiline
               numberOfLines={3}
               maxLength={500}
             />
-            <Text style={styles.hint}>{excerpt.length}/500</Text>
+            <Text style={[styles.hint, { color: colors.textMuted }]}>{excerpt.length}/500</Text>
           </View>
 
           {/* SEO Section */}
           <View style={styles.seoSection}>
-            <Text style={styles.sectionTitle}>🔍 SEO налаштування</Text>
+            <Text style={[styles.sectionTitle, { color: colors.primary }]}>🔍 SEO налаштування</Text>
             
             {/* Meta Title */}
             <View style={styles.field}>
-              <Text style={styles.label}>SEO Title (опціонально)</Text>
+              <Text style={[styles.label, { color: colors.textPrimary }]}>SEO Title (опціонально)</Text>
               <TextInput
                 style={styles.input}
                 value={metaTitle}
                 onChangeText={setMetaTitle}
                 placeholder="Якщо не вказано, використовується заголовок статті"
-                placeholderTextColor={Colors.textMuted}
+                placeholderTextColor={colors.textMuted}
                 maxLength={255}
               />
-              <Text style={styles.hint}>
+              <Text style={[styles.hint, { color: colors.textMuted }]}>
                 {metaTitle.length > 0 ? `${metaTitle.length}/255` : 'За замовчуванням: заголовок статті'}
               </Text>
             </View>
 
             {/* Meta Description */}
             <View style={styles.field}>
-              <Text style={styles.label}>SEO Description (опціонально)</Text>
+              <Text style={[styles.label, { color: colors.textPrimary }]}>SEO Description (опціонально)</Text>
               <TextInput
                 style={[styles.input, styles.textArea]}
                 value={metaDescription}
                 onChangeText={setMetaDescription}
                 placeholder="Короткий опис для пошукових систем (Google, Bing)..."
-                placeholderTextColor={Colors.textMuted}
+                placeholderTextColor={colors.textMuted}
                 multiline
                 numberOfLines={3}
                 maxLength={500}
               />
-              <Text style={styles.hint}>{metaDescription.length}/500</Text>
+              <Text style={[styles.hint, { color: colors.textMuted }]}>{metaDescription.length}/500</Text>
             </View>
           </View>
 
@@ -318,7 +320,7 @@ export default function NewArticleScreen() {
           {/* HTML Editor Toolbar */}
           <View style={styles.field}>
             <View style={styles.editorHeader}>
-              <Text style={styles.label}>Зміст (HTML) *</Text>
+              <Text style={[styles.label, { color: colors.textPrimary }]}>Зміст (HTML) *</Text>
               <View style={styles.editorActions}>
                 {/* Кнопка загрузки изображения */}
                 <TouchableOpacity
@@ -327,10 +329,10 @@ export default function NewArticleScreen() {
                   disabled={uploadingContentImage}
                 >
                   {uploadingContentImage ? (
-                    <ActivityIndicator size="small" color={Colors.primary} />
+                    <ActivityIndicator size="small" color={colors.primary} />
                   ) : (
                     <>
-                      <MaterialIcons name="image" size={20} color={Colors.primary} />
+                      <MaterialIcons name="image" size={20} color={colors.primary} />
                       <Text style={styles.uploadImageButtonText}>Додати зображення</Text>
                     </>
                   )}
@@ -344,7 +346,7 @@ export default function NewArticleScreen() {
                   <MaterialIcons
                     name={showPreview ? 'edit' : 'visibility'}
                     size={20}
-                    color={Colors.primary}
+                    color={colors.primary}
                   />
                   <Text style={styles.previewButtonText}>
                     {showPreview ? 'Редагувати' : 'Попередній перегляд'}
@@ -416,7 +418,7 @@ export default function NewArticleScreen() {
                   value={content}
                   onChangeText={setContent}
                   placeholder="<p>Введіть зміст статті у форматі HTML...</p>"
-                  placeholderTextColor={Colors.textMuted}
+                  placeholderTextColor={colors.textMuted}
                   multiline
                 />
               </>
@@ -426,7 +428,7 @@ export default function NewArticleScreen() {
               <View style={styles.preview}>
                 <div
                   style={{
-                    color: Colors.textPrimary,
+                    // color: dynamic,
                     fontSize: 16,
                     lineHeight: 1.8,
                     padding: Spacing.md,
@@ -436,14 +438,14 @@ export default function NewArticleScreen() {
               </View>
             )}
 
-            <Text style={styles.hint}>{content.length} символів</Text>
+            <Text style={[styles.hint, { color: colors.textMuted }]}>{content.length} символів</Text>
           </View>
 
           {/* Publish Toggle */}
           <View style={styles.field}>
             <View style={styles.switchRow}>
               <View>
-                <Text style={styles.label}>Опублікувати статтю</Text>
+                <Text style={[styles.label, { color: colors.textPrimary }]}>Опублікувати статтю</Text>
                 <Text style={styles.switchHint}>
                   {isPublished
                     ? 'Стаття буде видима всім користувачам'
@@ -453,8 +455,8 @@ export default function NewArticleScreen() {
               <Switch
                 value={isPublished}
                 onValueChange={setIsPublished}
-                trackColor={{ false: Colors.borderColor, true: Colors.primaryLight }}
-                thumbColor={isPublished ? Colors.primary : Colors.textMuted}
+                trackColor={{ false: colors.borderColor, true: colors.primaryLight }}
+                thumbColor={isPublished ? colors.primary : colors.textMuted}
               />
             </View>
           </View>
@@ -462,13 +464,13 @@ export default function NewArticleScreen() {
           {/* Buttons */}
           <View style={styles.buttons}>
             <TouchableOpacity
-              style={styles.cancelButton}
+              style={[styles.cancelButton, { borderColor: colors.borderColor }]}
               onPress={() => router.back()}
             >
-              <Text style={styles.cancelButtonText}>Скасувати</Text>
+              <Text style={[styles.cancelButtonText, { color: colors.textPrimary }]}>Скасувати</Text>
             </TouchableOpacity>
             <TouchableOpacity
-              style={[styles.submitButton, loading && styles.submitButtonDisabled]}
+              style={[styles.submitButton, { backgroundColor: colors.primary }, loading && styles.submitButtonDisabled]}
               onPress={handleSubmit}
               disabled={loading}
             >
@@ -496,7 +498,7 @@ export default function NewArticleScreen() {
         <Stack.Screen options={{ headerShown: false }} />
         <MobileMenu title={isEditMode ? 'Редагувати' : 'Нова стаття'} />
         <MobileMenuWrapper>
-          <ScrollView style={styles.container}>
+          <ScrollView style={[styles.container, { backgroundColor: colors.background }]}>
             {renderEditor()}
           </ScrollView>
         </MobileMenuWrapper>
@@ -526,7 +528,7 @@ export default function NewArticleScreen() {
   return (
     <PageWrapper showMobileNav={false}>
       <Stack.Screen options={{ headerShown: false }} />
-      <ScrollView style={styles.container}>
+      <ScrollView style={[styles.container, { backgroundColor: colors.background }]}>
         {renderEditor()}
       </ScrollView>
       
@@ -554,7 +556,7 @@ export default function NewArticleScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: Colors.background,
+    // backgroundColor: dynamic,
   },
   content: {
     padding: Spacing.md,
@@ -580,37 +582,37 @@ const styles = StyleSheet.create({
   },
   title: {
     ...Typography.h1,
-    color: Colors.textPrimary,
+    // color: dynamic,
   },
   field: {
     marginBottom: Spacing.lg,
   },
   seoSection: {
-    backgroundColor: Colors.cardBackground,
+    // backgroundColor: dynamic,
     padding: Spacing.md,
     borderRadius: BorderRadius.lg,
     marginBottom: Spacing.lg,
     borderLeftWidth: 4,
-    borderLeftColor: Colors.primary,
+    // borderLeftColor: dynamic,
   },
   sectionTitle: {
     ...Typography.h3,
-    color: Colors.textPrimary,
+    // color: dynamic,
     marginBottom: Spacing.md,
   },
   label: {
     ...Typography.bodyBold,
-    color: Colors.textPrimary,
+    // color: dynamic,
     marginBottom: Spacing.sm,
   },
   input: {
-    backgroundColor: Colors.cardBackground,
+    // backgroundColor: dynamic,
     borderRadius: BorderRadius.md,
     padding: Spacing.md,
     ...Typography.body,
-    color: Colors.textPrimary,
+    // color: dynamic,
     borderWidth: 2,
-    borderColor: Colors.primary,
+    // borderColor: dynamic,
     ...Platform.select({
       web: {
         outline: 'none',
@@ -628,7 +630,7 @@ const styles = StyleSheet.create({
   },
   hint: {
     ...Typography.caption,
-    color: Colors.textMuted,
+    // color: dynamic,
     textAlign: 'right',
     marginTop: 4,
   },
@@ -650,16 +652,16 @@ const styles = StyleSheet.create({
     paddingVertical: Spacing.xs,
     paddingHorizontal: Spacing.sm,
     borderRadius: BorderRadius.md,
-    backgroundColor: Colors.primaryLight,
+    // backgroundColor: dynamic,
     borderWidth: 1,
-    borderColor: Colors.primary,
+    // borderColor: dynamic,
   },
   uploadImageButtonDisabled: {
     opacity: 0.5,
   },
   uploadImageButtonText: {
     ...Typography.caption,
-    color: Colors.primary,
+    // color: dynamic,
     fontWeight: '600',
   },
   previewButton: {
@@ -671,7 +673,7 @@ const styles = StyleSheet.create({
   },
   previewButtonText: {
     ...Typography.caption,
-    color: Colors.primary,
+    // color: dynamic,
     fontWeight: '600',
   },
   toolbar: {
@@ -681,40 +683,40 @@ const styles = StyleSheet.create({
     marginBottom: Spacing.sm,
     paddingVertical: Spacing.sm,
     paddingHorizontal: Spacing.md,
-    backgroundColor: Colors.cardBackground,
+    // backgroundColor: dynamic,
     borderRadius: BorderRadius.md,
   },
   toolbarButton: {
     paddingVertical: Spacing.xs,
     paddingHorizontal: Spacing.sm,
-    backgroundColor: Colors.background,
+    // backgroundColor: dynamic,
     borderRadius: BorderRadius.sm,
     borderWidth: 1,
-    borderColor: Colors.borderColor,
+    // borderColor: dynamic,
   },
   toolbarButtonText: {
     ...Typography.caption,
-    color: Colors.textPrimary,
+    // color: dynamic,
     fontWeight: '600',
   },
   preview: {
-    backgroundColor: Colors.cardBackground,
+    // backgroundColor: dynamic,
     borderRadius: BorderRadius.md,
     minHeight: 400,
     borderWidth: 2,
-    borderColor: Colors.primary,
+    // borderColor: dynamic,
   },
   switchRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    backgroundColor: Colors.cardBackground,
+    // backgroundColor: dynamic,
     padding: Spacing.md,
     borderRadius: BorderRadius.md,
   },
   switchHint: {
     ...Typography.caption,
-    color: Colors.textSecondary,
+    // color: dynamic,
     marginTop: 4,
   },
   buttons: {
@@ -727,12 +729,12 @@ const styles = StyleSheet.create({
     paddingVertical: Spacing.md,
     borderRadius: BorderRadius.md,
     borderWidth: 2,
-    borderColor: Colors.primary,
+    // borderColor: dynamic,
     alignItems: 'center',
   },
   cancelButtonText: {
     ...Typography.bodyBold,
-    color: Colors.primary,
+    // color: dynamic,
   },
   submitButton: {
     flex: 1,
@@ -742,7 +744,7 @@ const styles = StyleSheet.create({
     gap: Spacing.xs,
     paddingVertical: Spacing.md,
     borderRadius: BorderRadius.md,
-    backgroundColor: Colors.primary,
+    // backgroundColor: dynamic,
   },
   submitButtonDisabled: {
     opacity: 0.6,

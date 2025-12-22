@@ -14,30 +14,14 @@ import {
 } from 'react-native';
 import { Stack, useLocalSearchParams, useRouter } from 'expo-router';
 import { MaterialIcons } from '@expo/vector-icons';
-import { Colors, Typography, Spacing, BorderRadius } from '@/constants/Theme';
+import { Typography, Spacing, BorderRadius } from '@/constants/Theme';
+import { useTheme } from '@/contexts/ThemeContext';
 import { useAuth } from '@/contexts/AuthContext';
 import { useResponsive } from '@/utils/responsive';
 import PageWrapper from '@/components/web/PageWrapper';
 import MobileMenu, { MobileMenuWrapper } from '@/components/web/MobileMenu';
 
-// Inject CSS for smooth transitions and cursor
-if (Platform.OS === 'web' && typeof document !== 'undefined') {
-  const existingStyle = document.getElementById('thread-login-prompt-styles');
-  if (!existingStyle) {
-    const style = document.createElement('style');
-    style.id = 'thread-login-prompt-styles';
-    style.innerHTML = `
-      .login-prompt-button {
-        cursor: pointer !important;
-        transition: background-color 0.2s ease !important;
-      }
-      .login-prompt-button:hover {
-        background-color: #2d2 !important;
-      }
-    `;
-    document.head.appendChild(style);
-  }
-}
+// CSS injection will be done inside component with dynamic colors
 import {
   getThreadById,
   createPost,
@@ -68,6 +52,7 @@ function formatTimeAgo(dateString: string): string {
 }
 
 export default function ThreadDetailScreen() {
+  const { colors } = useTheme();
   const { id } = useLocalSearchParams<{ id: string }>();
   const router = useRouter();
   const { user } = useAuth();
@@ -96,6 +81,8 @@ export default function ThreadDetailScreen() {
       loadThread();
     }
   }, [id]);
+
+  // CSS styling removed - using inline styles instead to avoid CSSStyleDeclaration errors
 
   const loadThread = async () => {
     try {
@@ -230,22 +217,22 @@ export default function ThreadDetailScreen() {
 
   if (loading) {
     return (
-      <View style={styles.container}>
+      <View style={[styles.container, { backgroundColor: colors.background }]}>
         {Platform.OS !== 'web' && (
           <Stack.Screen
             options={{
               title: 'Завантаження...',
-              headerStyle: { backgroundColor: Colors.cardBackground },
-              headerTintColor: Colors.primary,
+              headerStyle: { backgroundColor: colors.cardBackground },
+              headerTintColor: colors.primary,
               headerTitleStyle: {
                 ...Typography.h4,
-                color: Colors.textPrimary,
+                // color: dynamic,
               },
             }}
           />
         )}
         <View style={styles.loadingContainer}>
-          <ActivityIndicator size="large" color={Colors.primary} />
+          <ActivityIndicator size="large" color={colors.primary} />
         </View>
       </View>
     );
@@ -253,16 +240,16 @@ export default function ThreadDetailScreen() {
 
   if (!thread) {
     return (
-      <View style={styles.container}>
+      <View style={[styles.container, { backgroundColor: colors.background }]}>
         {Platform.OS !== 'web' && (
           <Stack.Screen
             options={{
               title: 'Помилка',
-              headerStyle: { backgroundColor: Colors.cardBackground },
-              headerTintColor: Colors.primary,
+              headerStyle: { backgroundColor: colors.cardBackground },
+              headerTintColor: colors.primary,
               headerTitleStyle: {
                 ...Typography.h4,
-                color: Colors.textPrimary,
+                // color: dynamic,
               },
             }}
           />
@@ -280,7 +267,7 @@ export default function ThreadDetailScreen() {
       <View style={{ flex: 1 }}>
         <MobileMenu title={thread.title} />
         <MobileMenuWrapper>
-          <View style={styles.container}>
+          <View style={[styles.container, { backgroundColor: colors.background }]}>
             <Stack.Screen
               options={{
                 headerShown: false,
@@ -295,16 +282,16 @@ export default function ThreadDetailScreen() {
                 <RefreshControl
                   refreshing={refreshing}
                   onRefresh={onRefresh}
-                  tintColor={Colors.primary}
+                  tintColor={colors.primary}
                 />
               }
             >
               {/* Топик */}
-              <View style={styles.threadContainer}>
+              <View style={[styles.threadContainer, { backgroundColor: colors.cardBackground }]}>
                 {thread.is_pinned && (
                   <View style={styles.pinnedBadge}>
-                    <MaterialIcons name="push-pin" size={16} color={Colors.primary} />
-                    <Text style={styles.pinnedText}>Закріплено</Text>
+                    <MaterialIcons name="push-pin" size={16} color={colors.primary} />
+                    <Text style={[styles.pinnedText, { color: colors.primary }]}>Закріплено</Text>
                   </View>
                 )}
 
@@ -312,29 +299,29 @@ export default function ThreadDetailScreen() {
 
                 <View style={styles.meta}>
                   <View style={styles.author}>
-                    <MaterialIcons name="person" size={24} color={Colors.primary} />
-                    <Text style={styles.authorText}>{thread.author?.full_name || 'Аноним'}</Text>
+                    <MaterialIcons name="person" size={24} color={colors.primary} />
+                    <Text style={[styles.authorText, { color: colors.textPrimary }]}>{thread.author?.full_name || 'Аноним'}</Text>
                   </View>
 
                   <View style={styles.stats}>
                     <View style={styles.stat}>
-                      <MaterialIcons name="visibility" size={18} color={Colors.primary} />
-                      <Text style={styles.statText}>{thread.views}</Text>
+                      <MaterialIcons name="visibility" size={18} color={colors.primary} />
+                      <Text style={[styles.statText, { color: colors.primary }]}>{thread.views}</Text>
                     </View>
                     
                     <View style={styles.stat}>
-                      <MaterialIcons name="access-time" size={18} color={Colors.primary} />
-                      <Text style={styles.timeAgo}>{formatTimeAgo(thread.created_at)}</Text>
+                      <MaterialIcons name="access-time" size={18} color={colors.primary} />
+                      <Text style={[styles.timeAgo, { color: colors.primary }]}>{formatTimeAgo(thread.created_at)}</Text>
                     </View>
                   </View>
                 </View>
 
-                <Text style={styles.threadContent}>{thread.content}</Text>
+                <Text style={[styles.threadContent, { color: colors.textPrimary }]}>{thread.content}</Text>
 
                 {thread.is_closed && (
-                  <View style={styles.closedBadge}>
-                    <MaterialIcons name="lock" size={16} color={Colors.error} />
-                    <Text style={styles.closedText}>Топік закрито для коментарів</Text>
+                  <View style={[styles.closedBadge, { backgroundColor: colors.background }]}>
+                    <MaterialIcons name="lock" size={16} color={colors.error} />
+                    <Text style={[styles.closedText, { color: colors.error }]}>Топік закрито для коментарів</Text>
                   </View>
                 )}
               </View>
@@ -342,7 +329,7 @@ export default function ThreadDetailScreen() {
               {/* Комментарии */}
               {thread.posts && thread.posts.length > 0 && (
                 <View style={styles.commentsSection}>
-                  <Text style={styles.commentsTitle}>
+                  <Text style={[styles.commentsTitle, { color: colors.textPrimary }]}>
                     Коментарі ({thread.posts_count})
                   </Text>
                   
@@ -368,36 +355,36 @@ export default function ThreadDetailScreen() {
 
               {/* Форма комментария */}
               {user && !thread.is_closed ? (
-                <View style={styles.commentForm}>
-                  <View style={styles.inputContainer}>
+                <View style={[styles.commentForm, { backgroundColor: colors.cardBackground }]}>
+                  <View style={[styles.inputContainer, { backgroundColor: colors.cardBackground }]}>
                     <TextInput
-                      style={styles.input}
+                      style={[styles.input, { color: colors.textPrimary }]}
                       placeholder="Напишіть коментар..."
-                      placeholderTextColor={Colors.textMuted}
+                      placeholderTextColor={colors.textMuted}
                       value={newComment}
                       onChangeText={setNewComment}
                       multiline
                     />
 
                     <TouchableOpacity
-                      style={[styles.sendButton, commenting && styles.sendButtonDisabled]}
+                      style={[styles.sendButton, { backgroundColor: colors.primary }, commenting && styles.sendButtonDisabled]}
                       onPress={handleSubmitComment}
                       disabled={commenting || !newComment.trim()}
                     >
                       {commenting ? (
-                        <ActivityIndicator color={Colors.white} size="small" />
+                        <ActivityIndicator color="#ffffff" size="small" />
                       ) : (
-                        <MaterialIcons name="send" size={20} color={Colors.white} />
+                        <MaterialIcons name="send" size={20} color="#ffffff" />
                       )}
                     </TouchableOpacity>
                   </View>
                 </View>
               ) : !user ? (
                 <TouchableOpacity
-                  style={styles.loginPrompt}
+                  style={[styles.loginPrompt, { backgroundColor: colors.cardBackground }]}
                   onPress={() => router.push('/login')}
                 >
-                  <Text style={styles.loginText}>
+                  <Text style={[styles.loginText, { color: colors.primary }]}>
                     Увійдіть, щоб залишити коментар
                   </Text>
                 </TouchableOpacity>
@@ -422,7 +409,7 @@ export default function ThreadDetailScreen() {
   // Для Desktop Web - используем PageWrapper
   return (
     <PageWrapper showMobileNav={false}>
-      <View style={styles.container}>
+      <View style={[styles.container, { backgroundColor: colors.background }]}>
         <Stack.Screen
           options={{
             headerShown: false,
@@ -440,25 +427,25 @@ export default function ThreadDetailScreen() {
           <RefreshControl
             refreshing={refreshing}
             onRefresh={onRefresh}
-            tintColor={Colors.primary}
+            tintColor={colors.primary}
           />
         }
       >
         {/* Desktop Header */}
         {isDesktop && (
           <View style={styles.desktopHeader}>
-            <Text style={styles.desktopHeaderTitle} numberOfLines={1}>
+            <Text style={[styles.desktopHeaderTitle, { color: colors.textPrimary }]} numberOfLines={1}>
               {thread.title}
             </Text>
           </View>
         )}
 
         {/* Топик */}
-        <View style={[styles.threadContainer, isDesktop && styles.threadContainerDesktop]}>
+        <View style={[styles.threadContainer, { backgroundColor: colors.cardBackground }, isDesktop && styles.threadContainerDesktop]}>
           {thread.is_pinned && (
             <View style={styles.pinnedBadge}>
-              <MaterialIcons name="push-pin" size={16} color={Colors.primary} />
-              <Text style={styles.pinnedText}>Закріплено</Text>
+              <MaterialIcons name="push-pin" size={16} color={colors.primary} />
+              <Text style={[styles.pinnedText, { color: colors.primary }]}>Закріплено</Text>
             </View>
           )}
 
@@ -466,29 +453,29 @@ export default function ThreadDetailScreen() {
 
           <View style={styles.meta}>
             <View style={styles.author}>
-              <MaterialIcons name="person" size={24} color={Colors.primary} />
-              <Text style={styles.authorText}>{thread.author?.full_name || 'Аноним'}</Text>
+              <MaterialIcons name="person" size={24} color={colors.primary} />
+              <Text style={[styles.authorText, { color: colors.textPrimary }]}>{thread.author?.full_name || 'Аноним'}</Text>
             </View>
 
             <View style={styles.stats}>
               <View style={styles.stat}>
-                <MaterialIcons name="visibility" size={18} color={Colors.primary} />
-                <Text style={styles.statText}>{thread.views}</Text>
+                <MaterialIcons name="visibility" size={18} color={colors.primary} />
+                <Text style={[styles.statText, { color: colors.primary }]}>{thread.views}</Text>
               </View>
               
               <View style={styles.stat}>
-                <MaterialIcons name="access-time" size={18} color={Colors.primary} />
-                <Text style={styles.timeAgo}>{formatTimeAgo(thread.created_at)}</Text>
+                <MaterialIcons name="access-time" size={18} color={colors.primary} />
+                <Text style={[styles.timeAgo, { color: colors.primary }]}>{formatTimeAgo(thread.created_at)}</Text>
               </View>
             </View>
           </View>
 
-          <Text style={styles.threadContent}>{thread.content}</Text>
+          <Text style={[styles.threadContent, { color: colors.textPrimary }]}>{thread.content}</Text>
 
           {thread.is_closed && (
-            <View style={styles.closedBadge}>
-              <MaterialIcons name="lock" size={16} color={Colors.error} />
-              <Text style={styles.closedText}>Топік закрито для коментарів</Text>
+            <View style={[styles.closedBadge, { backgroundColor: colors.background }]}>
+              <MaterialIcons name="lock" size={16} color={colors.error} />
+              <Text style={[styles.closedText, { color: colors.error }]}>Топік закрито для коментарів</Text>
             </View>
           )}
         </View>
@@ -496,7 +483,7 @@ export default function ThreadDetailScreen() {
         {/* Комментарии */}
         {thread.posts && thread.posts.length > 0 && (
           <View style={[styles.commentsSection, isDesktop && styles.commentsSectionDesktop]}>
-            <Text style={styles.commentsTitle}>
+            <Text style={[styles.commentsTitle, { color: colors.textPrimary }]}>
               Коментарі ({thread.posts_count})
             </Text>
             
@@ -524,33 +511,33 @@ export default function ThreadDetailScreen() {
 
       {/* Форма комментирования */}
       {user && !thread.is_closed && (
-        <View style={[styles.commentForm, isDesktop && styles.commentFormDesktop]}>
+        <View style={[styles.commentForm, { backgroundColor: colors.cardBackground }, isDesktop && styles.commentFormDesktop]}>
           {(replyTo || editingPost) && (
-            <View style={styles.actionBanner}>
-              <Text style={styles.actionText}>
+            <View style={[styles.actionBanner, { backgroundColor: colors.background }]}>
+              <Text style={[styles.actionText, { color: colors.textSecondary }]}>
                 {editingPost
                   ? 'Редагування коментаря'
                   : `Відповідь на коментар ${replyTo?.author}`}
               </Text>
               <TouchableOpacity onPress={cancelReply}>
-                <MaterialIcons name="close" size={20} color={Colors.textSecondary} />
+                <MaterialIcons name="close" size={20} color={colors.textSecondary} />
               </TouchableOpacity>
             </View>
           )}
 
-          <View style={styles.inputContainer}>
+          <View style={[styles.inputContainer, { backgroundColor: colors.cardBackground }]}>
             <TextInput
-              style={styles.input}
+              style={[styles.input, { color: colors.textPrimary }]}
               value={newComment}
               onChangeText={setNewComment}
               placeholder={editingPost ? 'Редагувати коментар...' : 'Написати коментар...'}
-              placeholderTextColor={Colors.textMuted}
+              placeholderTextColor={colors.textMuted}
               multiline
               maxLength={1000}
             />
 
             <TouchableOpacity
-              style={[styles.sendButton, commenting && styles.sendButtonDisabled]}
+              style={[styles.sendButton, { backgroundColor: colors.primary }, commenting && styles.sendButtonDisabled]}
               onPress={handleSubmitComment}
               disabled={commenting || newComment.trim().length === 0}
             >
@@ -566,13 +553,13 @@ export default function ThreadDetailScreen() {
 
       {!user && (
         <TouchableOpacity 
-          style={[styles.loginPrompt, isDesktop && styles.loginPromptDesktop]}
+          style={[styles.loginPrompt, { backgroundColor: colors.cardBackground }, isDesktop && styles.loginPromptDesktop]}
           onPress={() => router.push('/login')}
           activeOpacity={0.8}
           // @ts-ignore - className для веб
           className="login-prompt-button"
         >
-          <Text style={styles.loginText}>Увійдіть, щоб залишити коментар</Text>
+          <Text style={[styles.loginText, { color: colors.primary }]}>Увійдіть, щоб залишити коментар</Text>
         </TouchableOpacity>
       )}
       
@@ -593,7 +580,7 @@ export default function ThreadDetailScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: Colors.background,
+    // backgroundColor: dynamic,
   },
   loadingContainer: {
     flex: 1,
@@ -602,7 +589,7 @@ const styles = StyleSheet.create({
   },
   errorText: {
     ...Typography.body,
-    color: Colors.textMuted,
+    // color: dynamic,
   },
   content: {
     flex: 1,
@@ -622,10 +609,10 @@ const styles = StyleSheet.create({
   },
   desktopHeaderTitle: {
     ...Typography.h2,
-    color: Colors.textPrimary,
+    // color: dynamic,
   },
   threadContainer: {
-    backgroundColor: Colors.cardBackground,
+    // backgroundColor: dynamic,
     padding: Spacing.md,
     marginTop: Spacing.md,
     marginBottom: Spacing.md,
@@ -641,13 +628,13 @@ const styles = StyleSheet.create({
   },
   pinnedText: {
     ...Typography.caption,
-    color: Colors.primary,
+    // color: dynamic,
     fontWeight: '600',
     marginLeft: 6,
   },
   title: {
     ...Typography.h3,
-    color: Colors.textPrimary,
+    // color: dynamic,
     marginBottom: Spacing.sm,
   },
   meta: {
@@ -662,7 +649,7 @@ const styles = StyleSheet.create({
   },
   authorText: {
     ...Typography.body,
-    color: Colors.textSecondary,
+    // color: dynamic,
     marginLeft: Spacing.xs,
   },
   stats: {
@@ -677,18 +664,18 @@ const styles = StyleSheet.create({
   },
   statText: {
     ...Typography.caption,
-    color: Colors.primary,
+    // color: dynamic,
     fontWeight: '600',
   },
   timeAgo: {
     ...Typography.caption,
-    color: Colors.primary,
+    // color: dynamic,
     fontWeight: '600',
     fontSize: 12,
   },
   threadContent: {
     ...Typography.body,
-    color: Colors.textPrimary,
+    // color: dynamic,
     lineHeight: 22,
   },
   closedBadge: {
@@ -696,12 +683,12 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginTop: Spacing.md,
     padding: Spacing.sm,
-    backgroundColor: Colors.background,
+    // backgroundColor: dynamic,
     borderRadius: BorderRadius.md,
   },
   closedText: {
     ...Typography.body,
-    color: Colors.error,
+    // color: dynamic,
     marginLeft: Spacing.xs,
   },
   commentsSection: {
@@ -712,13 +699,13 @@ const styles = StyleSheet.create({
   },
   commentsTitle: {
     ...Typography.h4,
-    color: Colors.textPrimary,
+    // color: dynamic,
     marginBottom: Spacing.md,
   },
   commentForm: {
-    backgroundColor: Colors.cardBackground,
+    // backgroundColor: dynamic,
     borderTopWidth: 1,
-    borderTopColor: Colors.borderLight,
+    // borderTopColor: dynamic,
   },
   commentFormDesktop: {
     maxWidth: 900,
@@ -733,11 +720,11 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'center',
     padding: Spacing.sm,
-    backgroundColor: Colors.background,
+    // backgroundColor: dynamic,
   },
   actionText: {
     ...Typography.caption,
-    color: Colors.textSecondary,
+    // color: dynamic,
   },
   inputContainer: {
     flexDirection: 'row',
@@ -746,12 +733,12 @@ const styles = StyleSheet.create({
   },
   input: {
     flex: 1,
-    backgroundColor: Colors.background,
+    // backgroundColor: dynamic,
     borderRadius: 20,
     paddingHorizontal: Spacing.md,
     paddingVertical: 10,
     ...Typography.body,
-    color: Colors.textPrimary,
+    // color: dynamic,
     maxHeight: 100,
     marginRight: Spacing.xs,
     outlineStyle: 'none' as any,
@@ -760,7 +747,7 @@ const styles = StyleSheet.create({
     width: 44,
     height: 44,
     borderRadius: 22,
-    backgroundColor: Colors.primary,
+    // backgroundColor: dynamic,
     justifyContent: 'center',
     alignItems: 'center',
   },
@@ -769,9 +756,9 @@ const styles = StyleSheet.create({
   },
   loginPrompt: {
     padding: Spacing.md,
-    backgroundColor: Colors.cardBackground,
+    // backgroundColor: dynamic,
     borderTopWidth: 1,
-    borderTopColor: Colors.borderLight,
+    // borderTopColor: dynamic,
     alignItems: 'center',
   },
   loginPromptDesktop: {
@@ -784,7 +771,7 @@ const styles = StyleSheet.create({
   },
   loginText: {
     ...Typography.body,
-    color: Colors.textSecondary,
+    // color: dynamic,
   },
 });
 

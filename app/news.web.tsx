@@ -13,11 +13,14 @@ import { useRouter } from 'expo-router';
 import { API_ENDPOINTS, getHeaders } from '../constants/api';
 import { MaterialIcons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { Colors, Typography, Spacing, BorderRadius } from '../constants/Theme';
+import { Typography, Spacing, BorderRadius } from '../constants/Theme';
+import { useTheme } from '../contexts/ThemeContext';
 import PageWrapper from '../components/web/PageWrapper';
 import MobileMenu, { MobileMenuWrapper } from '../components/web/MobileMenu';
 import { useResponsive } from '../utils/responsive';
 import HoverCard from '../components/web/HoverCard';
+import { useSEO } from '../hooks/useSEO';
+import { PAGE_METAS } from '../utils/seo';
 
 interface NewsItem {
   id: number;
@@ -31,6 +34,9 @@ interface NewsItem {
 }
 
 export default function NewsScreen() {
+  useSEO(PAGE_METAS.news);
+  
+  const { theme, colors } = useTheme();
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const { isDesktop, isMobile } = useResponsive();
@@ -112,20 +118,20 @@ export default function NewsScreen() {
       <View style={{ flex: 1 }}>
         <MobileMenu title="Всі новини" />
         <MobileMenuWrapper>
-          <View style={styles.container}>
+          <View style={[styles.container, { backgroundColor: colors.background }]}>
             <ScrollView 
               contentContainerStyle={{ paddingBottom: insets.bottom + 32 }}
             >
               <View style={styles.content}>
                 {loading ? (
                   <View style={styles.loadingContainer}>
-                    <ActivityIndicator size="large" color={Colors.primary} />
-                    <Text style={styles.loadingText}>Завантаження новин...</Text>
+                    <ActivityIndicator size="large" color={colors.primary} />
+                    <Text style={[styles.loadingText, { color: colors.textMuted }]}>Завантаження новин...</Text>
                   </View>
                 ) : news.length === 0 ? (
                   <View style={styles.emptyContainer}>
-                    <MaterialIcons name="article" size={64} color={Colors.textMuted} />
-                    <Text style={styles.emptyText}>Новин поки немає</Text>
+                    <MaterialIcons name="article" size={64} color={colors.textMuted} />
+                    <Text style={[styles.emptyText, { color: colors.textMuted }]}>Новин поки немає</Text>
                   </View>
                 ) : (
                   <>
@@ -134,29 +140,29 @@ export default function NewsScreen() {
                       {news.map((item) => (
                         <HoverCard
                           key={item.id}
-                          style={styles.newsCard}
-                          hoverStyle={styles.newsCardHover}
+                          style={[styles.newsCard, { backgroundColor: colors.cardBackground }]}
+                          hoverStyle={{ backgroundColor: theme === 'dark' ? '#1e2126' : '#e9ecef' }}
                           onPress={() => handleNewsPress(item)}
                         >
                           <View style={styles.newsHeader}>
-                            <Text style={styles.newsSource}>{item.source}</Text>
+                            <Text style={[styles.newsSource, { color: colors.primary }]}>{item.source}</Text>
                             {item.categories && item.categories.length > 0 && (
-                              <View style={styles.categoryBadge}>
-                                <Text style={styles.categoryText}>{item.categories[0]}</Text>
+                              <View style={[styles.categoryBadge, { backgroundColor: colors.background }]}>
+                                <Text style={[styles.categoryText, { color: colors.textSecondary }]}>{item.categories[0]}</Text>
                               </View>
                             )}
                           </View>
-                          <Text style={styles.newsTitle}>{truncateTitle(item.title, 80)}</Text>
+                          <Text style={[styles.newsTitle, { color: colors.textPrimary }]}>{truncateTitle(item.title, 80)}</Text>
                           {item.target_audience && item.target_audience.length > 0 && (
                             <View style={styles.audienceContainer}>
                               {item.target_audience.map((audience, index) => (
-                                <View key={index} style={styles.audienceBadge}>
-                                  <Text style={styles.audienceText}>{audience}</Text>
+                                <View key={index} style={[styles.audienceBadge, { backgroundColor: colors.background }]}>
+                                  <Text style={[styles.audienceText, { color: colors.primary }]}>{audience}</Text>
                                 </View>
                               ))}
                             </View>
                           )}
-                          <Text style={styles.newsDate}>{formatDate(item.published_at)}</Text>
+                          <Text style={[styles.newsDate, { color: colors.textMuted }]}>{formatDate(item.published_at)}</Text>
                         </HoverCard>
                       ))}
                     </View>
@@ -164,11 +170,19 @@ export default function NewsScreen() {
                     {/* Пагинация */}
                     <View style={styles.pagination}>
                       <TouchableOpacity
-                        style={[styles.paginationButton, currentPage === 1 && styles.paginationButtonDisabled]}
+                        style={[
+                          styles.paginationButton, 
+                          { backgroundColor: colors.cardBackground, borderColor: currentPage === 1 ? colors.textMuted : colors.primary },
+                          currentPage === 1 && styles.paginationButtonDisabled
+                        ]}
                         onPress={handlePrevPage}
                         disabled={currentPage === 1}
                       >
-                        <Text style={[styles.paginationButtonText, currentPage === 1 && styles.paginationButtonTextDisabled]}>
+                        <Text style={[
+                          styles.paginationButtonText, 
+                          { color: currentPage === 1 ? colors.textMuted : colors.primary },
+                          currentPage === 1 && styles.paginationButtonTextDisabled
+                        ]}>
                           Назад
                         </Text>
                       </TouchableOpacity>
@@ -200,23 +214,23 @@ export default function NewsScreen() {
   // Для Desktop Web - используем PageWrapper
   return (
     <PageWrapper showMobileNav={false}>
-      <View style={styles.container}>
+      <View style={[styles.container, { backgroundColor: colors.background }]}>
         <ScrollView 
           contentContainerStyle={{ paddingBottom: insets.bottom + 32 }}
         >
           <View style={[styles.content, isDesktop && styles.desktopContent]}>
             {/* Заголовок */}
-            <Text style={styles.pageTitle}>Всі новини</Text>
+            <Text style={[styles.pageTitle, { color: colors.textPrimary }]}>Всі новини</Text>
 
           {loading ? (
             <View style={styles.loadingContainer}>
-              <ActivityIndicator size="large" color={Colors.primary} />
-              <Text style={styles.loadingText}>Завантаження новин...</Text>
+              <ActivityIndicator size="large" color={colors.primary} />
+              <Text style={[styles.loadingText, { color: colors.textMuted }]}>Завантаження новин...</Text>
             </View>
           ) : news.length === 0 ? (
             <View style={styles.emptyContainer}>
-              <MaterialIcons name="article" size={64} color={Colors.textMuted} />
-              <Text style={styles.emptyText}>Новин поки немає</Text>
+              <MaterialIcons name="article" size={64} color={colors.textMuted} />
+              <Text style={[styles.emptyText, { color: colors.textMuted }]}>Новин поки немає</Text>
             </View>
           ) : (
             <>
@@ -225,24 +239,24 @@ export default function NewsScreen() {
                 {news.map((item) => (
                   <HoverCard
                     key={item.id}
-                    style={styles.newsCard}
-                    hoverStyle={styles.newsCardHover}
+                    style={[styles.newsCard, { backgroundColor: colors.cardBackground }]}
+                    hoverStyle={{ backgroundColor: theme === 'dark' ? '#1e2126' : '#e9ecef' }}
                     onPress={() => handleNewsPress(item)}
                   >
                     <View style={styles.newsHeader}>
-                      <Text style={styles.newsSource}>{item.source}</Text>
+                      <Text style={[styles.newsSource, { color: colors.primary }]}>{item.source}</Text>
                       {item.categories && item.categories.length > 0 && (
-                        <View style={styles.categoryBadge}>
-                          <Text style={styles.categoryText}>{item.categories[0]}</Text>
+                        <View style={[styles.categoryBadge, { backgroundColor: colors.background }]}>
+                          <Text style={[styles.categoryText, { color: colors.textSecondary }]}>{item.categories[0]}</Text>
                         </View>
                       )}
                     </View>
-                    <Text style={styles.newsTitle}>{truncateTitle(item.title, 80)}</Text>
+                    <Text style={[styles.newsTitle, { color: colors.textPrimary }]}>{truncateTitle(item.title, 80)}</Text>
                     {item.target_audience && item.target_audience.length > 0 && (
                       <View style={styles.audienceContainer}>
                         {item.target_audience.map((audience, index) => (
-                          <View key={index} style={styles.audienceBadge}>
-                            <Text style={styles.audienceText}>{audience}</Text>
+                          <View key={index} style={[styles.audienceBadge, { backgroundColor: colors.background }]}>
+                            <Text style={[styles.audienceText, { color: colors.primary }]}>{audience}</Text>
                           </View>
                         ))}
                       </View>
@@ -256,6 +270,7 @@ export default function NewsScreen() {
                 <TouchableOpacity
                   style={[
                     styles.paginationButton,
+                    { backgroundColor: colors.cardBackground, borderColor: currentPage === 1 ? colors.textMuted : colors.primary },
                     currentPage === 1 && styles.paginationButtonDisabled
                   ]}
                   onPress={handlePrevPage}
@@ -264,18 +279,19 @@ export default function NewsScreen() {
                   <MaterialIcons 
                     name="chevron-left" 
                     size={24} 
-                    color={currentPage === 1 ? Colors.textMuted : Colors.primary} 
+                    color={currentPage === 1 ? colors.textMuted : colors.primary} 
                   />
                   <Text style={[
                     styles.paginationButtonText,
+                    { color: currentPage === 1 ? colors.textMuted : colors.primary },
                     currentPage === 1 && styles.paginationButtonTextDisabled
                   ]}>
                     Назад
                   </Text>
                 </TouchableOpacity>
 
-                <View style={styles.pageInfo}>
-                  <Text style={styles.pageInfoText}>
+                <View style={[styles.pageInfo, { backgroundColor: colors.cardBackground }]}>
+                  <Text style={[styles.pageInfoText, { color: colors.textPrimary }]}>
                     Сторінка {currentPage} {totalPages > currentPage && `з ${totalPages}+`}
                   </Text>
                 </View>
@@ -283,6 +299,7 @@ export default function NewsScreen() {
                 <TouchableOpacity
                   style={[
                     styles.paginationButton,
+                    { backgroundColor: colors.cardBackground, borderColor: (news.length < ITEMS_PER_PAGE) ? colors.textMuted : colors.primary },
                     (news.length < ITEMS_PER_PAGE) && styles.paginationButtonDisabled
                   ]}
                   onPress={handleNextPage}
@@ -290,6 +307,7 @@ export default function NewsScreen() {
                 >
                   <Text style={[
                     styles.paginationButtonText,
+                    { color: (news.length < ITEMS_PER_PAGE) ? colors.textMuted : colors.primary },
                     (news.length < ITEMS_PER_PAGE) && styles.paginationButtonTextDisabled
                   ]}>
                     Далі
@@ -297,7 +315,7 @@ export default function NewsScreen() {
                   <MaterialIcons 
                     name="chevron-right" 
                     size={24} 
-                    color={(news.length < ITEMS_PER_PAGE) ? Colors.textMuted : Colors.primary} 
+                    color={(news.length < ITEMS_PER_PAGE) ? colors.textMuted : colors.primary} 
                   />
                 </TouchableOpacity>
               </View>
@@ -313,7 +331,6 @@ export default function NewsScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: Colors.background,
   },
   content: {
     padding: Spacing.md,
@@ -326,7 +343,6 @@ const styles = StyleSheet.create({
   },
   pageTitle: {
     ...Typography.h2,
-    color: Colors.textPrimary,
     marginBottom: Spacing.lg,
     marginTop: Spacing.md,
   },
@@ -339,17 +355,13 @@ const styles = StyleSheet.create({
     gap: Spacing.md,
   },
   newsCard: {
-    backgroundColor: Colors.cardBackground,
     borderRadius: BorderRadius.md,
     padding: Spacing.md,
-    shadowColor: Colors.black,
+    shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 4,
     elevation: 3,
-  },
-  newsCardHover: {
-    backgroundColor: '#1e2126',
   },
   newsHeader: {
     flexDirection: 'row',
@@ -359,23 +371,19 @@ const styles = StyleSheet.create({
   },
   newsSource: {
     ...Typography.caption,
-    color: Colors.primary,
     fontWeight: '600',
   },
   categoryBadge: {
-    backgroundColor: Colors.background,
     paddingHorizontal: Spacing.sm,
     paddingVertical: 4,
     borderRadius: BorderRadius.lg,
   },
   categoryText: {
     ...Typography.caption,
-    color: Colors.textSecondary,
     fontWeight: '500',
   },
   newsTitle: {
     ...Typography.body,
-    color: Colors.textPrimary,
     lineHeight: 22,
     marginBottom: Spacing.sm,
   },
@@ -385,7 +393,6 @@ const styles = StyleSheet.create({
     marginTop: Spacing.sm,
   },
   audienceBadge: {
-    backgroundColor: Colors.background,
     paddingHorizontal: Spacing.sm,
     paddingVertical: 3,
     borderRadius: BorderRadius.sm,
@@ -394,13 +401,11 @@ const styles = StyleSheet.create({
   },
   audienceText: {
     ...Typography.caption,
-    color: Colors.primary,
     fontWeight: '600',
     fontSize: 10,
   },
   newsDate: {
     ...Typography.caption,
-    color: Colors.textMuted,
     marginTop: Spacing.sm,
   },
   pagination: {
@@ -412,7 +417,6 @@ const styles = StyleSheet.create({
   },
   paginationText: {
     ...Typography.body,
-    color: Colors.textPrimary,
     fontWeight: '600',
   },
   loadingContainer: {
@@ -422,7 +426,6 @@ const styles = StyleSheet.create({
   },
   loadingText: {
     ...Typography.body,
-    color: Colors.textMuted,
     marginTop: Spacing.sm,
   },
   emptyContainer: {
@@ -432,7 +435,6 @@ const styles = StyleSheet.create({
   },
   emptyText: {
     ...Typography.body,
-    color: Colors.textMuted,
     marginTop: Spacing.md,
   },
   paginationContainer: {
@@ -445,35 +447,28 @@ const styles = StyleSheet.create({
   paginationButton: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: Colors.cardBackground,
     paddingHorizontal: Spacing.md,
     paddingVertical: Spacing.sm,
     borderRadius: BorderRadius.md,
     gap: Spacing.xs,
     borderWidth: 2,
-    borderColor: Colors.primary,
   },
   paginationButtonDisabled: {
-    borderColor: Colors.textMuted,
     opacity: 0.5,
   },
   paginationButtonText: {
     ...Typography.body,
-    color: Colors.primary,
     fontWeight: '600',
   },
   paginationButtonTextDisabled: {
-    color: Colors.textMuted,
   },
   pageInfo: {
-    backgroundColor: Colors.cardBackground,
     paddingHorizontal: Spacing.lg,
     paddingVertical: Spacing.sm,
     borderRadius: BorderRadius.md,
   },
   pageInfoText: {
     ...Typography.body,
-    color: Colors.textPrimary,
     fontWeight: '600',
   },
 });

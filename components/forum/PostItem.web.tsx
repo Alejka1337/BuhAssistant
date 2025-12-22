@@ -3,7 +3,8 @@ import React, { useState, useEffect, useRef } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Alert } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
 import { ForumPost } from '../../utils/forumService';
-import { Colors, Typography, Spacing, BorderRadius } from '@/constants/Theme';
+import { Typography, Spacing, BorderRadius } from '@/constants/Theme';
+import { useTheme } from '@/contexts/ThemeContext';
 import LikeButton from './LikeButton';
 
 interface PostItemProps {
@@ -52,6 +53,7 @@ export default function PostItem({
   parentPost,
   onQuoteClick,
 }: PostItemProps) {
+  const { colors } = useTheme();
   const [showActions, setShowActions] = useState(false);
   const isAuthor = currentUserId && post.user_id === currentUserId;
   const canReply = level < MAX_NESTING_LEVEL;
@@ -115,23 +117,23 @@ export default function PostItem({
   };
 
   return (
-    <View style={[styles.container, post.replies && post.replies.length > 0 && styles.containerWithReplies]}>
+    <View style={[styles.container, { backgroundColor: colors.cardBackground }, post.replies && post.replies.length > 0 && styles.containerWithReplies]}>
       <View style={styles.header}>
         <View style={styles.leftSection}>
           {/* Аватар */}
-          <View style={styles.avatar}>
-            <MaterialIcons name="person" size={24} color={Colors.primary} />
+          <View style={[styles.avatar, { backgroundColor: colors.background }]}>
+            <MaterialIcons name="person" size={24} color={colors.primary} />
           </View>
           
           {/* Имя пользователя */}
-          <Text style={styles.authorName}>{post.author?.full_name || 'Аноним'}</Text>
+          <Text style={[styles.authorName, { color: colors.textPrimary }]}>{post.author?.full_name || 'Аноним'}</Text>
         </View>
         
         {/* Дата справа (зеленая) */}
         <View style={styles.dateContainer}>
-          <Text style={styles.date}>{formatDate(post.created_at)}</Text>
+          <Text style={[styles.date, { color: colors.primary }]}>{formatDate(post.created_at)}</Text>
           {post.edited_at && (
-            <Text style={styles.edited}> (ред.)</Text>
+            <Text style={[styles.edited, { color: colors.textMuted }]}> (ред.)</Text>
           )}
         </View>
       </View>
@@ -139,14 +141,14 @@ export default function PostItem({
       {/* Цитата родительского комментария (если это ответ) */}
       {isReply && parentPost && (
         <TouchableOpacity 
-          style={styles.quote} 
+          style={[styles.quote, { backgroundColor: colors.background }]} 
           activeOpacity={0.7}
           onPress={() => onQuoteClick && onQuoteClick(parentPost.id)}
         >
-          <View style={styles.quoteLine} />
+          <View style={[styles.quoteLine, { backgroundColor: colors.primary }]} />
           <View style={styles.quoteContent}>
-            <Text style={styles.quoteAuthor}>{parentPost.author?.full_name || 'Аноним'}</Text>
-            <Text style={styles.quoteText} numberOfLines={2}>
+            <Text style={[styles.quoteAuthor, { color: colors.primary }]}>{parentPost.author?.full_name || 'Аноним'}</Text>
+            <Text style={[styles.quoteText, { color: colors.textMuted }]} numberOfLines={2}>
               {truncateText(parentPost.content, 100)}
             </Text>
           </View>
@@ -154,7 +156,7 @@ export default function PostItem({
       )}
 
       {/* Текст комментария */}
-      <Text style={styles.content}>{post.content}</Text>
+      <Text style={[styles.content, { color: colors.textPrimary }]}>{post.content}</Text>
 
       {/* Действия */}
       <View style={styles.actions}>
@@ -170,8 +172,8 @@ export default function PostItem({
             style={styles.actionButton}
             onPress={() => onReply(post.id)}
           >
-            <MaterialIcons name="reply" size={18} color={Colors.textSecondary} />
-            <Text style={styles.actionText}>Відповісти</Text>
+            <MaterialIcons name="reply" size={18} color={colors.textSecondary} />
+            <Text style={[styles.actionText, { color: colors.textSecondary }]}>Відповісти</Text>
           </TouchableOpacity>
         )}
 
@@ -181,16 +183,16 @@ export default function PostItem({
               style={styles.actionButton}
               onPress={() => onEdit(post.id, post.content)}
             >
-              <MaterialIcons name="edit" size={18} color={Colors.textSecondary} />
-              <Text style={styles.actionText}>Редагувати</Text>
+              <MaterialIcons name="edit" size={18} color={colors.textSecondary} />
+              <Text style={[styles.actionText, { color: colors.textSecondary }]}>Редагувати</Text>
             </TouchableOpacity>
 
             <TouchableOpacity
               style={styles.actionButton}
               onPress={handleDelete}
             >
-              <MaterialIcons name="delete" size={18} color={Colors.error} />
-              <Text style={[styles.actionText, styles.deleteText]}>Видалити</Text>
+              <MaterialIcons name="delete" size={18} color={colors.error} />
+              <Text style={[styles.actionText, styles.deleteText, { color: colors.error }]}>Видалити</Text>
             </TouchableOpacity>
           </>
         )}
@@ -225,9 +227,8 @@ export default function PostItem({
 
 const styles = StyleSheet.create({
   container: {
-    backgroundColor: Colors.cardBackground,
     borderRadius: BorderRadius.md,
-    padding: Spacing.md, // Увеличил с sm до md
+    padding: Spacing.md,
     marginBottom: Spacing.xs,
   },
   containerWithReplies: {
@@ -237,7 +238,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: Spacing.md, // Увеличил с sm до md
+    marginBottom: Spacing.md,
   },
   leftSection: {
     flexDirection: 'row',
@@ -248,14 +249,12 @@ const styles = StyleSheet.create({
     width: 40,
     height: 40,
     borderRadius: 20,
-    backgroundColor: Colors.background,
     alignItems: 'center',
     justifyContent: 'center',
-    marginRight: Spacing.sm, // Увеличил с xs до sm
+    marginRight: Spacing.sm,
   },
   authorName: {
     ...Typography.bodyBold,
-    color: Colors.textPrimary,
     flex: 1,
   },
   dateContainer: {
@@ -264,51 +263,44 @@ const styles = StyleSheet.create({
   },
   date: {
     ...Typography.caption,
-    color: Colors.primary,
     fontWeight: '600',
     fontSize: 12,
   },
   edited: {
     ...Typography.caption,
-    color: Colors.textMuted,
     fontStyle: 'italic',
     fontSize: 11,
   },
   quote: {
     flexDirection: 'row',
-    backgroundColor: Colors.background,
     borderRadius: BorderRadius.sm,
-    padding: Spacing.sm, // Увеличил с xs до sm
-    marginBottom: Spacing.md, // Увеличил с xs до md
+    padding: Spacing.sm,
+    marginBottom: Spacing.md,
     marginLeft: 12,
   },
   quoteLine: {
     width: 3,
-    backgroundColor: Colors.primary,
     borderRadius: 2,
-    marginRight: Spacing.sm, // Увеличил с xs до sm
+    marginRight: Spacing.sm,
   },
   quoteContent: {
     flex: 1,
   },
   quoteAuthor: {
     ...Typography.caption,
-    color: Colors.primary,
     fontWeight: '600',
     marginBottom: 2,
   },
   quoteText: {
     ...Typography.caption,
-    color: Colors.textMuted,
     fontSize: 12,
     lineHeight: 16,
   },
   content: {
     ...Typography.body,
-    color: Colors.textPrimary,
     lineHeight: 20,
     marginLeft: 12,
-    marginBottom: Spacing.md, // Увеличил с sm до md
+    marginBottom: Spacing.md,
   },
   actions: {
     flexDirection: 'row',
@@ -324,15 +316,13 @@ const styles = StyleSheet.create({
   },
   actionText: {
     ...Typography.caption,
-    color: Colors.textSecondary,
     marginLeft: 4,
   },
   deleteText: {
-    color: Colors.error,
   },
   replies: {
-    marginTop: Spacing.lg, // Увеличил для пространства между комментариями
-    marginLeft: -16, // Изменил с -8 на -16 для выравнивания
+    marginTop: Spacing.lg,
+    marginLeft: -16,
   },
   lastReply: {
     marginBottom: -Spacing.xs,
